@@ -17,5 +17,8 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
+.layout-wrapper {
+    
+}
 </style>
