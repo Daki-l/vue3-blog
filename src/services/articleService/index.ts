@@ -4,9 +4,7 @@ import constant from "@/utils/constant"
 const baseUrl = `${constant.baseUrl}`
 
 async function getArticleList() {
-    return axios.get(`${baseUrl}/v1/acticle/list`)
+    return axios.get(`${baseUrl}/article/v1/list`)
 }
 
-export default {
-    getArticleList
-}
+export { getArticleList }

@@ -9,7 +9,8 @@
 </template>
 
 <script>
-import { getArticleList } from "./services/articleService/index"
+// import { getArticleList } from "./services/articleService/index.ts"
+import { getArticleList } from "@/services/articleService"
 export default {
     mounted() {
         console.log("xxx---")
@@ -27,10 +28,12 @@ export default {
     height: 100%;
     display: block;
     overflow: auto;
-    .layout-header {}
+    .layout-header {
+    }
     .layout-content {
         height: calc(100% - var(--el-menu-horizontal-height));
     }
-    .layout-footer {}
+    .layout-footer {
+    }
 }
 </style>
