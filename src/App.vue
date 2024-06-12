@@ -8,9 +8,16 @@
     </div>
 </template>
 
-<script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router"
-import LayoutHeader from "@/pages/layouts/LayoutHeader.vue"
+<script>
+import { getArticleList } from "./services/articleService/index"
+export default {
+    mounted() {
+        console.log("xxx---")
+        getArticleList().then((res) => {
+            console.log("res---", res)
+        })
+    }
+}
 </script>
 
 <style scoped lang="less">
