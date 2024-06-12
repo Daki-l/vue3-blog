@@ -1,10 +1,10 @@
-import axios from "@/utils/axios"
-import constant from "@/utils/constant"
+import axios from '@/utils/axios';
+import constant from '@/utils/constant';
 
-const baseUrl = `${constant.baseUrl}`
+const baseUrl = `${constant.baseUrl}`;
 
 async function getArticleList() {
-    return axios.get(`${baseUrl}/article/v1/list`)
+	return axios.get(`${baseUrl}/article/v1/list`);
 }
 
-export { getArticleList }
+export { getArticleList };

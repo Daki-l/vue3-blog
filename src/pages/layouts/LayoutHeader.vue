@@ -11,27 +11,31 @@
             <el-menu-item index="/">
                 <img style="width: 100px" src="https://element-plus.org/images/element-plus-logo.svg" alt="Element logo" />
             </el-menu-item>
-            <div class="flex-grow" />
+            <div class="flex-grow"></div>
             <template v-for="(item, index) in nanOption" :key="index">
                 <el-menu-item v-if="(item.children || []).length === 0" :index="item.path || item.index">{{ item.name }}</el-menu-item>
                 <el-sub-menu v-else :index="item.path || item.index" >
                     <template #title>{{ item.name }}</template>
                     <template v-for="(child, cndex) in item.children" :key="cndex">
-                        <el-menu-item v-if="(child.children || []).length === 0" :index="child.path || child.index">{{ child.name }}</el-menu-item>
-                        <el-sub-menu v-else :index="child.path || child.index" >
+                        <el-sub-menu :index="child.path || child.index" >
                             <template #title>{{ child.name }}</template>
-                            <template v-for="(thild, tndex) in child.children" :key="tndex">
-                                <el-menu-item :index="thild.path || thild.index">{{ thild.name }}</el-menu-item>
-                            </template>
                         </el-sub-menu>
                     </template>
                 </el-sub-menu>
             </template>
         </el-menu>
         <div class="header-user">
+            <div class="theme-btns">
+                <el-switch
+                    v-model="themeValue"
+                    active-value="light"
+                    inactive-value="dark"
+                    @change="themeChange"
+                    />
+            </div>
             <div class="user-info" v-if="userInfo.id">
                 <img class="info-img" src="" alt="">
-                <div class="info-name">{{ userInfo.nam }}</div>
+                <div class="info-name">{{ userInfo.name }}</div>
             </div>
             <el-button type="primary" v-else>登录</el-button>
         </div>
@@ -76,25 +80,32 @@ const nanOption = [
                 name: "one",
                 path: '/one',
                 index: '4-1',
-                children: []
             },
             {
                 name: "two",
                 path: '/two',
                 index: '4-3',
-                children: []
             },
             {
                 name: "thire",
                 path: '/thire',
                 index: '4-3',
-                children: []
             },
         ]
     },
 ]
 
-let userInfo = {};
+const userInfo = ref({
+    id: '',
+    name: ''
+})
+
+const themeValue = ref('light');
+function themeChange(e:any) {
+    console.log('theme--change-', e);
+    document.documentElement.setAttribute('theme', e)
+}
+
 
 </script>
 
