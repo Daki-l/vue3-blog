@@ -47,8 +47,8 @@ import { ref } from "vue"
 
 const activeIndex = '/home'
 const handleSelect = (key: string, keyPath: string[]) => {
-    console.log(key, keyPath)
-    console.log(activeIndex);
+    // console.log(key, keyPath)
+    // console.log(activeIndex);
     
 }
 
@@ -102,7 +102,6 @@ const userInfo = ref({
 
 const themeValue = ref('light');
 function themeChange(e:any) {
-    console.log('theme--change-', e);
     document.documentElement.setAttribute('theme', e)
 }
 
