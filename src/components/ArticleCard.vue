@@ -27,8 +27,7 @@
     </section>
 </template>
 
-<script setup lang="ts">
-import type { PropType } from 'vue'
+<script setup>
 import { ref } from 'vue';
 import moment from "moment";
 import constant from "@/common/constant";
@@ -36,15 +35,13 @@ import router from '@/router';
 
 const defaultListImg = constant.defaultListImg;
 const props = defineProps({
-    cardInfo: Object as PropType<Object>
+    cardInfo: Object
 });
 
 const articleInfo= ref<any>(props.cardInfo)
 
-console.log('articleInfo---', articleInfo);
-
 function gotoActicleDetail() {
-    let { id, status } = articleInfo as any;
+    let { id, status } = articleInfo;
     router.push({
         name: 'articelDetail',
         query: { id, status}
