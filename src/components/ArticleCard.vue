@@ -17,7 +17,7 @@
             <div class="info-text">{{ articleInfo.intro }}</div>
             <div class="content-footer">
                 <div class="footer-left tag-list">
-                    <el-tag class="tag-item" type="primary" v-for="(tag, i) in articleInfo.tags.split(',').filter((e: any) => e)" :key="i">{{ tag }}</el-tag>
+                    <el-tag class="tag-item" type="primary" v-for="(tag, i) in articleInfo.tags.split(',').filter((e) => e)" :key="i">{{ tag }}</el-tag>
                 </div>
                 <div class="footer-right">
                     <el-button class="btn-more" @click="gotoActicleDetail">更多</el-button>
@@ -38,7 +38,7 @@ const props = defineProps({
     cardInfo: Object
 });
 
-const articleInfo= ref<any>(props.cardInfo)
+const articleInfo= ref(props.cardInfo)
 
 function gotoActicleDetail() {
     let { id, status } = articleInfo;

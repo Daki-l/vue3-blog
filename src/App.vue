@@ -8,7 +8,7 @@
 	</div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import LayoutHeader from "@/pages/layouts/LayoutHeader.vue";
 import LayoutFooter from "@/pages/layouts/LayoutFooter.vue";
 </script>

@@ -47,7 +47,7 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import moment from "moment";
 import { ref } from 'vue';
 import { onMounted } from 'vue';
@@ -63,14 +63,10 @@ function init () {
     initList();
 }
 
-const swiperList = ref<Array<any>>([]);
-interface requestType {
-    list: any,
-    total: number
-}
+const swiperList = ref([]);
 function  initList() {
     getArticleList().then((res) => {
-        let { list } = res as requestType;
+        let { list } = res;
         swiperList.value = list;
 	});
 }
