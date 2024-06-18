@@ -2,8 +2,10 @@ import constant from './constant';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
 import router from '@/router';
+
+let baseURL = constant.useMock ? constant.mockUrl : constant.baseUrl;
 class Request {
-    baseUrl = constant.baseUrl;
+    baseUrl = baseURL;
 
     request(opts) {
         const instance = axios.create({
@@ -11,9 +13,6 @@ class Request {
             timeout: 6000
         });
         this.setInterceptors(instance);
-        if (constant.readonly) {
-            return Promise.resolve({});
-        }
         return instance(opts);
     }
     //拦截器
@@ -29,10 +28,11 @@ class Request {
         //响应拦截器
         instance.interceptors.response.use(
             (res) => {
+                let data = res.data?.data || res.data;
                 if (res.status == 200) {
-                    return Promise.resolve(res.data);
+                    return Promise.resolve(data);
                 } else {
-                    return Promise.reject(res.data);
+                    return Promise.reject(data);
                 }
             },
             (err) => {
