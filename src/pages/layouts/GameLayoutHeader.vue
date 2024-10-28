@@ -22,7 +22,7 @@
                 </el-sub-menu>
             </template>
         </el-menu>
-        <div class="header-user">
+        <div class="header-user" v-if="false">
             <div class="theme-btns">
                 <el-switch
                     v-model="themeValue"
@@ -31,11 +31,11 @@
                     @change="themeChange"
                     />
             </div>
-            <!-- <div class="user-info" v-if="userInfo.id">
+            <div class="user-info" v-if="userInfo.id">
                 <img class="info-img" src="" alt="">
                 <div class="info-name">{{ userInfo.name }}</div>
             </div>
-            <el-button type="primary" v-else>登录</el-button> -->
+            <el-button type="primary" v-else>登录</el-button>
         </div>
     </div>
 </template>
