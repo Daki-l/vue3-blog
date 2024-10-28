@@ -12,14 +12,12 @@
                 <img style="width: 100px" src="https://element-plus.org/images/element-plus-logo.svg" alt="Element logo" />
             </el-menu-item>
             <div class="flex-grow"></div>
-            <template v-for="(item, index) in nanOption" :key="index">
+            <template v-for="(item, index) in navOption" :key="index">
                 <el-menu-item v-if="(item.children || []).length === 0" :index="item.path || item.index">{{ item.name }}</el-menu-item>
                 <el-sub-menu v-else :index="item.path || item.index" >
                     <template #title>{{ item.name }}</template>
                     <template v-for="(child, cndex) in item.children" :key="cndex">
-                        <el-sub-menu :index="child.path || child.index" >
-                            <template #title>{{ child.name }}</template>
-                        </el-sub-menu>
+                        <el-menu-item :index="child.path || child.index">{{ child.name }}</el-menu-item>
                     </template>
                 </el-sub-menu>
             </template>
@@ -52,7 +50,7 @@ const handleSelect = (key, keyPath) => {
     
 }
 
-const nanOption = [
+const navOption = [
     {
         name: '首页',
         path: '/home',
@@ -77,8 +75,8 @@ const nanOption = [
         index: '4',
         children: [
             {
-                name: "one",
-                path: '/one',
+                name: "游戏",
+                path: '/game',
                 index: '4-1',
             },
             {

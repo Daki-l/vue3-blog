@@ -5,7 +5,7 @@
                 <img :src="articleInfo.cover && articleInfo.cover.path || defaultListImg" alt="">
             </div>
         </div>
-        <div class="item-content ">
+        <div class="item-content">
             <div class="content-top">
                 <span class="info-time">
                     <i class="iconfont icon-date"></i>
