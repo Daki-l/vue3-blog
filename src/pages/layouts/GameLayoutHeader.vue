@@ -9,7 +9,7 @@
             @select="handleSelect"
         >
             <el-menu-item index="/">
-                <img style="width: 100px" src="https://element-plus.org/images/element-plus-logo.svg" alt="Element logo" />
+                <span style="font-size: 20px;font-weight: 600;">首页</span>
             </el-menu-item>
             <div class="flex-grow"></div>
             <template v-for="(item, index) in navOption" :key="index">
@@ -31,11 +31,11 @@
                     @change="themeChange"
                     />
             </div>
-            <div class="user-info" v-if="userInfo.id">
+            <!-- <div class="user-info" v-if="userInfo.id">
                 <img class="info-img" src="" alt="">
                 <div class="info-name">{{ userInfo.name }}</div>
             </div>
-            <el-button type="primary" v-else>登录</el-button>
+            <el-button type="primary" v-else>登录</el-button> -->
         </div>
     </div>
 </template>
@@ -43,7 +43,7 @@
 <script setup>
 import { ref } from "vue"
 
-const activeIndex = '/home'
+const activeIndex = '/coupon'
 const handleSelect = (key, keyPath) => {
     // console.log(key, keyPath)
     // console.log(activeIndex);
@@ -52,45 +52,11 @@ const handleSelect = (key, keyPath) => {
 
 const navOption = [
     {
-        name: '首页',
-        path: '/home',
+        name: '兑换码直兑',
+        path: '/coupon',
         index: '1',
         children: []
-    },
-    {
-        name: "文章",
-        path: '/article',
-        index: '2',
-        children: []
-    },
-    {
-        name: "关于",
-        path: '/about',
-        index: '3',
-        children: []
-    },
-    {
-        name: "other",
-        path: '/other',
-        index: '4',
-        children: [
-            {
-                name: "游戏",
-                path: '/game',
-                index: '4-1',
-            },
-            {
-                name: "two",
-                path: '/two',
-                index: '4-3',
-            },
-            {
-                name: "thire",
-                path: '/thire',
-                index: '4-3',
-            },
-        ]
-    },
+    }
 ]
 
 const userInfo = ref({

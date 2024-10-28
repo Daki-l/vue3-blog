@@ -1,6 +1,6 @@
 <template>
     <div class="layout-footer-wrapper">
-        <div class="copyright-info">版权所有 Copyright(©)2020-2024</div>
+        <div class="copyright-info">版权所有 Copyright(©)2020-2025</div>
     </div>
 </template>
 
