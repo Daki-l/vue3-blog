@@ -3,8 +3,8 @@
         <LayoutHeader></LayoutHeader>
         <div class="layout-content">
             <RouterView />
-            <LayoutFooter></LayoutFooter>
         </div>
+        <LayoutFooter></LayoutFooter>
     </div>
 </template>
 

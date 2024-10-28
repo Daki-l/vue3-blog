@@ -22,7 +22,7 @@ import LayoutFooter from "@/pages/layouts/LayoutFooter.vue";
 	.layout-header {
 	}
 	.layout-content {
-		height: calc(100% - var(--el-menu-horizontal-height) - 112px);
+		height: calc(100% - var(--el-menu-horizontal-height));
         max-width: 1280px;
         margin: 0 auto;
         overflow-y: auto;

@@ -8,12 +8,12 @@
 
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .layout-footer-wrapper {
-    line-height: 48px;
+    line-height: 28px;
     font-size: 14px;
     color: var(--grey-9);
-    padding: 20px 0;
+    padding: 5px 0;
     background: var(--footer-bg);
     margin-top: 24px;
     .copyright-info {
