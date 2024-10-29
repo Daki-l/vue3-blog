@@ -82,6 +82,10 @@ let getCodeList = async () => {
 	onLoading.value = true;
 	getSummonerCode()
 		.then((res) => {
+			res = res.map((e) => {
+				e.coupon = e.coupon.toLowerCase();
+				return e;
+			});
 			localStorage.setItem('codeList', JSON.stringify(res));
 			codeList.value = res || [];
 		})
