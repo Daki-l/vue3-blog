@@ -8,6 +8,13 @@
 			<el-button @click="sendRequests()">提交兑换</el-button>
 		</div>
 		<div class="code_list">
+			<div class="code_top">
+				<div class="top_left"></div>
+				<div class="top_right">
+					<span>更新日期：</span>
+					<span>{{ stashTime }}</span>
+				</div>
+			</div>
 			<el-table :data="codeList" style="width: 100%" v-loading="onLoading">
 				<el-table-column prop="coupon" label="兑换码" width="180">
 					<template #default="scope">
@@ -60,21 +67,20 @@ const codeList = ref([]);
 const resultList = ref([]);
 const onLoading = ref(false);
 const fullscreenLoading = ref(false);
+const stashTime = ref('');
 onMounted(() => {
-	initHiveIds();
 	initCodeList();
 });
 
-let initHiveIds = () => {
-	hiveIds.value = JSON.parse(localStorage.getItem('hiveIds')) || '';
-};
-
 let initCodeList = () => {
-	// codeList.value = JSON.parse(localStorage.getItem('codeList')) || [];
-	// if (codeList.value.length === 0) {
-	// 	getCodeList();
-	// }
-	getCodeList();
+	let codeInfo = JSON.parse(localStorage.getItem('codeInfo')) || {};
+	let currentDate = new Date().toISOString().split('T')[0];
+	if (codeInfo.createTime === currentDate) {
+		stashTime.value = currentDate;
+		codeList.value = codeInfo.list || [];
+	} else {
+		getCodeList();
+	}
 };
 
 // 获取最新兑换码信息
@@ -82,12 +88,14 @@ let getCodeList = async () => {
 	onLoading.value = true;
 	getSummonerCode()
 		.then((res) => {
-			res = res.map((e) => {
+			let { createTime, list } = res;
+			let curList = list.map((e) => {
 				e.coupon = e.coupon.toLowerCase();
 				return e;
 			});
-			localStorage.setItem('codeList', JSON.stringify(res));
-			codeList.value = res || [];
+			localStorage.setItem('codeInfo', JSON.stringify(res));
+			codeList.value = curList || [];
+			stashTime.value = createTime;
 		})
 		.catch((err) => {
 			console.error('获取数据时出错:', err);
@@ -209,6 +217,10 @@ let getCouponContent = (coupon) => {
 	.button_list {
 	}
 	.code_list {
+		.code_top {
+			display: flex;
+			justify-content: space-between;
+		}
 	}
 	.input_list {
 		margin-top: 20px;

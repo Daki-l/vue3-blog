@@ -115,4 +115,10 @@ Mock.mock('https://mock.lnow.site/article/v1/list', 'get', {
     }
 });
 
+Mock.mock('https://mock.lnow.site/summoner/code/getCodeList', 'get', {
+    status: 200,
+    message: 'success',
+    data: { "createTime": "2024-10-30", "list": [{ "status": "verified", "coupon": "swsaxbasharkkf3i9", "createTime": "2024-10-27", "content": "5x黄卷" }, { "status": "verified", "coupon": "hengaptokyo1109", "createTime": "2024-10-26", "content": "10x风卷/3x徽章" }, { "status": "verified", "coupon": "dinhnocswc2024", "createTime": "2024-10-26", "content": "3x徽章" }, { "status": "verified", "coupon": "apacsansang2024", "createTime": "2024-10-26", "content": "500000x蓝水/100x红水/2x徽章" }, { "status": "verified", "coupon": "sw2024octm6b", "createTime": "2024-10-30", "content": "3x风卷" }] }
+});
+
 export default Mock;
