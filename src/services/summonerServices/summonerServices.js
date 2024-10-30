@@ -16,15 +16,13 @@ import axios from '@/utils/axios';
  * 获取最新兑换码
  */
 async function getSummonerCode() {
-    // return request(`${baseUrl}/code`, METHOD.GET);
-    return axios.get('summoner/code/getCodeList');
+    return axios.get('summoner/code');
 }
 
 /**
  *更新兑换码
  */
 async function updateSummonerCode(params) {
-    // return request(`${baseUrl}/code`, METHOD.GET);
     return axios.post('summoner/code/updateCode', params);
 }
 
@@ -34,7 +32,6 @@ async function updateSummonerCode(params) {
  */
 async function getSummonerUserInfo(params) {
     let paramsText = new URLSearchParams(params).toString();
-    // return request(`${baseUrl}/server/checkUser`, METHOD.POST, paramsText);
     return axios.post('summoner/server/checkUser', paramsText);
 }
 
@@ -44,7 +41,6 @@ async function getSummonerUserInfo(params) {
  */
 async function setCodeToUser(params) {
     let paramsText = new URLSearchParams(params).toString();
-    // return request(`${baseUrl}/server/useCoupon`, METHOD.POST, paramsText);
     return axios.post('summoner/server/useCoupon', paramsText);
 }
 
