@@ -1,20 +1,19 @@
 <template>
 	<div class="coupon_wrapper" v-loading.fullscreen.lock="fullscreenLoading">
-		<div class="title">魔灵召唤 兑换码 直兑</div>
-		<div class="button_list">
-			<el-button @click="getCodeList()">获取最新兑换码</el-button>
-			<el-button @click="setCodeList()">一键填入兑换码</el-button>
-			<el-button @click="getUserInfo()">查询召唤师</el-button>
-			<el-button @click="sendRequests()">提交兑换</el-button>
+		<div class="title">Summoner's War(魔灵召唤)</div>
+		<div class="top_header">
+			<div class="button_list">
+				<el-button @click="getCodeList()">获取最新兑换码</el-button>
+				<el-button @click="setCodeList()">一键填入兑换码</el-button>
+				<el-button @click="getUserInfo()">查询召唤师</el-button>
+				<el-button @click="sendRequests()">提交兑换</el-button>
+			</div>
+			<div class="top_right">
+				<span>更新日期：</span>
+				<span>{{ stashTime }}</span>
+			</div>
 		</div>
 		<div class="code_list">
-			<div class="code_top">
-				<div class="top_left"></div>
-				<div class="top_right">
-					<span>更新日期：</span>
-					<span>{{ stashTime }}</span>
-				</div>
-			</div>
 			<el-table :data="codeList" style="width: 100%" v-loading="onLoading">
 				<el-table-column prop="coupon" label="兑换码" width="180">
 					<template #default="scope">
@@ -32,8 +31,8 @@
             </div> -->
 		</div>
 		<div class="input_list">
-			<div>
-				<label for="coupon">服务器选择</label>
+			<div class="input_item server">
+				<label for="coupon">服务器选择:</label>
 				<el-select v-model="serverValue" placeholder="请选择">
 					<el-option
 						v-for="item in serverOption"
@@ -42,11 +41,11 @@
 						:value="item.value"></el-option>
 				</el-select>
 			</div>
-			<div>
+			<div class="input_item">
 				<label for="hiveid">Hive ID (多个用分号分隔):</label>
 				<el-input type="text" id="hiveid" v-model="hiveIds"></el-input>
 			</div>
-			<div>
+			<div class="input_item">
 				<label for="coupon">兑换码 (多个用分号分隔):</label>
 				<el-input type="text" id="coupon" v-model="coupons"></el-input>
 			</div>
@@ -77,12 +76,12 @@ const onLoading = ref(false);
 const fullscreenLoading = ref(false);
 const stashTime = ref('');
 const serverOption = ref([
-	{ value: 'global', label: '全球服务器' },
-	{ value: 'korea', label: '韩国服务器' },
-	{ value: 'japan', label: '日本服务器' },
-	{ value: 'china', label: '中国服务器' },
-	{ value: 'asia', label: '亚洲服务器' },
-	{ value: 'europe', label: '欧洲服务器' }
+	{ value: 'global', label: '全球服务器(Global)' },
+	{ value: 'korea', label: '韩国服务器(Korea)' },
+	{ value: 'japan', label: '日本服务器(Japan)' },
+	{ value: 'china', label: '中国服务器(China)' },
+	{ value: 'asia', label: '亚洲服务器(Asia)' },
+	{ value: 'europe', label: '欧洲服务器(Europe)' }
 ]);
 const serverValue = ref('china');
 onMounted(() => {
@@ -231,13 +230,11 @@ let getCouponContent = (coupon) => {
 		font-weight: 600;
 		margin: 12px 0;
 	}
-	.button_list {
+	.top_header {
+		display: flex;
+		justify-content: space-between;
 	}
 	.code_list {
-		.code_top {
-			display: flex;
-			justify-content: space-between;
-		}
 		.el-table {
 			.el-table__row {
 				.cell {
@@ -251,6 +248,20 @@ let getCouponContent = (coupon) => {
 	}
 	.input_list {
 		margin-top: 20px;
+		.input_item {
+			&.server {
+				display: flex;
+				align-items: center;
+				margin-bottom: 12px;
+				label {
+					white-space: nowrap;
+					margin-right: 20px;
+				}
+				.el-select {
+					width: 250px;
+				}
+			}
+		}
 	}
 	.result_list {
 		margin-top: 20px;
