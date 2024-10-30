@@ -33,13 +33,21 @@
 		</div>
 		<div class="input_list">
 			<div>
+				<label for="coupon">服务器选择</label>
+				<el-select v-model="serverValue" placeholder="请选择">
+					<el-option
+						v-for="item in serverOption"
+						:key="item.value"
+						:label="item.label"
+						:value="item.value"></el-option>
+				</el-select>
+			</div>
+			<div>
 				<label for="hiveid">Hive ID (多个用分号分隔):</label>
-				<br />
 				<el-input type="text" id="hiveid" v-model="hiveIds"></el-input>
 			</div>
 			<div>
 				<label for="coupon">兑换码 (多个用分号分隔):</label>
-				<br />
 				<el-input type="text" id="coupon" v-model="coupons"></el-input>
 			</div>
 		</div>
@@ -68,6 +76,15 @@ const resultList = ref([]);
 const onLoading = ref(false);
 const fullscreenLoading = ref(false);
 const stashTime = ref('');
+const serverOption = ref([
+	{ value: 'global', label: '全球服务器' },
+	{ value: 'korea', label: '韩国服务器' },
+	{ value: 'japan', label: '日本服务器' },
+	{ value: 'china', label: '中国服务器' },
+	{ value: 'asia', label: '亚洲服务器' },
+	{ value: 'europe', label: '欧洲服务器' }
+]);
+const serverValue = ref('china');
 onMounted(() => {
 	initCodeList();
 });
@@ -121,9 +138,9 @@ let getUserInfo = () => {
 
 	hiveidsList.forEach((e) => {
 		let params = {
-			country: 'CN',
+			country: 'US',
 			lang: 'zh-hans',
-			server: 'china',
+			server: serverValue.value,
 			hiveid: e,
 			coupon: 'xxx'
 		};
@@ -220,6 +237,16 @@ let getCouponContent = (coupon) => {
 		.code_top {
 			display: flex;
 			justify-content: space-between;
+		}
+		.el-table {
+			.el-table__row {
+				.cell {
+					display: -webkit-box;
+					-webkit-line-clamp: 2;
+					-webkit-box-orient: vertical;
+					overflow: hidden;
+				}
+			}
 		}
 	}
 	.input_list {
