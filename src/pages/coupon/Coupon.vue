@@ -115,6 +115,9 @@ let getCodeList = async () => {
 		})
 		.catch((err) => {
 			console.error('获取数据时出错:', err);
+			let codeInfo = JSON.parse(localStorage.getItem('codeInfo')) || {};
+			stashTime.value = codeInfo.createTime;
+			codeList.value = codeInfo.list || [];
 		})
 		.finally(() => {
 			onLoading.value = false;
