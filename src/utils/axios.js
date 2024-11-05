@@ -37,7 +37,7 @@ class Request {
             },
             (err) => {
                 let instance = null;
-                switch (err.response.status) {
+                switch (err.response?.status) {
                     case 401:
                         instance = ElMessage.error('用户信息过期，请重新登录');
                         setTimeout(() => {
@@ -45,8 +45,14 @@ class Request {
                             router.push('/home');
                         }, 1000);
                         break;
+                    case 500:
+                        instance = ElMessage.error('服务器请求错误！');
+                        setTimeout(() => {
+                            instance.close();
+                        }, 1000);
+                        break;
                     default:
-                        console.warn(`status= ${status}`);
+                        ElMessage.error('请求错误！');
                         break;
                 }
                 return Promise.reject(err);

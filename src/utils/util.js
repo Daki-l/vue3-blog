@@ -42,3 +42,7 @@ export function clearEmptyPro(data) {
 	}
 	return curVal;
 }
+
+export function isEmptyStrict(obj) {
+	return obj === undefined || obj === null || obj === "";
+}

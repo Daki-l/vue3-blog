@@ -41,19 +41,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
-const activeIndex = '/coupon';
+const activeIndex = ref('/game/coupon'); // 默认页签
+
 const handleSelect = (key, keyPath) => {
-	// console.log(key, keyPath)
-	// console.log(activeIndex);
+	// 当用户点击时，更新 activeIndex
+	localStorage.setItem('activeIndex', key); // 保存选择的页签
 };
 
 const navOption = [
 	{
 		name: '兑换码直兑',
-		path: '/coupon',
+		path: '/game/coupon',
 		index: '1',
+		children: []
+	},
+	{
+		name: '留言板',
+		path: '/game/message',
+		index: '2',
 		children: []
 	}
 ];
@@ -67,6 +74,13 @@ const themeValue = ref('light');
 function themeChange(e) {
 	document.documentElement.setAttribute('theme', e);
 }
+// 在页面加载时获取 localStorage 中保存的 activeIndex
+onMounted(() => {
+	const savedIndex = localStorage.getItem('activeIndex');
+	if (savedIndex) {
+		activeIndex.value = savedIndex;
+	}
+});
 </script>
 
 <style lang="less">
