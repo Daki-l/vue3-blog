@@ -3,7 +3,7 @@
 		<div class="title">Summoner's War(魔灵召唤)</div>
 		<div class="top_header">
 			<div class="button_list">
-				<el-button @click="getCodeList()">获取最新兑换码</el-button>
+				<el-button @click="getCodeList({ force: true })">获取最新兑换码</el-button>
 				<el-button @click="setCodeList()">一键填入兑换码</el-button>
 				<el-button @click="getUserInfo()">查询召唤师</el-button>
 				<el-button @click="sendRequests()">提交兑换</el-button>
@@ -100,9 +100,9 @@ let initCodeList = () => {
 };
 
 // 获取最新兑换码信息
-let getCodeList = async () => {
+let getCodeList = async (props = {}) => {
 	onLoading.value = true;
-	getSummonerCode()
+	getSummonerCode(props)
 		.then((res) => {
 			let { createTime, list } = res;
 			let curList = list.map((e) => {

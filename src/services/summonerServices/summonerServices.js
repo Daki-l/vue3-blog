@@ -15,8 +15,8 @@ import axios from '@/utils/axios';
 /**
  * 获取最新兑换码
  */
-async function getSummonerCode() {
-    return axios.get('summoner/code');
+async function getSummonerCode(params) {
+    return axios.get('summoner/code/getCode', params);
 }
 
 /**
