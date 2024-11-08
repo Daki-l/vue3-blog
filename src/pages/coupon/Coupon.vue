@@ -54,7 +54,7 @@
 			<div class="result_item" v-for="(item, index) in resultList" :key="index">
 				<span class="id">Hive ID: {{ item.hiveid }}</span>
 				<span class="content">兑换码: {{ item.coupon }} ~ {{ getCouponContent(item.coupon) }}</span>
-				<span class="result">{{ JSON.stringify(item.result) }}</span>
+				<span class="result">{{ JSON.stringify(item.result || item.error) }}</span>
 			</div>
 		</div>
 	</div>
@@ -182,6 +182,8 @@ let sendRequests = async () => {
 	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
 	let couponsList = coupons.value.split(';').map((c) => c.trim());
 	fullscreenLoading.value = true;
+	let resultListArray = [];
+	let batchSize = 1; // 每批次请求数量
 	let promiseList = [];
 
 	for (let hiveid of hiveidsList) {
@@ -198,24 +200,59 @@ let sendRequests = async () => {
 				hiveid,
 				coupon
 			});
+
+			// 每达到批次数量，等待所有请求完成
+			if (promiseList.length === batchSize) {
+				await processBatch(promiseList, resultListArray);
+				promiseList = []; // 清空队列
+			}
 		}
 	}
-	Promise.all(promiseList.map((e) => e.fn))
-		.then((data) => {
-			let list = [];
-			data.forEach((e, endex) => {
-				let curUser = promiseList[endex];
-				list.push({ result: e, hiveid: curUser.hiveid, coupon: curUser.coupon });
-			});
-			resultList.value = list;
-		})
-		.catch((err) => {
-			console.log('err==', err);
-		})
-		.finally(() => {
-			fullscreenLoading.value = false;
-		});
+
+	// 处理剩余的请求
+	if (promiseList.length > 0) {
+		await processBatch(promiseList, resultListArray);
+	}
+
+	// 更新结果列表
+	resultList.value = resultListArray;
+	// 确保加载状态关闭
+	fullscreenLoading.value = false;
 };
+
+// 批次处理请求，增加错误处理
+async function processBatch(batch, resultListArray) {
+	let results = await Promise.all(
+		batch.map((e) =>
+			e.fn
+				.then((result) => ({ success: true, result, hiveid: e.hiveid, coupon: e.coupon }))
+				.catch((error) => ({ success: false, error, hiveid: e.hiveid, coupon: e.coupon }))
+		)
+	);
+
+	results.forEach((response) => {
+		if (response.success) {
+			// 成功的请求
+			resultListArray.push({
+				result: response.result,
+				hiveid: response.hiveid,
+				coupon: response.coupon
+			});
+		} else {
+			// 失败的请求
+			console.error(
+				`Error for hiveid ${response.hiveid} and coupon ${response.coupon}:`,
+				response.error
+			);
+			resultListArray.push({
+				error: response.error.message || 'Request failed',
+				hiveid: response.hiveid,
+				coupon: response.coupon
+			});
+		}
+	});
+}
+
 let getCouponContent = (coupon) => {
 	let curCoupon =
 		codeList.value.find((e) => {
