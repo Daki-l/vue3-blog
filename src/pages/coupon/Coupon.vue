@@ -67,6 +67,7 @@ import {
 	getSummonerUserInfo,
 	setCodeToUser
 } from '@/services/summonerServices/summonerServices.js';
+import { ElMessage } from 'element-plus';
 
 const hiveIds = ref('');
 const coupons = ref('');
@@ -181,10 +182,18 @@ let getUserInfo = () => {
 let sendRequests = async () => {
 	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
 	let couponsList = coupons.value.split(';').map((c) => c.trim());
-	fullscreenLoading.value = true;
 	let resultListArray = [];
 	let batchSize = 1; // 每批次请求数量
 	let promiseList = [];
+
+	if (hiveidsList.length > 2) {
+		console.log('一次最多支持2个账号！');
+		ElMessage.error('一次最多支持2个账号！');
+		hiveidsList.length = 2;
+		hiveIds.value = hiveidsList.join(';');
+		return;
+	}
+	fullscreenLoading.value = true;
 
 	for (let hiveid of hiveidsList) {
 		for (let coupon of couponsList) {
