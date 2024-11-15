@@ -64,7 +64,7 @@
 import { onMounted, ref } from 'vue';
 import {
 	getSummonerCode,
-	getSummonerUserInfo,
+	getUserInfoList,
 	setCodeToUser
 } from '@/services/summonerServices/summonerServices.js';
 import { ElMessage } from 'element-plus';
@@ -135,37 +135,26 @@ let setCodeList = () => {
 };
 // 获取召唤师名称
 let getUserInfo = () => {
-	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
+	// let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
 	fullscreenLoading.value = true;
-	let promiseList = [];
-
-	hiveidsList.forEach((e) => {
-		let params = {
-			country: 'US',
-			lang: 'zh-hans',
-			server: serverValue.value,
-			hiveid: e,
-			coupon: 'xxx'
-		};
-		promiseList.push({
-			fn: getSummonerUserInfo(params),
-			...params
-		});
-	});
-	Promise.all(promiseList.map((e) => e.fn))
-		.then((data) => {
+	// let promiseList = [];
+	let params = {
+		server: serverValue.value,
+		hiveids: hiveIds.value
+	};
+	getUserInfoList(params)
+		.then((res) => {
 			let list = [];
-			data.forEach((e, endex) => {
-				let curUser = promiseList[endex];
-				let { retCode, retMsg, userData = {} } = e;
+			res.forEach((e) => {
+				let { retCode, retMsg, userData = {}, hiveid, coupon } = e;
 				if (retCode != 100) {
 					list.push({
 						result: { retCode, retMsg },
-						hiveid: curUser.hiveid,
-						coupon: curUser.coupon
+						hiveid,
+						coupon
 					});
 				} else {
-					list.push({ result: userData, hiveid: curUser.hiveid, coupon: curUser.coupon });
+					list.push({ result: userData, hiveid, coupon });
 				}
 			});
 			resultList.value = list;

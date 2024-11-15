@@ -43,7 +43,7 @@
 <script setup>
 import { ref } from 'vue';
 
-const activeIndex = '/home';
+const activeIndex = '/blog/home';
 const handleSelect = (key, keyPath) => {
 	// console.log(key, keyPath)
 	// console.log(activeIndex);
@@ -52,13 +52,13 @@ const handleSelect = (key, keyPath) => {
 const navOption = [
 	{
 		name: '首页',
-		path: '/home',
+		path: '/blog/home',
 		index: '1',
 		children: []
 	},
 	{
 		name: '文章',
-		path: '/article',
+		path: '/blog/article',
 		index: '2',
 		children: []
 	},

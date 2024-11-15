@@ -35,6 +35,13 @@ async function getSummonerUserInfo(params) {
     return axios.post('summoner/server/checkUser', paramsText);
 }
 
+/**
+ * 获取召唤师信息
+ */
+async function getUserInfoList(params) {
+    return axios.post('summoner/server/checkUsers', params);
+}
+
 
 /**
  * 兑换兑换码到召唤师
@@ -50,5 +57,6 @@ export {
     getSummonerCode,
     updateSummonerCode,
     getSummonerUserInfo,
+    getUserInfoList,
     setCodeToUser
 };
