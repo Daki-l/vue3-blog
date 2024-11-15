@@ -5,8 +5,8 @@
 			<div class="button_list">
 				<el-button @click="getCodeList({ force: true })">获取最新兑换码</el-button>
 				<el-button @click="setCodeList()">一键填入兑换码</el-button>
-				<el-button @click="getUserInfo()">查询召唤师</el-button>
-				<el-button @click="sendRequests()">提交兑换</el-button>
+				<!-- <el-button @click="getUserInfo()">查询召唤师</el-button> -->
+				<el-button @click="beforeSendRequest()">提交兑换</el-button>
 			</div>
 			<div class="top_right">
 				<span>更新日期：</span>
@@ -65,13 +65,15 @@ import { onMounted, ref } from 'vue';
 import {
 	getSummonerCode,
 	getUserInfoList,
-	setCodeToUser
+	setCodeToUser,
+	setCodeToUsers
 } from '@/services/summonerServices/summonerServices.js';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const hiveIds = ref('');
 const coupons = ref('');
 const codeList = ref([]);
+const userInfoList = ref([]);
 const resultList = ref([]);
 const onLoading = ref(false);
 const fullscreenLoading = ref(false);
@@ -140,7 +142,7 @@ let getUserInfo = () => {
 	// let promiseList = [];
 	let params = {
 		server: serverValue.value,
-		hiveids: hiveIds.value
+		hiveIds: hiveIds.value
 	};
 	getUserInfoList(params)
 		.then((res) => {
@@ -154,10 +156,28 @@ let getUserInfo = () => {
 						coupon
 					});
 				} else {
-					list.push({ result: userData, hiveid, coupon });
+					list.push({ result: userData, hiveid, coupon, ...userData });
 				}
 			});
-			resultList.value = list;
+			console.log('userInfoList--', list);
+			let accountList = list
+				.map((e) => {
+					return e.wizard_name;
+				})
+				.join(';');
+			ElMessageBox.confirm(`${accountList}，是否兑换到以上账号！`, '提示', {
+				// if you want to disable its autofocus
+				// autofocus: false,
+				confirmButtonText: '确认',
+				cancelButtonText: '取消'
+			}).then(() => {
+				if (coupons.value === '') {
+					ElMessage.error('请输入兑换码！');
+					return;
+				}
+				sendRequests();
+			});
+			userInfoList.value = list;
 		})
 		.catch((err) => {
 			console.log('err==', err);
@@ -167,89 +187,49 @@ let getUserInfo = () => {
 		});
 };
 
-// 批量兑换兑换码
-let sendRequests = async () => {
+let beforeSendRequest = () => {
 	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
-	let couponsList = coupons.value.split(';').map((c) => c.trim());
-	let resultListArray = [];
-	let batchSize = 1; // 每批次请求数量
-	let promiseList = [];
 
-	if (hiveidsList.length > 2) {
-		console.log('一次最多支持2个账号！');
-		ElMessage.error('一次最多支持2个账号！');
-		hiveidsList.length = 2;
+	if (hiveidsList.length > 6) {
+		console.log('一次最多支持6个账号！');
+		ElMessage.error('一次最多支持6个账号！');
+		hiveidsList.length = 6;
 		hiveIds.value = hiveidsList.join(';');
 		return;
 	}
-	fullscreenLoading.value = true;
-
-	for (let hiveid of hiveidsList) {
-		for (let coupon of couponsList) {
-			let params = {
-				country: 'CN',
-				lang: 'zh-hans',
-				server: 'china',
-				hiveid,
-				coupon
-			};
-			promiseList.push({
-				fn: setCodeToUser(params),
-				hiveid,
-				coupon
-			});
-
-			// 每达到批次数量，等待所有请求完成
-			if (promiseList.length === batchSize) {
-				await processBatch(promiseList, resultListArray);
-				promiseList = []; // 清空队列
-			}
-		}
+	if (hiveidsList.length === 0 || hiveIds.value == '') {
+		ElMessage.error('请输入账号！');
+		return;
 	}
-
-	// 处理剩余的请求
-	if (promiseList.length > 0) {
-		await processBatch(promiseList, resultListArray);
-	}
-
-	// 更新结果列表
-	resultList.value = resultListArray;
-	// 确保加载状态关闭
-	fullscreenLoading.value = false;
+	getUserInfo();
 };
 
-// 批次处理请求，增加错误处理
-async function processBatch(batch, resultListArray) {
-	let results = await Promise.all(
-		batch.map((e) =>
-			e.fn
-				.then((result) => ({ success: true, result, hiveid: e.hiveid, coupon: e.coupon }))
-				.catch((error) => ({ success: false, error, hiveid: e.hiveid, coupon: e.coupon }))
-		)
-	);
+// 批量兑换兑换码
+let sendRequests = async () => {
+	fullscreenLoading.value = true;
 
-	results.forEach((response) => {
-		if (response.success) {
-			// 成功的请求
-			resultListArray.push({
-				result: response.result,
-				hiveid: response.hiveid,
-				coupon: response.coupon
-			});
-		} else {
-			// 失败的请求
-			console.error(
-				`Error for hiveid ${response.hiveid} and coupon ${response.coupon}:`,
-				response.error
-			);
-			resultListArray.push({
-				error: response.error.message || 'Request failed',
-				hiveid: response.hiveid,
-				coupon: response.coupon
-			});
-		}
-	});
-}
+	let params = {
+		country: 'CN',
+		lang: 'zh-hans',
+		server: 'china',
+		hiveIds: hiveIds.value,
+		coupons: coupons.value
+	};
+	setCodeToUsers(params)
+		.then((res) => {
+			console.log('result----', res);
+			// 更新结果列表
+			resultList.value = res || [];
+			// 确保加载状态关闭
+			fullscreenLoading.value = false;
+		})
+		.catch((err) => {
+			console.log('err==', err);
+		})
+		.finally(() => {
+			fullscreenLoading.value = false;
+		});
+};
 
 let getCouponContent = (coupon) => {
 	let curCoupon =

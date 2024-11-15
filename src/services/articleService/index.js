@@ -7,4 +7,11 @@ async function getArticleList() {
     return axios.get(`article/v1/list`);
 }
 
-export { getArticleList };
+async function getArticleDetailById(id) {
+    return axios.get(`article/v1/detail?id=${id}`);
+}
+
+export {
+    getArticleList,
+    getArticleDetailById
+};

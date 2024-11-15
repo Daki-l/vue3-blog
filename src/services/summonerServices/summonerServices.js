@@ -51,6 +51,13 @@ async function setCodeToUser(params) {
     return axios.post('summoner/server/useCoupon', paramsText);
 }
 
+/**
+ * 批量兑换兑换码到召唤师
+ */
+async function setCodeToUsers(params) {
+    return axios.post('summoner/server/useCoupons', params);
+}
+
 
 
 export {
@@ -58,5 +65,6 @@ export {
     updateSummonerCode,
     getSummonerUserInfo,
     getUserInfoList,
-    setCodeToUser
+    setCodeToUser,
+    setCodeToUsers
 };
