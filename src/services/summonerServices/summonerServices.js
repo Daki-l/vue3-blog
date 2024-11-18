@@ -59,6 +59,27 @@ async function setCodeToUsers(params) {
 }
 
 
+/**
+ * 获取留言列表
+ */
+async function getMessageList(params) {
+    return axios.get('summoner/message/getMessages', params);
+}
+
+/**
+ * 新增留言
+ */
+async function addMessageFn(params) {
+    return axios.post('summoner/message/addMessage', params);
+}
+
+/**
+ * 新增回复
+ */
+async function addReplyFn(params) {
+    return axios.post('summoner/reply/addReply', params);
+}
+
 
 export {
     getSummonerCode,
@@ -66,5 +87,8 @@ export {
     getSummonerUserInfo,
     getUserInfoList,
     setCodeToUser,
-    setCodeToUsers
+    setCodeToUsers,
+    getMessageList,
+    addMessageFn,
+    addReplyFn
 };

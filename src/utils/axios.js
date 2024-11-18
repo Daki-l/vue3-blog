@@ -72,9 +72,7 @@ class Request {
         return this.request({
             url: url,
             method: 'post',
-            headers: {
-                'Content-Type': "application/x-www-form-urlencoded; charset=UTF-8"
-            },
+            headers: {},
             data: options
         });
     }

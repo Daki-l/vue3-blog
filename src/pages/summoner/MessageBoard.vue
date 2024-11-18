@@ -1,7 +1,7 @@
 <template>
 	<div class="message_board">
-		<div class="message_list">
-			<div v-for="msg in messages" :key="msg.id" class="message_item">
+		<div class="message_list" v-loading="loading">
+			<div v-for="msg in messages" :key="msg.messageId" class="message_item">
 				<div class="message-content">
 					<div class="message_header">
 						<span class="nickname">{{ msg.nickname }}</span>
@@ -12,19 +12,13 @@
 						<div class="message_time">
 							{{ new Date(msg.timestamp).format('yyyy-MM-dd HH:mm:ss') }}
 						</div>
-						<!-- <button @click="toggleReplyForm(msg.id)" class="reply_btn">回复</button> -->
+						<button
+							v-if="msg.notReply !== '1'"
+							@click="toggleReplyForm(msg.messageId)"
+							class="reply_btn">
+							回复
+						</button>
 					</div>
-				</div>
-
-				<!-- 回复区 -->
-				<div v-if="replyingTo === msg.id" class="reply_form">
-					<textarea
-						v-model="replyContent"
-						placeholder="输入你的回复..."
-						class="reply_textarea"></textarea>
-					<button @click="addReply(msg.id)" :disabled="loading" class="send_btn">
-						{{ loading ? '提交中...' : '发送回复' }}
-					</button>
 				</div>
 
 				<!-- 显示回复列表 -->
@@ -34,6 +28,22 @@
 						<span class="time">{{ reply.createTime }}</span>
 						<p>{{ reply.content }}</p>
 					</div>
+				</div>
+
+				<!-- 回复区 -->
+				<div v-if="replyingTo === msg.messageId" class="reply_form">
+					<el-input
+						v-model="replyNickName"
+						placeholder="输入你的昵称"
+						class="reply_nickName"></el-input>
+					<el-input
+						type="textarea"
+						v-model="replyContent"
+						placeholder="输入你的回复..."
+						class="reply_textarea"></el-input>
+					<el-button @click="addReply(msg.messageId)" :disabled="loading" class="send_btn">
+						{{ loading ? '提交中...' : '发送回复' }}
+					</el-button>
 				</div>
 			</div>
 		</div>
@@ -55,16 +65,20 @@
 	</div>
 </template>
   
-  <script setup>
+<script setup>
 import { ref } from 'vue';
-import axios from 'axios';
-
-const apiUrl = 'https://api.lnow.site/summoner/message'; // 替换成实际的接口
+import {
+	getMessageList,
+	addMessageFn,
+	addReplyFn
+} from '@/services/summonerServices/summonerServices.js';
+import { ElMessage } from 'element-plus';
 
 // 数据
 const nickname = ref('');
 const messageContent = ref('');
 const replyContent = ref('');
+const replyNickName = ref('');
 const messages = ref([]);
 const replyingTo = ref(null);
 const loading = ref(false);
@@ -72,10 +86,9 @@ const loading = ref(false);
 // 获取留言列表
 const getMessages = async () => {
 	try {
-		const response = await axios.get(`${apiUrl}/getMessages`, {
-			page: 1
-		});
-		let { list = [] } = response.data || {};
+		const response = await getMessageList({ page: 1 });
+		console.log('response;;0000', response);
+		let { list = [] } = response || {};
 		messages.value = list;
 	} catch (error) {
 		console.error('获取留言失败', error);
@@ -91,18 +104,20 @@ const addMessage = async () => {
 
 	loading.value = true;
 	try {
-		const response = await axios.post(`${apiUrl}/addMessage`, {
+		let props = {
 			nickname: nickname.value,
 			content: messageContent.value
-		});
-
-		if (response.data.success) {
-			getMessages(); // 刷新留言列表
-			nickname.value = '';
-			messageContent.value = '';
-		} else {
-			alert('留言失败，请稍后再试');
-		}
+		};
+		addMessageFn(props)
+			.then(() => {
+				getMessages(); // 刷新留言列表
+				nickname.value = '';
+				messageContent.value = '';
+				ElMessage.success('留言成功！');
+			})
+			.catch((err) => {
+				alert('留言失败，请稍后再试', err);
+			});
 	} catch (error) {
 		console.error('留言失败', error);
 		alert('留言失败，请稍后再试');
@@ -117,22 +132,27 @@ const addReply = async (messageId) => {
 		alert('回复内容不能为空！');
 		return;
 	}
+	if (!replyNickName.value) {
+		alert('回复昵称不能为空！');
+		return;
+	}
 
 	loading.value = true;
 	try {
-		const response = await axios.post(`${apiUrl}/addReply`, {
+		let props = {
 			messageId,
-			nickname: nickname.value,
+			nickname: replyNickName.value,
 			content: replyContent.value
-		});
-
-		if (response.data.success) {
-			getMessages(); // 刷新留言列表
-			replyContent.value = '';
-			replyingTo.value = null;
-		} else {
-			alert('回复失败，请稍后再试');
-		}
+		};
+		addReplyFn(props)
+			.then(() => {
+				getMessages(); // 刷新留言列表
+				replyContent.value = '';
+				replyingTo.value = null;
+			})
+			.catch((err) => {
+				alert('回复失败，请稍后再试', err);
+			});
 	} catch (error) {
 		console.error('回复失败', error);
 		alert('回复失败，请稍后再试');
@@ -143,6 +163,7 @@ const addReply = async (messageId) => {
 
 // 切换显示回复框
 const toggleReplyForm = (messageId) => {
+	console.log(';=replyingTo===--', messageId);
 	replyingTo.value = replyingTo.value === messageId ? null : messageId;
 };
 
@@ -228,12 +249,14 @@ getMessages();
 .reply_form {
 	margin-top: 10px;
 }
-
+.reply_nickName {
+	width: 100%;
+	height: 32px;
+	margin-bottom: 8px;
+}
 .reply_textarea {
 	width: 100%;
-	height: 80px;
-	padding: 10px;
-	margin-bottom: 10px;
+	margin-bottom: 8px;
 }
 
 .replies {
