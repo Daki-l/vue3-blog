@@ -122,7 +122,9 @@ let getCodeList = async (props = {}) => {
 			console.error('获取数据时出错:', err);
 			let codeInfo = JSON.parse(localStorage.getItem('codeInfo')) || {};
 			stashTime.value = codeInfo.createTime;
-			codeList.value = codeInfo.list || [];
+			codeList.value = (codeInfo.list || []).filter((e) => {
+				return e.status === 'verified';
+			});
 		})
 		.finally(() => {
 			onLoading.value = false;
