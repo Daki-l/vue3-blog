@@ -96,7 +96,9 @@ let initCodeList = () => {
 	let currentDate = new Date().toISOString().split('T')[0];
 	if (codeInfo.createTime === currentDate) {
 		stashTime.value = currentDate;
-		codeList.value = codeInfo.list || [];
+		codeList.value = (codeInfo.list || []).filter((e) => {
+			return e.status === 'verified';
+		});
 	} else {
 		getCodeList();
 	}
