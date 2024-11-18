@@ -54,7 +54,7 @@
 			<div class="result_item" v-for="(item, index) in resultList" :key="index">
 				<span class="id">Hive ID: {{ item.hiveid }}</span>
 				<span class="content">兑换码: {{ item.coupon }} ~ {{ getCouponContent(item.coupon) }}</span>
-				<span class="result">{{ JSON.stringify(item.result || item.error) }}</span>
+				<span class="result">{{ JSON.stringify(item.retMsg || item.error) }}</span>
 			</div>
 		</div>
 	</div>
