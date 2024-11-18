@@ -115,7 +115,9 @@ let getCodeList = async (props = {}) => {
 				return e;
 			});
 			localStorage.setItem('codeInfo', JSON.stringify(res));
-			codeList.value = curList || [];
+			codeList.value = (curList || []).filter((e) => {
+				return e.status === 'verified';
+			});
 			stashTime.value = createTime;
 		})
 		.catch((err) => {
