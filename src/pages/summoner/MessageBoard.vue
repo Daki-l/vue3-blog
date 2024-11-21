@@ -1,7 +1,7 @@
 <template>
 	<div class="message_board">
 		<div class="message_list" v-loading="loading">
-			<div v-for="msg in messages" :key="msg.messageId" class="message_item">
+			<div v-for="msg in messageList" :key="msg.messageId" class="message_item">
 				<div class="message-content">
 					<div class="message_header">
 						<span class="nickname">{{ msg.nickname }}</span>
@@ -25,7 +25,7 @@
 				<div v-if="msg.replies && msg.replies.length > 0" class="replies">
 					<div v-for="reply in msg.replies" :key="reply.id" class="reply_item">
 						<span class="nickname">{{ reply.nickname }}</span>
-						<span class="time">{{ new Date(reply.timestamp).format('yyyy-MM-dd HH:mm:ss') }}</span>
+						<span class="time">{{ reply.createTime }}</span>
 						<p>{{ reply.content }}</p>
 					</div>
 				</div>
@@ -79,7 +79,7 @@ const nickname = ref('');
 const messageContent = ref('');
 const replyContent = ref('');
 const replyNickName = ref('');
-const messages = ref([]);
+const messageList = ref([]);
 const replyingTo = ref(null);
 const loading = ref(false);
 
@@ -89,7 +89,15 @@ const getMessages = async () => {
 		const response = await getMessageList({ page: 1 });
 		console.log('response;;0000', response);
 		let { list = [] } = response || {};
-		messages.value = list;
+		messageList.value = list.sort((a, b) => {
+			// 将时间字符串转换为Date对象
+			const dateA = new Date(a.timestamp);
+			const dateB = new Date(b.timestamp);
+
+			// 比较两个时间，如果dateA早于dateB，则返回正值，反之返回负值
+			// 为了让时间越晚的排在越前面，我们交换a和b的位置
+			return dateB - dateA;
+		});
 	} catch (error) {
 		console.error('获取留言失败', error);
 	}
@@ -278,7 +286,6 @@ getMessages();
 .time {
 	font-size: 12px;
 	color: #aaa;
-	margin-left: 6px;
 }
 </style>
   
