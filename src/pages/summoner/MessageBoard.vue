@@ -13,7 +13,7 @@
 							{{ new Date(msg.timestamp).format('yyyy-MM-dd HH:mm:ss') }}
 						</div>
 						<button
-							v-if="msg.notReply !== '1'"
+							v-if="msg.notReply !== '1' && false"
 							@click="toggleReplyForm(msg.messageId)"
 							class="reply_btn">
 							回复
