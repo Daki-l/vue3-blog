@@ -13,7 +13,7 @@
 							{{ new Date(msg.timestamp).format('yyyy-MM-dd HH:mm:ss') }}
 						</div>
 						<button
-							v-if="msg.notReply !== '1'"
+							v-if="msg.notReply !== '1' && false"
 							@click="toggleReplyForm(msg.messageId)"
 							class="reply_btn">
 							回复
@@ -25,7 +25,7 @@
 				<div v-if="msg.replies && msg.replies.length > 0" class="replies">
 					<div v-for="reply in msg.replies" :key="reply.id" class="reply_item">
 						<span class="nickname">{{ reply.nickname }}</span>
-						<span class="time">{{ reply.createTime }}</span>
+						<span class="time">{{ new Date(reply.timestamp).format('yyyy-MM-dd HH:mm:ss') }}</span>
 						<p>{{ reply.content }}</p>
 					</div>
 				</div>
@@ -278,6 +278,7 @@ getMessages();
 .time {
 	font-size: 12px;
 	color: #aaa;
+	margin-left: 6px;
 }
 </style>
   
