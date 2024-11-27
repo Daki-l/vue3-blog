@@ -6,7 +6,7 @@ import Article from '../pages/article/Article.vue';
 import Coupon from '../pages/coupon/Coupon.vue';
 import ArticleDetail from '../pages/article/ArticleDetail.vue';
 import MessageBoard from '../pages/summoner/MessageBoard.vue';
-
+import StaticInfo from '../pages/summoner/StaticInfo.vue';
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -51,7 +51,12 @@ const router = createRouter({
                     path: 'message',
                     name: 'message',
                     component: MessageBoard
-                }
+                },
+                {
+                    path: 'static',
+                    name: 'static',
+                    component: StaticInfo
+                },
             ]
         }
     ]

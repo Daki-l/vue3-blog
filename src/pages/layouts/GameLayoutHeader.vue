@@ -62,6 +62,48 @@ const navOption = [
 		path: '/game/message',
 		index: '2',
 		children: []
+	},
+	// {
+	// 	name: '地下城介绍',
+	// 	path: '/game/info/',
+	// 	index: '3',
+	// 	children: [
+	// 		{
+	// 			name: '巨人地下城',
+	// 			path: '/game/info/giant',
+	// 			index: '3-1'
+	// 		},
+	// 		{
+	// 			name: '龙之地下城',
+	// 			path: '/game/info/dragon',
+	// 			index: '3-1'
+	// 		},
+	// 		{
+	// 			name: '死亡地下城',
+	// 			path: '/game/info/necropolis',
+	// 			index: '3-2'
+	// 		},
+	// 		{
+	// 			name: '精灵地下城',
+	// 			path: '/game/info/spiritual',
+	// 			index: '3-3'
+	// 		},
+	// 		{
+	// 			name: '钢铁地下城',
+	// 			path: '/game/info/steelFortress',
+	// 			index: '3-4'
+	// 		},
+	// 		{
+	// 			name: '惩罚者地下城',
+	// 			path: '/game/info/punisherCrypt',
+	// 			index: '3-5'
+	// 		}
+	// 	]
+	// },
+	{
+		name: '资源',
+		path: '/game/static',
+		index: '4'
 	}
 ];
 
