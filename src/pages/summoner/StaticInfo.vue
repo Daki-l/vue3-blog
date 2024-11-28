@@ -1,9 +1,9 @@
 <template>
-	<div>
+	<div class="static_info">
 		<!-- 文件列表展示 -->
 		<ul v-if="fileList.length">
 			<li v-for="(file, index) in fileList" :key="index">
-				<a href="file" :src="file.url">{{ file.text }}</a>
+				<a @click="openUrl(file)">{{ file.text }}</a>
 				<p class="url">{{ file.desction }}</p>
 				<!-- <button @click="downloadFile(file)">下载</button> -->
 			</li>
@@ -73,9 +73,17 @@ const downloadFile = async (fileName) => {
 		isDownloading.value = false;
 	}
 };
+const openUrl = (file) => {
+	window.open(file.url);
+};
 </script>
   
-<style scoped>
+<style scoped lang="less">
+.static_info {
+	a {
+		cursor: pointer;
+	}
+}
 button {
 	margin-left: 10px;
 	padding: 5px 10px;
