@@ -47,7 +47,7 @@ const listFiles = async () => {
 		}
 	];
 	try {
-		const response = await axios.get('https://test-r2.gooliuqi.workers.dev/list', {
+		const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/list', {
 			params: { folder: 'summoner/' }
 		});
 		let resData = response.data || [];
@@ -75,7 +75,7 @@ onMounted(() => {
 const downloadFile = async (fileName) => {
 	isDownloading.value = true;
 	try {
-		const response = await axios.get('https://test-r2.gooliuqi.workers.dev/download', {
+		const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/download', {
 			params: { file: fileName },
 			responseType: 'blob' // 指定响应类型为 blob
 		});
