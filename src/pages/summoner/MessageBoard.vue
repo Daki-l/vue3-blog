@@ -13,7 +13,7 @@
 							{{ new Date(msg.timestamp).format('yyyy-MM-dd HH:mm:ss') }}
 						</div>
 						<button
-							v-if="msg.notReply !== '1' && false"
+							v-if="msg.notReply !== '1' && ENV.MODE == 'development'"
 							@click="toggleReplyForm(msg.messageId)"
 							class="reply_btn">
 							回复
@@ -66,7 +66,7 @@
 </template>
   
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import {
 	getMessageList,
 	addMessageFn,
@@ -82,9 +82,15 @@ const replyNickName = ref('');
 const messageList = ref([]);
 const replyingTo = ref(null);
 const loading = ref(false);
+const ENV = ref(import.meta.env);
 
+onMounted(() => {
+	// 页面加载时获取留言
+	getMessages();
+});
 // 获取留言列表
 const getMessages = async () => {
+	loading.value = true;
 	try {
 		const response = await getMessageList({ page: 1 });
 		console.log('response;;0000', response);
@@ -98,8 +104,10 @@ const getMessages = async () => {
 			// 为了让时间越晚的排在越前面，我们交换a和b的位置
 			return dateB - dateA;
 		});
+		loading.value = false;
 	} catch (error) {
 		console.error('获取留言失败', error);
+		loading.value = false;
 	}
 };
 
@@ -174,9 +182,6 @@ const toggleReplyForm = (messageId) => {
 	console.log(';=replyingTo===--', messageId);
 	replyingTo.value = replyingTo.value === messageId ? null : messageId;
 };
-
-// 页面加载时获取留言
-getMessages();
 </script>
   
 <style lang="less">

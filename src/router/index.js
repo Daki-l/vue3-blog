@@ -78,7 +78,6 @@ let routes = [
     }
 ];
 let ENV = import.meta.env;
-console.log('ENV---', ENV, ENV.MODE);
 if (ENV.MODE === "development") {
     routes.forEach(e => {
         if (e.name === 'game') {
@@ -89,7 +88,6 @@ if (ENV.MODE === "development") {
             },)
         }
     })
-    console.log('ENV---routes', routes);
 }
 const router = createRouter({
     history: createWebHistory(ENV.BASE_URL),

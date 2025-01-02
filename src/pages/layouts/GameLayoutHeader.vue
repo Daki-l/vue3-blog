@@ -44,13 +44,14 @@
 import { ref, onMounted } from 'vue';
 
 const activeIndex = ref('/game/coupon'); // 默认页签
+const ENV = ref(import.meta.env);
 
 const handleSelect = (key, keyPath) => {
 	// 当用户点击时，更新 activeIndex
 	localStorage.setItem('activeIndex', key); // 保存选择的页签
 };
 
-const navOption = [
+const navOption = ref([
 	{
 		name: '兑换码直兑',
 		path: '/game/coupon',
@@ -63,50 +64,59 @@ const navOption = [
 		index: '2',
 		children: []
 	},
-	// {
-	// 	name: '地下城介绍',
-	// 	path: '/game/info/',
-	// 	index: '3',
-	// 	children: [
-	// 		{
-	// 			name: '巨人地下城',
-	// 			path: '/game/info/giant',
-	// 			index: '3-1'
-	// 		},
-	// 		{
-	// 			name: '龙之地下城',
-	// 			path: '/game/info/dragon',
-	// 			index: '3-1'
-	// 		},
-	// 		{
-	// 			name: '死亡地下城',
-	// 			path: '/game/info/necropolis',
-	// 			index: '3-2'
-	// 		},
-	// 		{
-	// 			name: '精灵地下城',
-	// 			path: '/game/info/spiritual',
-	// 			index: '3-3'
-	// 		},
-	// 		{
-	// 			name: '钢铁地下城',
-	// 			path: '/game/info/steelFortress',
-	// 			index: '3-4'
-	// 		},
-	// 		{
-	// 			name: '惩罚者地下城',
-	// 			path: '/game/info/punisherCrypt',
-	// 			index: '3-5'
-	// 		}
-	// 	]
-	// },
+	{
+		name: '地下城介绍',
+		path: '/game/info/',
+		index: '3',
+		children: [
+			{
+				name: '巨人地下城',
+				path: '/game/info/giant?id=10',
+				index: '3-1'
+			},
+			{
+				name: '龙之地下城',
+				// path: '/game/info/dragon',
+				path: '/game/info/scene?id=9',
+				index: '3-1'
+			},
+			{
+				name: '死亡地下城',
+				// path: '/game/info/necropolis',
+				path: '/game/info/scene?id=8',
+				index: '3-2'
+			},
+			{
+				name: '精灵地下城',
+				path: '/game/info/spiritual',
+				index: '3-3'
+			},
+			{
+				name: '钢铁地下城',
+				path: '/game/info/steelFortress',
+				index: '3-4'
+			},
+			{
+				name: '惩罚者地下城',
+				path: '/game/info/punisherCrypt',
+				index: '3-5'
+			}
+		]
+	},
 	{
 		name: '资源',
 		path: '/game/static',
 		index: '4'
 	}
-];
-
+]);
+console.log('ENV.value.MODE;;---', ENV.value);
+if (ENV.value.MODE === 'development') {
+	navOption.value.push({
+		name: '操作',
+		path: '/game/action',
+		index: '4'
+	});
+}
 const userInfo = ref({
 	id: '',
 	name: ''
