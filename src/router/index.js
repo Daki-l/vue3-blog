@@ -7,59 +7,93 @@ import Coupon from '../pages/coupon/Coupon.vue';
 import ArticleDetail from '../pages/article/ArticleDetail.vue';
 import MessageBoard from '../pages/summoner/MessageBoard.vue';
 import StaticInfo from '../pages/summoner/StaticInfo.vue';
-const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
-    routes: [
-        {
-            path: '/',
-            redirect: '/blog/home'
-        },
-        {
-            path: '/blog',
-            name: 'blog',
-            component: BlogLayout,
-            children: [
-                {
-                    path: 'home',
-                    name: 'home',
-                    component: Home
-                },
-                {
-                    path: 'article',
-                    name: 'article',
-                    component: Article
-                },
-                {
-                    path: 'article/detail',
-                    name: 'articelDetail',
-                    component: ArticleDetail
-                }
-            ]
-        },
-        {
-            path: '/game',
-            name: 'game',
-            component: GameLayout,
-            redirect: '/game/coupon',
-            children: [
-                {
-                    path: 'coupon',
-                    name: 'coupon',
-                    component: Coupon
-                },
-                {
-                    path: 'message',
-                    name: 'message',
-                    component: MessageBoard
-                },
-                {
-                    path: 'static',
-                    name: 'static',
-                    component: StaticInfo
-                },
-            ]
+import Action from '../pages/summoner/Action.vue';
+
+let routes = [
+    {
+        path: '/',
+        redirect: '/blog/home'
+    },
+    {
+        path: '/blog',
+        name: 'blog',
+        component: BlogLayout,
+        children: [
+            {
+                path: 'home',
+                name: 'home',
+                component: Home
+            },
+            {
+                path: 'article',
+                name: 'article',
+                component: Article
+            },
+            {
+                path: 'article/detail',
+                name: 'articelDetail',
+                component: ArticleDetail
+            }
+        ]
+    },
+    {
+        path: '/game',
+        name: 'game',
+        component: GameLayout,
+        redirect: '/game/coupon',
+        children: [
+            {
+                path: 'coupon',
+                name: 'coupon',
+                component: Coupon
+            },
+            {
+                path: 'message',
+                name: 'message',
+                component: MessageBoard
+            },
+            {
+                path: 'static',
+                name: 'static',
+                component: StaticInfo
+            },
+            {
+                path: 'info',
+                name: 'info',
+                redirect: 'info/giant',
+                children: [
+                    {
+                        path: 'giant',
+                        name: 'giant',
+                        component: ArticleDetail
+                    },
+                    {
+                        path: 'scene',
+                        name: 'scene',
+                        component: ArticleDetail
+                    }
+                ]
+            }
+        ]
+    }
+];
+let ENV = import.meta.env;
+console.log('ENV---', ENV, ENV.MODE);
+if (ENV.MODE === "development") {
+    routes.forEach(e => {
+        if (e.name === 'game') {
+            e.children.push({
+                path: 'action',
+                name: 'action',
+                component: Action
+            },)
         }
-    ]
+    })
+    console.log('ENV---routes', routes);
+}
+const router = createRouter({
+    history: createWebHistory(ENV.BASE_URL),
+    routes: routes
 });
 
 export default router;
