@@ -25,10 +25,10 @@
 </template>
   
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute, onBeforeRouteUpdate } from 'vue-router';
 // import CommentSection from '@/components/CommentSection.vue';
 import { getArticleDetailById } from '@/services/articleService';
-import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { marked } from 'marked';
 
@@ -43,11 +43,14 @@ const article = ref({
 });
 const tagsArray = ref([]);
 const detailLoading = ref(false);
+const route = useRoute();
 // const defaultCover = 'https://via.placeholder.com/1920x1200?text=No+Image';
 
 const fetchArticleDetail = async () => {
-	const route = useRoute();
 	let { id } = route?.query || {};
+	if (!id) {
+		return;
+	}
 	try {
 		detailLoading.value = true;
 		const response = await getArticleDetailById(id); // 假设文章 ID 为 4
@@ -65,6 +68,15 @@ const fetchArticleDetail = async () => {
 const markdownContent = computed(() => marked(article.value.content || ''));
 
 onMounted(fetchArticleDetail);
+
+watch(
+	() => route.query,
+	(newQuery, oldQuery) => {
+		if (newQuery.id !== oldQuery.id) {
+			fetchArticleDetail();
+		}
+	}
+);
 </script>
   
   <style scoped>

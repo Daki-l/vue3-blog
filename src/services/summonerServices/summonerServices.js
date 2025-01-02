@@ -21,6 +21,7 @@ async function getSummonerCode(params) {
 
 /**
  *更新兑换码
+ coupon, content, status
  */
 async function updateSummonerCode(params) {
     return axios.post('summoner/code/updateCode', params);

@@ -46,25 +46,26 @@ const listFiles = async () => {
 				'我用夸克网盘分享了「smon_855_JK3dW6di2l8uNS0.apk」，点击链接即可保存。打开「夸克APP」，无需下载在线播放视频，畅享原画5倍速，支持电视投屏。链接：https://pan.quark.cn/s/b677e8d56dbe'
 		}
 	];
-	try {
-		const response = await axios.get('https://test-r2.gooliuqi.workers.dev/list', {
-			params: { folder: 'summoner/' }
-		});
-		let resData = response.data || [];
-		curList = [
-			...curList,
-			...resData.map((e) => {
-				return {
-					text: e,
-					download: true
-				};
-			})
-		];
-		fileList.value = curList;
-	} catch (error) {
-		fileList.value = curList;
-		errorMessage.value = error.response ? error.response.data : error.message;
-	}
+	fileList.value = curList;
+	// try {
+	// 	const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/list', {
+	// 		params: { folder: 'summoner/' }
+	// 	});
+	// 	let resData = response.data || [];
+	// 	curList = [
+	// 		...curList,
+	// 		...resData.map((e) => {
+	// 			return {
+	// 				text: e,
+	// 				download: true
+	// 			};
+	// 		})
+	// 	];
+	// 	fileList.value = curList;
+	// } catch (error) {
+	// 	fileList.value = curList;
+	// 	errorMessage.value = error.response ? error.response.data : error.message;
+	// }
 };
 
 onMounted(() => {
@@ -75,7 +76,7 @@ onMounted(() => {
 const downloadFile = async (fileName) => {
 	isDownloading.value = true;
 	try {
-		const response = await axios.get('https://test-r2.gooliuqi.workers.dev/download', {
+		const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/download', {
 			params: { file: fileName },
 			responseType: 'blob' // 指定响应类型为 blob
 		});
