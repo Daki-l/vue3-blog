@@ -71,34 +71,38 @@ const navOption = ref([
 		children: [
 			{
 				name: '巨人地下城',
-				path: '/game/info/giant?id=10',
+				desction: 'giant',
+				path: '/game/info/scene?id=11',
 				index: '3-1'
 			},
 			{
 				name: '龙之地下城',
-				// path: '/game/info/dragon',
-				path: '/game/info/scene?id=9',
+				desction: 'dragon',
+				path: '/game/info/scene?id=12',
 				index: '3-1'
 			},
 			{
 				name: '死亡地下城',
-				// path: '/game/info/necropolis',
-				path: '/game/info/scene?id=8',
+				desction: 'necropolis',
+				path: '/game/info/scene?id=13',
 				index: '3-2'
 			},
 			{
 				name: '精灵地下城',
-				path: '/game/info/spiritual',
+				desction: 'spiritual',
+				path: '/game/info/scene?id=14',
 				index: '3-3'
 			},
 			{
 				name: '钢铁地下城',
-				path: '/game/info/steelFortress',
+				desction: 'steel',
+				path: '/game/info/scene?id=15',
 				index: '3-4'
 			},
 			{
 				name: '惩罚者地下城',
-				path: '/game/info/punisherCrypt',
+				desction: 'punisher',
+				path: '/game/info/scene?id=16',
 				index: '3-5'
 			}
 		]

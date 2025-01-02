@@ -63,11 +63,6 @@ let routes = [
                 redirect: 'info/giant',
                 children: [
                     {
-                        path: 'giant',
-                        name: 'giant',
-                        component: ArticleDetail
-                    },
-                    {
                         path: 'scene',
                         name: 'scene',
                         component: ArticleDetail
