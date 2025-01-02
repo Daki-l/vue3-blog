@@ -40,10 +40,8 @@ const listFiles = async () => {
 	errorMessage.value = '';
 	let curList = [
 		{
-			text: 'smon_855_JK3dW6di2l8uNS0.apk',
-			url: 'https://pan.quark.cn/s/b677e8d56dbe',
-			desction:
-				'我用夸克网盘分享了「smon_855_JK3dW6di2l8uNS0.apk」，点击链接即可保存。打开「夸克APP」，无需下载在线播放视频，畅享原画5倍速，支持电视投屏。链接：https://pan.quark.cn/s/b677e8d56dbe'
+			text: 'smon_857_Sj3r72Df50g2H6G.apk',
+			url: 'http://dn.qpyou.cn/smon/smon_857_Sj3r72Df50g2H6G.apk'
 		}
 	];
 	fileList.value = curList;
