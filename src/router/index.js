@@ -3,11 +3,12 @@ import BlogLayout from '../pages/layouts/BlogLayout.vue';
 import GameLayout from '../pages/layouts/GameLayout.vue';
 import Home from '../pages/home/Home.vue';
 import Article from '../pages/article/Article.vue';
-import Coupon from '../pages/coupon/Coupon.vue';
+import Coupon from '../pages/summoner/Coupon.vue';
 import ArticleDetail from '../pages/article/ArticleDetail.vue';
 import MessageBoard from '../pages/summoner/MessageBoard.vue';
 import StaticInfo from '../pages/summoner/StaticInfo.vue';
 import Action from '../pages/summoner/Action.vue';
+import GameHome from '../pages/summoner/Home.vue';
 
 let routes = [
     {
@@ -40,8 +41,13 @@ let routes = [
         path: '/game',
         name: 'game',
         component: GameLayout,
-        redirect: '/game/coupon',
+        redirect: '/game/home',
         children: [
+            {
+                path: 'home',
+                name: 'home',
+                component: GameHome
+            },
             {
                 path: 'coupon',
                 name: 'coupon',

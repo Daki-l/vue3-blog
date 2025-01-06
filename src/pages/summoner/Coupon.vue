@@ -65,7 +65,6 @@ import { onMounted, ref } from 'vue';
 import {
 	getSummonerCode,
 	getUserInfoList,
-	setCodeToUser,
 	setCodeToUsers
 } from '@/services/summonerServices/summonerServices.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -249,6 +248,8 @@ let getCouponContent = (coupon) => {
 <style lang="less">
 .coupon_wrapper {
 	height: calc(100% - 24px);
+	padding: 20px;
+	background-color: #ffffff;
 	.title {
 		font-size: 20px;
 		font-weight: 600;
@@ -257,6 +258,7 @@ let getCouponContent = (coupon) => {
 	.top_header {
 		display: flex;
 		justify-content: space-between;
+		margin-bottom: 12px;
 	}
 	.code_list {
 		.el-table {

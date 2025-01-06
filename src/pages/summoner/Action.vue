@@ -126,6 +126,7 @@ const updateContent = (row) => {
 
 <style lang="less" scoped>
 .summoner_action {
+	background-color: #ffffff;
 	.el-table {
 		.expired {
 			color: red;

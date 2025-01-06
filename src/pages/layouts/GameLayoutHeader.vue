@@ -7,10 +7,6 @@
 			:ellipsis="false"
 			:router="true"
 			@select="handleSelect">
-			<el-menu-item index="/">
-				<!-- <span style="font-size: 20px;font-weight: 600;">首页</span> -->
-			</el-menu-item>
-			<div class="flex-grow"></div>
 			<template v-for="(item, index) in navOption" :key="index">
 				<el-menu-item v-if="(item.children || []).length === 0" :index="item.path || item.index">
 					{{ item.name }}
@@ -53,65 +49,71 @@ const handleSelect = (key, keyPath) => {
 
 const navOption = ref([
 	{
-		name: '兑换码直兑',
-		path: '/game/coupon',
+		name: '首页',
+		path: '/game/home',
 		index: '1',
-		children: []
-	},
-	{
-		name: '留言板',
-		path: '/game/message',
-		index: '2',
 		children: []
 	},
 	{
 		name: '地下城介绍',
 		path: '/game/info/',
-		index: '3',
+		index: '2',
 		children: [
 			{
 				name: '巨人地下城',
 				desction: 'giant',
 				path: '/game/info/scene?id=11',
-				index: '3-1'
+				index: '2-1'
 			},
 			{
 				name: '龙之地下城',
 				desction: 'dragon',
 				path: '/game/info/scene?id=12',
-				index: '3-1'
+				index: '2-1'
 			},
 			{
 				name: '死亡地下城',
 				desction: 'necropolis',
 				path: '/game/info/scene?id=13',
-				index: '3-2'
+				index: '2-2'
 			},
 			{
 				name: '精灵地下城',
 				desction: 'spiritual',
 				path: '/game/info/scene?id=14',
-				index: '3-3'
+				index: '2-3'
 			},
 			{
 				name: '钢铁地下城',
 				desction: 'steel',
 				path: '/game/info/scene?id=15',
-				index: '3-4'
+				index: '2-4'
 			},
 			{
 				name: '惩罚者地下城',
 				desction: 'punisher',
 				path: '/game/info/scene?id=16',
-				index: '3-5'
+				index: '2-5'
 			}
 		]
 	},
 	{
-		name: '资源',
-		path: '/game/static',
-		index: '4'
+		name: '兑换码直兑',
+		path: '/game/coupon',
+		index: '4',
+		children: []
+	},
+	{
+		name: '留言板',
+		path: '/game/message',
+		index: '3',
+		children: []
 	}
+	// {
+	// 	name: '资源',
+	// 	path: '/game/static',
+	// 	index: '5'
+	// }
 ]);
 console.log('ENV.value.MODE;;---', ENV.value);
 if (ENV.value.MODE === 'development') {
