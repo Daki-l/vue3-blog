@@ -81,6 +81,22 @@ async function addReplyFn(params) {
     return axios.post('summoner/reply/addReply', params);
 }
 
+/**
+ * 获取公告
+ */
+async function getNoticeFn(params) {
+    return axios.post('summoner/notice/getNotice', params);
+}
+
+/**
+ * 获取活动
+ */
+async function getNoticesActivityFn(params) {
+    return axios.post('summoner/notice/getNoticesActivity', params);
+}
+
+
+
 
 export {
     getSummonerCode,
@@ -91,5 +107,7 @@ export {
     setCodeToUsers,
     getMessageList,
     addMessageFn,
-    addReplyFn
+    addReplyFn,
+    getNoticeFn,
+    getNoticesActivityFn
 };

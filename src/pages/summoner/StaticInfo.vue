@@ -26,7 +26,7 @@
 	</div>
 </template>
   
-  <script setup>
+<script setup>
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
 
@@ -41,29 +41,12 @@ const listFiles = async () => {
 	let curList = [
 		{
 			text: 'smon_857_Sj3r72Df50g2H6G.apk',
-			url: 'http://dn.qpyou.cn/smon/smon_857_Sj3r72Df50g2H6G.apk'
+			url: 'http://dn.qpyou.cn/smon/smon_857_Sj3r72Df50g2H6G.apk',
+			path2: 'https://play.qpyou.cn/r?c=7976',
+			path: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976'
 		}
 	];
 	fileList.value = curList;
-	// try {
-	// 	const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/list', {
-	// 		params: { folder: 'summoner/' }
-	// 	});
-	// 	let resData = response.data || [];
-	// 	curList = [
-	// 		...curList,
-	// 		...resData.map((e) => {
-	// 			return {
-	// 				text: e,
-	// 				download: true
-	// 			};
-	// 		})
-	// 	];
-	// 	fileList.value = curList;
-	// } catch (error) {
-	// 	fileList.value = curList;
-	// 	errorMessage.value = error.response ? error.response.data : error.message;
-	// }
 };
 
 onMounted(() => {

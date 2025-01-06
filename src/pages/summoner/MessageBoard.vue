@@ -191,6 +191,7 @@ const toggleReplyForm = (messageId) => {
 	margin: 0 auto;
 	padding: 0 20px 20px;
 	overflow: hidden;
+	background-color: #ffffff;
 	.message_list {
 		margin-top: 20px;
 		height: calc(100% - 140px - 20px);
