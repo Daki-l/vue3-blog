@@ -40,7 +40,7 @@
 				</div>
 			</div>
 		</section>
-		<div class="wrapper_list">
+		<div class="wrapper_list" v-if="false">
 			<div class="artical_title">推荐文章：</div>
 			<div class="artical_list">
 				<div class="artical_item">
@@ -59,9 +59,10 @@
   
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { getNoticeFn, getNoticesActivityFn } from '@/services/summonerServices/summonerServices.js';
 import { ElMessage } from 'element-plus';
-
+const router = useRouter();
 const title = ref('魔灵召唤：天空之役');
 
 // 定义响应式变量
@@ -109,7 +110,7 @@ const initNoticeList = async () => {
 };
 
 const moreNotice = () => {
-	ElMessage.info('开发中！');
+	router.push({ name: 'noticeList', query: { key: 'notice' } });
 };
 
 const openUrl = (key) => {
