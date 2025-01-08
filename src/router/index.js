@@ -9,6 +9,7 @@ import MessageBoard from '../pages/summoner/MessageBoard.vue';
 import StaticInfo from '../pages/summoner/StaticInfo.vue';
 import Action from '../pages/summoner/Action.vue';
 import GameHome from '../pages/summoner/Home.vue';
+import NoticeList from '../pages/summoner/notice/NoticeList.vue';
 
 let routes = [
     {
@@ -66,13 +67,18 @@ let routes = [
             {
                 path: 'info',
                 name: 'info',
-                redirect: 'info/giant',
+                redirect: 'info/scene',
                 children: [
                     {
                         path: 'scene',
                         name: 'scene',
                         component: ArticleDetail
-                    }
+                    },
+                    {
+                        path: 'notice',
+                        name: 'noticeList',
+                        component: NoticeList
+                    },
                 ]
             }
         ]
