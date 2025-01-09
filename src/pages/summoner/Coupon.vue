@@ -195,7 +195,7 @@ let getUserInfo = () => {
 let beforeSendRequest = () => {
 	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
 
-	if (new Date().getTime() < new Date('2025-01-09 12:00:00').getTime()) {
+	if (new Date().getTime() < new Date('2025-01-18 12:00:00').getTime()) {
 		ElMessage.info('服务器出现错误，请点击链接跳转到游戏自行兑换。');
 		return;
 	}
