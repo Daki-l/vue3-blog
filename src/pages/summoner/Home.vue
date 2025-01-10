@@ -86,9 +86,13 @@ const listFiles = async () => {
 	errorMessage.value = '';
 	let curList = [
 		{
+			text: 'smon_860_Utqvu8bnEbvYRb2Yb.apk',
+			url: 'http://dn.qpyou.cn/smon/smon_860_Utqvu8bnEbvYRb2Yb.apk',
+			path: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976'
+		},
+		{
 			text: 'smon_857_Sj3r72Df50g2H6G.apk',
 			url: 'http://dn.qpyou.cn/smon/smon_857_Sj3r72Df50g2H6G.apk',
-			path2: 'https://play.qpyou.cn/r?c=7976',
 			path: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976'
 		}
 	];
