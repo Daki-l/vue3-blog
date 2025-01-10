@@ -149,47 +149,8 @@ let getUserInfo = () => {
 		server: serverValue.value,
 		hiveIds: hiveIds.value
 	};
-	getUserInfoList(params)
-		.then((res) => {
-			let list = [];
-			res.forEach((e) => {
-				let { retCode, retMsg, userData = {}, hiveid, coupon } = e;
-				if (retCode != 100) {
-					list.push({
-						result: { retCode, retMsg },
-						hiveid,
-						coupon
-					});
-				} else {
-					list.push({ result: userData, hiveid, coupon, ...userData });
-				}
-			});
-			console.log('userInfoList--', list);
-			let accountList = list
-				.map((e) => {
-					return e.wizard_name;
-				})
-				.join(';');
-			ElMessageBox.confirm(`${accountList}，是否兑换到以上账号！`, '提示', {
-				// if you want to disable its autofocus
-				// autofocus: false,
-				confirmButtonText: '确认',
-				cancelButtonText: '取消'
-			}).then(() => {
-				if (coupons.value === '') {
-					ElMessage.error('请输入兑换码！');
-					return;
-				}
-				sendRequests();
-			});
-			userInfoList.value = list;
-		})
-		.catch((err) => {
-			console.log('err==', err);
-		})
-		.finally(() => {
-			fullscreenLoading.value = false;
-		});
+	console.log('params--', params);
+	return;
 };
 
 let beforeSendRequest = () => {
@@ -197,7 +158,7 @@ let beforeSendRequest = () => {
 
 	if (new Date().getTime() < new Date('2025-01-18 12:00:00').getTime()) {
 		ElMessage.info('服务器出现错误，请点击链接跳转到游戏自行兑换。');
-		return;
+		// return;
 	}
 
 	if (hiveidsList.length > 6) {
