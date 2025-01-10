@@ -73,31 +73,13 @@ const noticeActivityList = ref([]);
 
 const urlOption = ref({
 	IOS: 'https://apps.apple.com/cn/app/魔灵召唤-天空之影/id852912420',
-	Android: '',
+	Android: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976',
 	service: 'https://customer.withhive.com/com2us/ask/313'
 });
 
 onMounted(() => {
-	listFiles();
 	initNoticeList();
 });
-// 列出文件
-const listFiles = async () => {
-	errorMessage.value = '';
-	let curList = [
-		{
-			text: 'smon_860_Utqvu8bnEbvYRb2Yb.apk',
-			url: 'http://dn.qpyou.cn/smon/smon_860_Utqvu8bnEbvYRb2Yb.apk',
-			path: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976'
-		},
-		{
-			text: 'smon_857_Sj3r72Df50g2H6G.apk',
-			url: 'http://dn.qpyou.cn/smon/smon_857_Sj3r72Df50g2H6G.apk',
-			path: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976'
-		}
-	];
-	urlOption.value.Android = curList[0].url;
-};
 
 const initNoticeList = async () => {
 	try {
