@@ -158,7 +158,7 @@ let beforeSendRequest = () => {
 
 	if (new Date().getTime() < new Date('2025-01-18 12:00:00').getTime()) {
 		ElMessage.info('服务器出现错误，请点击链接跳转到游戏自行兑换。');
-		// return;
+		return;
 	}
 
 	if (hiveidsList.length > 6) {
