@@ -10,6 +10,7 @@ import StaticInfo from '../pages/summoner/StaticInfo.vue';
 import Action from '../pages/summoner/Action.vue';
 import GameHome from '../pages/summoner/Home.vue';
 import NoticeList from '../pages/summoner/notice/NoticeList.vue';
+import NoticeDetail from '../pages/summoner/notice/NoticeDetail.vue';
 
 let routes = [
     {
@@ -78,6 +79,11 @@ let routes = [
                         path: 'notice',
                         name: 'noticeList',
                         component: NoticeList
+                    },
+                    {
+                        path: 'notice/detail',
+                        name: 'noticeDetail',
+                        component: NoticeDetail
                     },
                 ]
             }
