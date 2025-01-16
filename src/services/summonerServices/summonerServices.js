@@ -87,14 +87,14 @@ async function addReplyFn(params) {
  * params{string} pageNum
  */
 async function getNoticeFn(params) {
-    return axios.post('summoner/notice/getNotice', params);
+    return axios.post('summoner/notice/getNotice?force=true', params);
 }
 
 /**
  * 获取活动
  */
 async function getNoticesActivityFn(params) {
-    return axios.post('summoner/notice/getNoticesActivity', params);
+    return axios.post('summoner/notice/getNoticesActivity?force=true', params);
 }
 
 
