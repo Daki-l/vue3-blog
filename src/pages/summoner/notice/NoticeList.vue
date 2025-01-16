@@ -2,7 +2,7 @@
 	<div class="notice_list">
 		<el-tabs v-model="activeName" class="active_tabs" @tab-click="handleClick">
 			<el-tab-pane label="公告" name="notice">
-				<el-table border :data="noticeList" v-loading="onLoading" v-infinite-scroll="loadMore">
+				<el-table border :data="noticeList" v-loading="onLoading">
 					<el-table-column prop="typeName" label="引言" width="80">
 						<template #default="{ row }">
 							<span>{{ row.typeName === 'HB_TITLE_UPDATE' ? '更新' : '引导' }}</span>
@@ -44,7 +44,6 @@ const noticeActivityList = ref([]);
 const activeName = ref('');
 
 onMounted(() => {
-	console.log('route--', route);
 	let { query = {} } = route;
 	let { key } = query;
 	activeName.value = key || 'notice';
@@ -59,20 +58,10 @@ const initNoticeList = async () => {
 		let noticeActivityReslut = await getNoticesActivityFn();
 		noticeActivityList.value = noticeActivityReslut?.notice_list || [];
 		onLoading.value = false;
-		console.log('noticeActivityList--', noticeActivityList.value);
 
 	} catch {
 		ElMessage.error('获取最新信息失败，请稍后重试！');
 	}
-};
-
-const loadMore = async () => {
-
-}
-
-const handleClick = (tab, event) => {
-	console.log('tab--', tab);
-	console.log('event--', event);
 };
 
 const openDetail = (row) => {
