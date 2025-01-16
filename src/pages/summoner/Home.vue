@@ -75,7 +75,7 @@ const urlOption = ref({
 	IOS: 'https://apps.apple.com/cn/app/魔灵召唤-天空之影/id852912420',
 	Android: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976',
 	service: 'https://customer.withhive.com/com2us/ask/313',
-    terms: 'https://terms.withhive.com/terms/policy/view/M14'
+    terms: 'https://terms.withhive.com/terms/policy/view/M337'
 });
 
 onMounted(() => {
