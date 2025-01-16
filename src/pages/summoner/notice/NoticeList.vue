@@ -52,18 +52,31 @@ onMounted(() => {
 
 const initNoticeList = async () => {
 	try {
-		onLoading.value = true;
-		let noticeReslut = await getNoticeFn();
-		noticeList.value = noticeReslut?.notice_list || [];
-		let noticeActivityReslut = await getNoticesActivityFn();
-		noticeActivityList.value = noticeActivityReslut?.notice_list || [];
-		onLoading.value = false;
+        let { getNoticeTime } = summpnerStore;
+        // 没有获取到时间 肯定没有缓存，执行请求, 当前时间小于缓存的时间 相差大于 3 小时，执行请求
+        let timeFlag = !getNoticeTime || new Date().getTime() - getNoticeTime > (3 * 3600000) ? false : true;
 
+        if ((summpnerStore?.noticeList || []).length > 0 && (summpnerStore?.noticeActivityList || []).length > 0 && timeFlag) {
+            noticeList.value = summpnerStore?.noticeList || [];
+		    noticeActivityList.value = summpnerStore?.noticeActivityList || [];
+        } else {
+            onLoading.value = true;
+            let noticeReslut = await getNoticeFn();
+            let curNoticeList = noticeReslut?.notice_list || [];
+            let noticeActivityReslut = await getNoticesActivityFn();
+            let curNoticeActivityList = noticeActivityReslut?.notice_list || [];
+            noticeList.value = curNoticeList;
+            noticeActivityList.value = curNoticeActivityList;
+            summpnerStore.noticeList = curNoticeList;
+            summpnerStore.noticeActivityList = curNoticeActivityList;
+            summpnerStore.getNoticeTime = new Date().getTime();
+            onLoading.value = false;
+        }
 	} catch {
 		ElMessage.error('获取最新信息失败，请稍后重试！');
+		onLoading.value = false;
 	}
 };
-
 const openDetail = (row) => {
     summpnerStore.noticeDetail = row;
     router.push({ name: 'noticeDetail'})
