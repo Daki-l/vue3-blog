@@ -24,7 +24,7 @@
 					<el-button class="more" type="primary" link @click="moreNotice">更多</el-button>
 				</div>
 				<div class="notice_list" v-loading="onloading">
-					<span class="notice_item" v-for="(item, index) in noticeList" :key="index">
+					<span class="notice_item" v-for="(item, index) in noticeList" :key="index" @click="openDetail(item)">
 						<span>{{ item.noticeTitle }}</span>
 						<span>{{ item.startTime }}</span>
 					</span>
@@ -32,7 +32,7 @@
 			</div>
 		</div>
 		<section class="wrapper_activity" v-loading="onloading">
-			<div class="activity_card" v-for="(item, index) in noticeActivityList" :key="index">
+			<div class="activity_card" v-for="(item, index) in noticeActivityList" :key="index" @click="openDetail(item)">
 				<img class="actitity_img" :src="item.cropImage" alt="" />
 				<div class="activity_title">
 					<span>{{ item.noticeTitle }}</span>
@@ -62,6 +62,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getNoticeFn, getNoticesActivityFn } from '@/services/summonerServices/summonerServices.js';
 import { ElMessage } from 'element-plus';
+import { summpnerStore } from '@/stores/summoner.js'
 const router = useRouter();
 const title = ref('魔灵召唤：天空之役');
 
@@ -103,6 +104,11 @@ const openUrl = (key) => {
 	let option = urlOption.value;
 	window.open(option[key]);
 };
+
+const openDetail = (row) => {
+    summpnerStore.noticeDetail = row;
+    router.push({ name: 'noticeDetail'})
+}
 </script>
   
 <style scoped lang="less">
@@ -179,6 +185,7 @@ const openUrl = (key) => {
 		overflow: auto;
 		margin-top: 20px;
 		.activity_card {
+            cursor: pointer;
 			width: 386px;
 			height: 303px;
 			margin-left: 24px;

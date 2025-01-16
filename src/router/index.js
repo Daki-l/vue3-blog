@@ -47,7 +47,7 @@ let routes = [
         children: [
             {
                 path: 'home',
-                name: 'home',
+                name: 'summonerHome',
                 component: GameHome
             },
             {

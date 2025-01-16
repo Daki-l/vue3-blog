@@ -83,6 +83,8 @@ async function addReplyFn(params) {
 
 /**
  * 获取公告
+ * params{string} pageSize
+ * params{string} pageNum
  */
 async function getNoticeFn(params) {
     return axios.post('summoner/notice/getNotice', params);
