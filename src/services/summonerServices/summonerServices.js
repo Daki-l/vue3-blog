@@ -75,10 +75,53 @@ async function addMessageFn(params) {
 }
 
 /**
+ * 更新留言
+ * @param {string} params messageId
+ * @param {string} params nickname
+ * @param {string} params content
+ * @returns 
+ */
+async function updateMessageFn(params) {
+    return axios.post('summoner/message/updateMessage', params)
+}
+
+
+/**
+ * 删除留言
+ * @param {string} params messageId
+ * @returns 
+ */
+async function deleteMessageFn(params) {
+    return axios.post('summoner/message/deleteMessage', params)
+}
+
+/**
  * 新增回复
  */
 async function addReplyFn(params) {
     return axios.post('summoner/reply/addReply', params);
+}
+
+/**
+ * 更新回复
+ * @param {string} params messageId
+ * @param {string} replyId replyId
+ * @param {string} params nickname
+ * @param {string} params content
+ * @returns 
+ */
+async function updateReplyFn(params) {
+    return axios.post('summoner/reply/updateReply', params)
+}
+
+/**
+ * 删除回复
+ * @param {string} params messageId
+ * @param {string} params replyId
+ * @returns 
+ */
+async function deleteReplyeFn(params) {
+    return axios.post('summoner/reply/deleteReply', params)
 }
 
 /**
@@ -109,7 +152,11 @@ export {
     setCodeToUsers,
     getMessageList,
     addMessageFn,
+    updateMessageFn,
+    deleteMessageFn,
     addReplyFn,
+    updateReplyFn,
+    deleteReplyeFn,
     getNoticeFn,
     getNoticesActivityFn
 };
