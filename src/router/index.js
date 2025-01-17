@@ -7,7 +7,7 @@ import Coupon from '../pages/summoner/Coupon.vue';
 import ArticleDetail from '../pages/article/ArticleDetail.vue';
 import MessageBoard from '../pages/summoner/MessageBoard.vue';
 import StaticInfo from '../pages/summoner/StaticInfo.vue';
-import Action from '../pages/summoner/Action.vue';
+import Action from '../pages/summoner/action/Action.vue';
 import GameHome from '../pages/summoner/Home.vue';
 import NoticeList from '../pages/summoner/notice/NoticeList.vue';
 import NoticeDetail from '../pages/summoner/notice/NoticeDetail.vue';
