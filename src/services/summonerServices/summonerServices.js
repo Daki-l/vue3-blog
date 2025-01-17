@@ -1,16 +1,4 @@
-// import { METHOD, request } from "@/utils/request";
-// import constant from "@/utils/constant";
-
 import axios from '@/utils/axios';
-// import constant from '@/utils/constant';
-
-// const baseUrl = `${constant.baseUrl}`;
-
-// async function getArticleList() {
-//     return axios.get(`article/v1/list`);
-// }
-
-// const baseUrl = `${constant.apiURl}/summoner`;
 
 /**
  * 获取最新兑换码
@@ -23,7 +11,7 @@ async function getSummonerCode(params) {
  *更新兑换码
  coupon, content, status
  */
-async function updateSummonerCode(params) {
+async function updateSummonerCodeFn(params) {
     return axios.post('summoner/code/updateCode', params);
 }
 
@@ -145,7 +133,7 @@ async function getNoticesActivityFn(params) {
 
 export {
     getSummonerCode,
-    updateSummonerCode,
+    updateSummonerCodeFn,
     getSummonerUserInfo,
     getUserInfoList,
     setCodeToUser,

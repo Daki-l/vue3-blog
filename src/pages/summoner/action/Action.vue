@@ -83,13 +83,19 @@
         @cancel="showUpdateDialogFlag = false"
         @success="updateSuccess"
     ></UpdateMesageDialog>
+    <UpdateCouponDialog
+        v-if="showUpdateCouponDialogFlag"
+        :detailData="couponDetail"
+        @cancel="showUpdateCouponDialogFlag = false"
+        @success="updateCouponSuccess"
+    ></UpdateCouponDialog>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
 import {
 	getSummonerCode,
-	updateSummonerCode,
+	updateSummonerCodeFn,
     getMessageList,
 	deleteReplyeFn,
     deleteMessageFn,
@@ -97,6 +103,8 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus';
 import ReplyMessageDialog from './ReplyMessageDialog.vue'
 import UpdateMesageDialog from './UpdateMesageDialog.vue'
+import UpdateCouponDialog from './UpdateCouponDialog.vue'
+
 
 const codeList = ref([]);
 const messageList = ref([]);
@@ -189,19 +197,22 @@ const handleClick = (tab, event) => {
         initList();
     }, 0);
 };
+
+const showUpdateCouponDialogFlag = ref(false);
+const couponDetail = ref({});
 const updateCouponContent = (row) => {
-    console.log('updateCouponContent---', row);
+    couponDetail.value = row;
+    showUpdateCouponDialogFlag.value = true;
+}
+const updateCouponSuccess = () => {
+    showUpdateCouponDialogFlag.value = false;
+    getCodeList();
 }
 const updateStatus = (row) => {
 	let { coupon, content, status } = row;
 	status = status == 'verified' ? 'expired' : 'verified';
-	let params = {
-		coupon,
-		content,
-		status
-	};
-	onLoading.value = true;
-	updateSummonerCode(params)
+    onLoading.value = true;
+	updateSummonerCodeFn({ coupon, content, status })
 		.then((res) => {
 			ElMessage.success('更新成功');
 			onLoading.value = false;

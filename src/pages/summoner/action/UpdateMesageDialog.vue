@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="reply_message_dialog" :model-value="true" title="更新内容" width="500" @closed="cancelHandler">
+    <el-dialog class="update_message_dialog" :model-value="true" title="更新内容" width="500" @closed="cancelHandler">
         <div class="content_info">
             {{ detailData.content || '-' }}
         </div>
@@ -45,7 +45,7 @@ const cancelHandler = () => {
 const updateMessage = async () => {
     let { detailData } = props;
 	if (!newContent.value) {
-		alert('回复内容不能为空！');
+        ElMessage.error('内容不能为空！');
 		return;
 	}
 	onLoading.value = true;
@@ -72,7 +72,7 @@ const updateMessage = async () => {
 </script>
 
 <style lang="less">
-.reply_message_dialog {
+.update_message_dialog {
     .content_info {
         margin-bottom: 14px;
     }
