@@ -41,6 +41,7 @@ import LayoutFooter from '@/pages/layouts/LayoutFooter.vue';
 		max-width: 1100px;
 		margin: 0 auto;
 		overflow-y: auto;
+        background-color: #FFFFFF;
 	}
 	.layout-footer {
 	}

@@ -200,8 +200,8 @@ const openDetail = (row) => {
 		margin-top: 20px;
 		.activity_card {
             cursor: pointer;
-			width: 386px;
-			height: 303px;
+			width: 30%;
+			height: 280px;
 			margin-left: 24px;
 			margin-bottom: 24px;
 			float: left;
