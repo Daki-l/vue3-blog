@@ -19,14 +19,14 @@
 				</el-sub-menu>
 			</template>
 		</el-menu>
-		<div class="header-user" v-if="false">
-			<div class="theme-btns">
+		<div class="header-user">
+			<!-- <div class="theme-btns">
 				<el-switch
 					v-model="themeValue"
 					active-value="light"
 					inactive-value="dark"
 					@change="themeChange" />
-			</div>
+			</div> -->
 			<div class="user-info" v-if="userInfo.id">
 				<img class="info-img" src="" alt="" />
 				<div class="info-name">{{ userInfo.name }}</div>
@@ -124,7 +124,7 @@ if (ENV.value.MODE === 'development') {
 	});
 }
 const userInfo = ref({
-	id: '',
+	id: '123',
 	name: ''
 });
 
@@ -150,6 +150,7 @@ onMounted(() => {
 		width: 80%;
 	}
 	.header-user {
+        background-color: #FFFFFF;
 		width: 20%;
 		height: var(--el-menu-horizontal-height);
 		padding: 0 24px;
