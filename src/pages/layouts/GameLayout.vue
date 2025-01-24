@@ -13,7 +13,7 @@
                 </div>
             </div>
             <div class="item">
-                <div>每一份捐赠都是我坚持的极大鼓励，衷心感谢您的支持！</div>
+                <div>每一份捐赠都是我坚持下去的动力，衷心感谢您的支持！</div>
                 <div class="img_box">
                     <img src="https://resource.boka.vc/MCP/icon_20240124_2.png" alt="">
                 </div>
