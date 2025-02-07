@@ -5,7 +5,7 @@
 			<RouterView />
 		</div>
 		<LayoutFooter></LayoutFooter>
-        <article class="article_advertising_right">
+        <article class="article_advertising_right" v-if="false">
             <div class="item">
                 <div>快来加入我们的游戏微信群，一起探讨游戏技巧，共享游戏乐趣！</div>
                 <div class="img_box">
