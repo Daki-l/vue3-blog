@@ -1,6 +1,6 @@
 export default {
     product: 'vueProgram',
     useMock: false,
-    mockUrl: 'https://mock.lnow.site/',
-    baseUrl: 'https://api.lnow.site/'
+    mockUrl: 'https://mock.linow.us.kg/',
+    baseUrl: 'https://api.linow.us.kg/'
 };

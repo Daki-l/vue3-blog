@@ -26,7 +26,7 @@
   
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, onBeforeRouteUpdate } from 'vue-router';
+import { useRoute } from 'vue-router';
 // import CommentSection from '@/components/CommentSection.vue';
 import { getArticleDetailById } from '@/services/articleService';
 import { ElMessage } from 'element-plus';

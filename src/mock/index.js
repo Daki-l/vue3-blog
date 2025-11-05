@@ -10,8 +10,8 @@ const data = Mock.mock({
             "tags": ",bug,",
             "cover": {
                 "id": 5,
-                "path": "https://static.lnow.site/6055f24a697a5aa0d8fdc487a4b5c28017b2c996",
-                "thumb": "https://static.lnow.site/6055f24a697a5aa0d8fdc487a4b5c28017b2c996/thumb",
+                "path": "https://static.linow.us.kg/6055f24a697a5aa0d8fdc487a4b5c28017b2c996",
+                "thumb": "https://static.linow.us.kg/6055f24a697a5aa0d8fdc487a4b5c28017b2c996/thumb",
                 "hash": "6055f24a697a5aa0d8fdc487a4b5c28017b2c996",
                 "width": 67,
                 "height": 48,
@@ -32,8 +32,8 @@ const data = Mock.mock({
             "tags": ",测试,",
             "cover": {
                 "id": 8,
-                "path": "https://static.lnow.site/cdbb4851edbee3eaf7d4a16bae925f0dca13cfa0",
-                "thumb": "https://static.lnow.site/cdbb4851edbee3eaf7d4a16bae925f0dca13cfa0/thumb",
+                "path": "https://static.linow.us.kg/cdbb4851edbee3eaf7d4a16bae925f0dca13cfa0",
+                "thumb": "https://static.linow.us.kg/cdbb4851edbee3eaf7d4a16bae925f0dca13cfa0/thumb",
                 "hash": "cdbb4851edbee3eaf7d4a16bae925f0dca13cfa0",
                 "width": 584,
                 "height": 878,
@@ -54,8 +54,8 @@ const data = Mock.mock({
             "tags": ",tesst,",
             "cover": {
                 "id": 7,
-                "path": "https://static.lnow.site/4bc32bdc43a18d38046fff1cf85581c294f8751f",
-                "thumb": "https://static.lnow.site/4bc32bdc43a18d38046fff1cf85581c294f8751f/thumb",
+                "path": "https://static.linow.us.kg/4bc32bdc43a18d38046fff1cf85581c294f8751f",
+                "thumb": "https://static.linow.us.kg/4bc32bdc43a18d38046fff1cf85581c294f8751f/thumb",
                 "hash": "4bc32bdc43a18d38046fff1cf85581c294f8751f",
                 "width": 1920,
                 "height": 1200,
@@ -87,8 +87,8 @@ const data = Mock.mock({
             "tags": ",vue3,ts,element,axios,prettierrc,",
             "cover": {
                 "id": 6,
-                "path": "https://static.lnow.site/9b532ef8f23fe3284988c9c523f39f41bb796109",
-                "thumb": "https://static.lnow.site/9b532ef8f23fe3284988c9c523f39f41bb796109/thumb",
+                "path": "https://static.linow.us.kg/9b532ef8f23fe3284988c9c523f39f41bb796109",
+                "thumb": "https://static.linow.us.kg/9b532ef8f23fe3284988c9c523f39f41bb796109/thumb",
                 "hash": "9b532ef8f23fe3284988c9c523f39f41bb796109",
                 "width": 1920,
                 "height": 1200,
@@ -106,7 +106,7 @@ const data = Mock.mock({
 });
 
 // 模拟 mock 接口
-Mock.mock('https://mock.lnow.site/article/v1/list', 'get', {
+Mock.mock('https://mock.linow.us.kg/article/v1/list', 'get', {
     status: 200,
     message: 'success',
     data: {
@@ -115,7 +115,7 @@ Mock.mock('https://mock.lnow.site/article/v1/list', 'get', {
     }
 });
 
-Mock.mock('https://mock.lnow.site/summoner/code/getCodeList', 'get', {
+Mock.mock('https://mock.linow.us.kg/summoner/code/getCodeList', 'get', {
     status: 200,
     message: 'success',
     data: { "createTime": "2024-10-30", "list": [{ "status": "verified", "coupon": "swsaxbasharkkf3i9", "createTime": "2024-10-27", "content": "5x黄卷" }, { "status": "verified", "coupon": "hengaptokyo1109", "createTime": "2024-10-26", "content": "10x风卷/3x徽章" }, { "status": "verified", "coupon": "dinhnocswc2024", "createTime": "2024-10-26", "content": "3x徽章" }, { "status": "verified", "coupon": "apacsansang2024", "createTime": "2024-10-26", "content": "500000x蓝水/100x红水/2x徽章" }, { "status": "verified", "coupon": "sw2024octm6b", "createTime": "2024-10-30", "content": "3x风卷" }] }
