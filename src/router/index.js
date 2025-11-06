@@ -66,6 +66,11 @@ let routes = [
                 component: StaticInfo
             },
             {
+                path: 'action',
+                name: 'action',
+                component: Action
+            },
+            {
                 path: 'info',
                 name: 'info',
                 redirect: 'info/scene',
@@ -91,17 +96,17 @@ let routes = [
     }
 ];
 let ENV = import.meta.env;
-if (ENV.MODE === "development") {
-    routes.forEach(e => {
-        if (e.name === 'game') {
-            e.children.push({
-                path: 'action',
-                name: 'action',
-                component: Action
-            },)
-        }
-    })
-}
+// if (ENV.MODE === "development") {
+//     routes.forEach(e => {
+//         if (e.name === 'game') {
+//             e.children.push({
+//                 path: 'action',
+//                 name: 'action',
+//                 component: Action
+//             },)
+//         }
+//     })
+// }
 const router = createRouter({
     history: createWebHistory(ENV.BASE_URL),
     routes: routes
