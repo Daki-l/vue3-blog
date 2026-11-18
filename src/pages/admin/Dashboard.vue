@@ -80,12 +80,48 @@
 			</div>
 			<el-empty v-else description="暂无访问数据" :image-size="80" />
 		</el-card>
+		<el-card shadow="never" class="trend_card degrade_card">
+			<template #header>
+				<div class="visit_header">
+					<span class="trend_title">D1 限额降级(兑换缓冲)</span>
+					<el-tag v-if="degrade.degraded" :type="degrade.flag?.mode === 'auto' ? 'warning' : 'danger'">
+						{{ degrade.flag?.mode === 'auto' ? '已自动降级' : '手动降级中' }}
+					</el-tag>
+					<el-tag v-else type="success">正常</el-tag>
+				</div>
+			</template>
+			<div class="degrade_body">
+				<div class="degrade_desc">
+					开启后兑换不再写 D1(免受每日行读限额影响)：兑换立即成功，流水暂存 KV
+					缓冲，每日 09:00(北京时间)定时任务自动回放入库，也可手动重放。
+				</div>
+				<div class="degrade_meta" v-if="degrade.flag">
+					触发时间：{{ formatDateTime(degrade.flag.setAt * 1000) }}
+					<template v-if="degrade.flag.mode === 'auto'">；将于额度重置后自动解除</template>
+				</div>
+				<div class="degrade_meta">缓冲未入库流水：<b>{{ degrade.buffered }}</b> 条</div>
+				<div class="degrade_btns">
+					<el-switch
+						v-model="degradeEnabled"
+						:loading="degradeSwitching"
+						active-text="手动开启"
+						inactive-text="关闭"
+						@change="handleDegradeSwitch" />
+					<el-button size="small" type="primary" :loading="replaying" @click="handleReplay" :disabled="!degrade.buffered">
+						重放缓冲({{ degrade.buffered }})
+					</el-button>
+					<el-button link size="small" @click="initDegrade">刷新</el-button>
+				</div>
+			</div>
+		</el-card>
 	</div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { getAdminStats, getVisitStats } from '@/services/admin';
+import { ElMessage } from 'element-plus';
+import { getAdminStats, getVisitStats, getDegradeStatus, setDegradeEnabled, replayDegradeBuffer } from '@/services/admin';
+import { formatDateTime } from '@/utils/format';
 
 const loading = ref(false);
 const stats = ref({});
@@ -123,6 +159,48 @@ const initVisitStats = async () => {
 	}
 };
 
+// ===== D1 限额降级控制(仅走 KV,限额期可用) =====
+const degrade = ref({ degraded: false, flag: null, buffered: 0 });
+const degradeEnabled = ref(false);
+const degradeSwitching = ref(false);
+const replaying = ref(false);
+
+const initDegrade = async () => {
+	try {
+		const res = await getDegradeStatus();
+		degrade.value = res || { degraded: false, flag: null, buffered: 0 };
+		degradeEnabled.value = !!degrade.value.degraded && degrade.value.flag?.mode === 'manual';
+	} catch (e) {
+		console.error('获取降级状态失败', e);
+	}
+};
+
+const handleDegradeSwitch = async (val) => {
+	degradeSwitching.value = true;
+	try {
+		await setDegradeEnabled(val);
+		ElMessage.success(val ? '已手动开启降级(兑换写 KV 缓冲)' : '已关闭降级(恢复正常写库)');
+		await initDegrade();
+	} catch (e) {
+		degradeEnabled.value = !val;
+	} finally {
+		degradeSwitching.value = false;
+	}
+};
+
+const handleReplay = async () => {
+	replaying.value = true;
+	try {
+		const res = await replayDegradeBuffer();
+		ElMessage.success(`已回放 ${res?.replayed ?? 0} 条,剩余 ${res?.remaining ?? 0} 条`);
+		await initDegrade();
+	} catch (e) {
+		// 额度未恢复时后端报错,提示由拦截器统一处理
+	} finally {
+		replaying.value = false;
+	}
+};
+
 const initStats = async () => {
 	loading.value = true;
 	try {
@@ -138,6 +216,7 @@ const initStats = async () => {
 onMounted(() => {
 	initStats();
 	initVisitStats();
+	initDegrade();
 });
 </script>
 
@@ -176,6 +255,28 @@ onMounted(() => {
 		}
 	}
 	.trend_card {
+		.degrade_card {
+			margin-top: 12px;
+		}
+		.degrade_body {
+			.degrade_desc {
+				font-size: 13px;
+				color: #606266;
+				line-height: 1.6;
+				margin-bottom: 8px;
+			}
+			.degrade_meta {
+				font-size: 12px;
+				color: #909399;
+				margin-bottom: 4px;
+			}
+			.degrade_btns {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				margin-top: 10px;
+			}
+		}
 		.trend_title {
 			font-weight: 600;
 		}

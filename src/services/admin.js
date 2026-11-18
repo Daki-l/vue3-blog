@@ -222,8 +222,32 @@ async function deleteReply(id) {
     return http.delete(`/admin/replies/${id}`);
 }
 
+/**
+ * D1 限额降级状态 -> {degraded, flag, buffered}
+ */
+async function getDegradeStatus() {
+    return http.get('/admin/degrade');
+}
+
+/**
+ * 手动开/关降级 {enabled}
+ */
+async function setDegradeEnabled(enabled) {
+    return http.post('/admin/degrade', { enabled });
+}
+
+/**
+ * 立即重放缓冲流水 -> {replayed, remaining}
+ */
+async function replayDegradeBuffer() {
+    return http.post('/admin/degrade/replay');
+}
+
 export {
     getAdminCoupons,
+    getDegradeStatus,
+    setDegradeEnabled,
+    replayDegradeBuffer,
     getVisitStats,
     getAdminSummoners,
     getAdminArticles,
