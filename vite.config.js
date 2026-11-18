@@ -8,7 +8,8 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 export default defineConfig({
     plugins: [vue(), vueJsx()],
     server: {
-        port: 5050, // 修改为你想要的端口
+        port: 5188,
+        strictPort: true // 端口被占用时直接报错,避免悄悄漂移到其他端口
     },
     resolve: {
         alias: {
