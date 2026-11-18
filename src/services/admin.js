@@ -45,6 +45,13 @@ async function getAdminStats() {
 // ===== 文章管理 =====
 
 /**
+ * 召唤师管理(按 Hive ID 聚合) {page,pageSize,keyword} -> {list,total}
+ */
+async function getAdminSummoners(params) {
+    return http.get('/admin/summoners', params);
+}
+
+/**
  * 管理端文章列表(含草稿) {page,pageSize,keyword} -> {list,total}
  */
 async function getAdminArticles(params) {
@@ -210,6 +217,7 @@ async function deleteReply(id) {
 
 export {
     getAdminCoupons,
+    getAdminSummoners,
     getAdminArticles,
     getAdminArticleDetail,
     addCoupon,

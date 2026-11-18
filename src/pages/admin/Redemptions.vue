@@ -28,7 +28,7 @@
 			<el-table-column prop="created_at" label="时间" width="180" sortable>
 				<template #default="{ row }">{{ formatDateTime(row.created_at || row.createdAt) }}</template>
 			</el-table-column>
-			<el-table-column label="用户" width="140">
+			<el-table-column label="站点用户" width="140">
 				<template #default="{ row }">
 					<template v-if="row.username">
 						{{ row.username }}<el-tag v-if="Number(row.attributed) === 1" size="small" type="info" style="margin-left: 4px">绑定</el-tag>
@@ -36,10 +36,13 @@
 					<span v-else>-</span>
 				</template>
 			</el-table-column>
-			<el-table-column label="服务器" width="170">
+			<el-table-column label="召唤师" min-width="140">
+				<template #default="{ row }">{{ row.wizard_name || '-' }}</template>
+			</el-table-column>
+			<el-table-column label="服务器" width="150">
 				<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 			</el-table-column>
-			<el-table-column label="账号" min-width="120">
+			<el-table-column label="Hive ID" min-width="120">
 				<template #default="{ row }">{{ row.hiveid || row.hive_id || '-' }}</template>
 			</el-table-column>
 			<el-table-column label="兑换码" min-width="150">

@@ -7,6 +7,7 @@
 					<el-menu-item index="/admin/coupons">兑换码管理</el-menu-item>
 					<el-menu-item index="/admin/articles">文章管理</el-menu-item>
 					<el-menu-item index="/admin/users">账号管理</el-menu-item>
+					<el-menu-item index="/admin/summoners">召唤师管理</el-menu-item>
 					<el-menu-item index="/admin/nav">导航管理</el-menu-item>
 					<el-menu-item index="/admin/notices">公告管理</el-menu-item>
 					<el-menu-item index="/admin/redemptions">兑换记录</el-menu-item>

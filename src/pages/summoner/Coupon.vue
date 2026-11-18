@@ -257,13 +257,20 @@ let checkSummoners = (hiveidsList) => {
 			let accountList = checkList
 				.map((e) => (e.wizardName ? `${e.wizardName}(${e.hiveid})` : e.hiveid))
 				.join('、');
+			// 召唤师名随兑换请求落库(兑换记录"召唤师"列)
+			let namesMap = {};
+			checkList.forEach((e) => {
+				if (e.hiveid && e.wizardName) {
+					namesMap[e.hiveid] = e.wizardName;
+				}
+			});
 			ElMessageBox.confirm(`是否兑换到以下账号：${accountList}`, '提示', {
 				confirmButtonText: '确认',
 				cancelButtonText: '取消',
 				type: 'warning'
 			})
 				.then(() => {
-					sendRequests(hiveidsList);
+					sendRequests(hiveidsList, namesMap);
 				})
 				.catch(() => {});
 		})
@@ -275,14 +282,15 @@ let checkSummoners = (hiveidsList) => {
 		});
 };
 
-// 批量兑换:server 使用所选服务器
-let sendRequests = async (hiveidsList) => {
+// 批量兑换:server 使用所选服务器,names 携带召唤师名落库
+let sendRequests = async (hiveidsList, namesMap = {}) => {
 	fullscreenLoading.value = true;
 	try {
 		const res = await redeemCoupons({
 			server: serverValue.value,
 			hiveIds: hiveidsList,
-			codes: parseList(coupons.value)
+			codes: parseList(coupons.value),
+			names: namesMap
 		});
 		resultList.value = res || [];
 		if (userStore.isLogged) {

@@ -107,6 +107,12 @@ const routes = [
                         meta: { auth: true, admin: true }
                     },
                     {
+                        path: 'summoners',
+                        name: 'adminSummoners',
+                        component: () => import('@/pages/admin/Summoners.vue'),
+                        meta: { auth: true, admin: true }
+                    },
+                    {
                         path: 'nav',
                         name: 'adminNav',
                         component: AdminNav,
