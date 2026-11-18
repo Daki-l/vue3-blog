@@ -32,7 +32,9 @@
 		</div>
 
 		<el-card shadow="never" class="trend_card">
-			<template #header><span class="trend_title">近 7 日兑换趋势</span></template>
+			<template #header>
+				<span class="trend_title">近 7 日兑换趋势</span>
+			</template>
 			<div class="trend_chart" v-if="trendList.length > 0">
 				<div class="trend_col" v-for="(item, index) in trendList" :key="index">
 					<div class="trend_count">{{ item.count }}</div>
@@ -47,15 +49,50 @@
 			</div>
 			<el-empty v-else description="暂无趋势数据" :image-size="80" />
 		</el-card>
+
+		<el-card shadow="never" class="trend_card">
+			<template #header>
+				<div class="visit_header">
+					<span class="trend_title">站点访问统计(兑换码页)</span>
+					<div class="visit_meta">
+						<el-select v-model="visitDays" style="width: 130px" @change="initVisitStats">
+							<el-option label="近 14 天" :value="14" />
+							<el-option label="近 30 天" :value="30" />
+							<el-option label="近 90 天" :value="90" />
+						</el-select>
+						<span class="visit_summary" v-if="visitSummary">
+							累计 {{ visitSummary.days }} 天 / 总查询 {{ visitSummary.totalQueries }} 次
+						</span>
+					</div>
+				</div>
+			</template>
+			<div class="visit_chart" v-if="visitList.length > 0">
+				<div class="visit_col" v-for="(item, index) in visitList" :key="index">
+					<div class="visit_count">{{ item.totalQueries }}</div>
+					<div class="visit_bar_box">
+						<div
+							class="visit_bar"
+							:style="{ height: visitBarHeight(item.totalQueries) + '%' }"
+							:title="`${item.day}：查询 ${item.totalQueries} 次 / 独立IP ${item.ipCount}`"></div>
+					</div>
+					<div class="visit_date">{{ item.day.slice(5) }}</div>
+				</div>
+			</div>
+			<el-empty v-else description="暂无访问数据" :image-size="80" />
+		</el-card>
 	</div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { getAdminStats } from '@/services/admin';
+import { getAdminStats, getVisitStats } from '@/services/admin';
 
 const loading = ref(false);
 const stats = ref({});
+
+const visitDays = ref(30);
+const visitList = ref([]);
+const visitSummary = ref(null);
 
 const trendList = computed(() => stats.value?.trend || []);
 const trendMax = computed(() => {
@@ -65,6 +102,25 @@ const trendMax = computed(() => {
 const barHeight = (count) => {
 	const num = Number(count) || 0;
 	return Math.max(4, Math.round((num / trendMax.value) * 100));
+};
+
+const visitMax = computed(() => {
+	return Math.max(1, ...visitList.value.map((item) => Number(item.totalQueries) || 0));
+});
+
+const visitBarHeight = (count) => {
+	const num = Number(count) || 0;
+	return Math.max(4, Math.round((num / visitMax.value) * 100));
+};
+
+const initVisitStats = async () => {
+	try {
+		const res = await getVisitStats({ days: visitDays.value });
+		visitList.value = res?.list || [];
+		visitSummary.value = res?.summary || null;
+	} catch (e) {
+		console.error('获取访问统计失败', e);
+	}
 };
 
 const initStats = async () => {
@@ -81,6 +137,7 @@ const initStats = async () => {
 
 onMounted(() => {
 	initStats();
+	initVisitStats();
 });
 </script>
 
@@ -121,6 +178,63 @@ onMounted(() => {
 	.trend_card {
 		.trend_title {
 			font-weight: 600;
+		}
+		.visit_header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		.visit_meta {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+		.visit_summary {
+			font-size: 12px;
+			color: #909399;
+		}
+		.visit_chart {
+			display: flex;
+			align-items: flex-end;
+			height: 220px;
+			padding: 0 8px;
+			overflow-x: auto;
+			.visit_col {
+				flex: 1 0 20px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: flex-end;
+				height: 100%;
+				min-width: 20px;
+				.visit_count {
+					font-size: 10px;
+					color: #606266;
+					margin-bottom: 4px;
+				}
+				.visit_bar_box {
+					width: 60%;
+					height: 160px;
+					display: flex;
+					align-items: flex-end;
+					background-color: #f5f7fa;
+					border-radius: 4px 4px 0 0;
+					.visit_bar {
+						width: 100%;
+						background: linear-gradient(180deg, #95d475 0%, #67c23a 100%);
+						border-radius: 4px 4px 0 0;
+						transition: height 0.3s;
+					}
+				}
+				.visit_date {
+					margin-top: 6px;
+					font-size: 10px;
+					color: #909399;
+					white-space: nowrap;
+				}
+			}
 		}
 		.trend_chart {
 			display: flex;

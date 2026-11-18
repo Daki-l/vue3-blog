@@ -11,6 +11,10 @@
 				clearable
 				@keyup.enter="handleSearch"
 				@clear="handleSearch" />
+			<el-radio-group v-model="scope" @change="handleSearch">
+				<el-radio-button value="all">全部账号</el-radio-button>
+				<el-radio-button value="redeemed">仅兑换过</el-radio-button>
+			</el-radio-group>
 			<el-button type="primary" @click="handleSearch">查询</el-button>
 		</div>
 		<el-table :data="summonerList" border style="width: 100%" v-loading="listLoading">
@@ -24,6 +28,9 @@
 				<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 			</el-table-column>
 			<el-table-column label="兑换次数" width="100" sortable prop="total" />
+			<el-table-column label="查询次数" width="100" sortable prop="query_count">
+				<template #default="{ row }">{{ row.query_count ?? '-' }}</template>
+			</el-table-column>
 			<el-table-column label="首次兑换" width="170">
 				<template #default="{ row }">{{ formatDateTime(row.first_at) }}</template>
 			</el-table-column>
@@ -102,6 +109,7 @@ const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
 const keyword = ref('');
+const scope = ref('all');
 
 const detailVisible = ref(false);
 const detailLoading = ref(false);
@@ -117,7 +125,7 @@ const isSuccess = (row) => row.retCode == 100 || row.ret_code == 100;
 const initList = async () => {
 	listLoading.value = true;
 	try {
-		const params = { page: page.value, pageSize: pageSize.value };
+		const params = { page: page.value, pageSize: pageSize.value, scope: scope.value };
 		if (keyword.value.trim()) {
 			params.keyword = keyword.value.trim();
 		}

@@ -45,6 +45,13 @@ async function getAdminStats() {
 // ===== 文章管理 =====
 
 /**
+ * 访问统计 {days} -> {list:[{day,cacheHits,apiFetches,ipCount,totalQueries}],summary}
+ */
+async function getVisitStats(params) {
+    return http.get('/admin/visit-stats', params);
+}
+
+/**
  * 召唤师管理(按 Hive ID 聚合) {page,pageSize,keyword} -> {list,total}
  */
 async function getAdminSummoners(params) {
@@ -217,6 +224,7 @@ async function deleteReply(id) {
 
 export {
     getAdminCoupons,
+    getVisitStats,
     getAdminSummoners,
     getAdminArticles,
     getAdminArticleDetail,
