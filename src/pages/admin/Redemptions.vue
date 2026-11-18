@@ -28,8 +28,13 @@
 			<el-table-column prop="created_at" label="时间" width="180" sortable>
 				<template #default="{ row }">{{ formatDateTime(row.created_at || row.createdAt) }}</template>
 			</el-table-column>
-			<el-table-column label="用户" width="130">
-				<template #default="{ row }">{{ row.username || '-' }}</template>
+			<el-table-column label="用户" width="140">
+				<template #default="{ row }">
+					<template v-if="row.username">
+						{{ row.username }}<el-tag v-if="Number(row.attributed) === 1" size="small" type="info" style="margin-left: 4px">绑定</el-tag>
+					</template>
+					<span v-else>-</span>
+				</template>
 			</el-table-column>
 			<el-table-column label="服务器" width="170">
 				<template #default="{ row }">{{ getServerLabel(row.server) }}</template>

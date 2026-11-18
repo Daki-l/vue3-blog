@@ -9,7 +9,7 @@
 			</div>
 			<div class="top_right">
 				<span>更新日期：</span>
-				<span>{{ updateTime }}</span>
+				<span>{{ formatDateTime(updateTime) }}</span>
 			</div>
 		</div>
 		<div class="login_tip" v-if="!userStore.isLogged">
@@ -104,6 +104,7 @@ import { checkRedemption, redeemCoupons, getMyRedemptions } from '@/services/red
 import { getHiveIds } from '@/services/auth';
 import { useUserStore } from '@/stores/user';
 import { SERVER_OPTIONS, getServerLabel } from '@/common/constant';
+import { formatDateTime } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();

@@ -6,7 +6,7 @@
 				<el-button type="warning" :loading="syncCouponLoading" @click="handleSyncCoupons">
 					立即抓取
 				</el-button>
-				<span class="update_time" v-if="updateTime">更新时间：{{ updateTime }}</span>
+				<span class="update_time" v-if="updateTime">更新时间：{{ formatDateTime(updateTime) }}</span>
 			</div>
 		</div>
 		<div class="toolbar">
@@ -81,6 +81,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getAdminCoupons, addCoupon, updateCoupon, syncCoupons } from '@/services/admin';
+import { formatDateTime } from '@/utils/format';
 
 const couponList = ref([]);
 const couponLoading = ref(false);
