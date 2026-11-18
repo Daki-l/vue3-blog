@@ -130,10 +130,11 @@ const registerRules = {
 
 const redirectAfterLogin = () => {
 	let redirect = route.query.redirect;
+	// 兼容旧 /game/* 重定向参数(路由层有 /game/xxx -> /xxx 兜底转换)
 	if (typeof redirect === 'string' && redirect.startsWith('/')) {
 		router.push(redirect);
 	} else {
-		router.push('/game/home');
+		router.push('/home');
 	}
 };
 
@@ -186,7 +187,7 @@ const submitRegister = () => {
 };
 
 const goBack = () => {
-	router.push('/game/home');
+	router.push('/home');
 };
 </script>
 

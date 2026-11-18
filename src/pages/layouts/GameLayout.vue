@@ -1,7 +1,7 @@
 <template>
 	<div class="blog_layout_wrapper">
 		<LayoutHeader></LayoutHeader>
-		<div class="layout-content">
+		<div class="layout-content" :class="{ wide_content: isWideRoute }">
 			<RouterView />
 		</div>
 		<LayoutFooter></LayoutFooter>
@@ -23,8 +23,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import LayoutHeader from '@/pages/layouts/GameLayoutHeader.vue';
 import LayoutFooter from '@/pages/layouts/LayoutFooter.vue';
+
+const route = useRoute();
+// 管理中心/个人中心内容较宽,放宽版心
+const isWideRoute = computed(
+	() => route.path.startsWith('/admin') || route.path.startsWith('/profile')
+);
 </script>
 
 <style lang="less">
@@ -42,6 +50,9 @@ import LayoutFooter from '@/pages/layouts/LayoutFooter.vue';
 		margin: 0 auto;
 		overflow-y: auto;
         background-color: #FFFFFF;
+		&.wide_content {
+			max-width: 1400px;
+		}
 	}
 	.layout-footer {
 	}

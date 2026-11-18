@@ -33,6 +33,18 @@
 			</el-table>
 		</div>
 		<div class="input_list">
+			<!-- 已绑定 Hive 账号快捷选择(与手动输入二选一) -->
+			<div class="bound_box" v-if="userStore.isLogged && boundList.length > 0">
+				<label class="bound_label">使用已绑定账号:</label>
+				<el-checkbox-group v-model="selectedBound" :max="6" @change="handleBoundChange">
+					<el-checkbox v-for="item in boundList" :key="item.id" :value="item.hiveId">
+						{{ item.hiveId }}
+						<span class="bound_server">（{{ getServerLabel(item.server) }}）</span>
+						<span v-if="item.label" class="bound_remark">{{ item.label }}</span>
+					</el-checkbox>
+				</el-checkbox-group>
+				<div class="bound_tip">勾选后自动填入下方 Hive ID(最多 6 个)；也可直接手动输入，二者取其一</div>
+			</div>
 			<div class="input_item server">
 				<label for="server">服务器选择:</label>
 				<el-select v-model="serverValue" placeholder="请选择">
@@ -45,7 +57,7 @@
 			</div>
 			<div class="input_item">
 				<label for="hiveid">Hive ID (多个用分号分隔,最多6个):</label>
-				<el-input type="text" id="hiveid" v-model="hiveIds"></el-input>
+				<el-input type="text" id="hiveid" v-model="hiveIds" @input="handleManualInput"></el-input>
 			</div>
 			<div class="input_item">
 				<label for="coupon">兑换码 (多个用分号分隔):</label>
@@ -89,7 +101,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCoupons } from '@/services/coupon';
 import { checkRedemption, redeemCoupons, getMyRedemptions } from '@/services/redemption';
+import { getHiveIds } from '@/services/auth';
 import { useUserStore } from '@/stores/user';
+import { SERVER_OPTIONS, getServerLabel } from '@/common/constant';
 
 const route = useRoute();
 const router = useRouter();
@@ -104,22 +118,50 @@ const onLoading = ref(false);
 const fullscreenLoading = ref(false);
 const mineLoading = ref(false);
 const updateTime = ref('');
-const serverOption = ref([
-	{ value: 'global', label: '全球服务器(Global)' },
-	{ value: 'korea', label: '韩国服务器(Korea)' },
-	{ value: 'japan', label: '日本服务器(Japan)' },
-	{ value: 'china', label: '中国服务器(China)' },
-	{ value: 'asia', label: '亚洲服务器(Asia)' },
-	{ value: 'europe', label: '欧洲服务器(Europe)' }
-]);
+const serverOption = ref(SERVER_OPTIONS);
 const serverValue = ref('china');
+
+// ===== 已绑定 Hive 账号快捷选择 =====
+const boundList = ref([]);
+const selectedBound = ref([]);
 
 onMounted(() => {
 	initCodeList();
 	if (userStore.isLogged) {
 		initMineList();
+		initBoundList();
 	}
 });
+
+// 拉取个人绑定的 Hive 账号(实时,不依赖登录缓存)
+let initBoundList = async () => {
+	try {
+		const res = await getHiveIds();
+		boundList.value = res?.list || [];
+	} catch (err) {
+		console.error('获取绑定账号失败:', err);
+	}
+};
+
+// 勾选绑定账号:自动填入 Hive ID 输入框;所选账号服务器一致时自动切换服务器
+let handleBoundChange = (selected) => {
+	if (!selected || selected.length === 0) {
+		return;
+	}
+	hiveIds.value = selected.join(';');
+	const servers = boundList.value
+		.filter((item) => selected.includes(item.hiveId))
+		.map((item) => item.server);
+	const uniqueServers = [...new Set(servers)];
+	if (uniqueServers.length === 1 && uniqueServers[0]) {
+		serverValue.value = uniqueServers[0];
+	}
+};
+
+// 手动输入:清空绑定账号勾选(二选一)
+let handleManualInput = () => {
+	selectedBound.value = [];
+};
 
 // 获取最新兑换码信息
 let initCodeList = async () => {
@@ -309,6 +351,31 @@ let getCouponContent = (coupon) => {
 	}
 	.input_list {
 		margin-top: 20px;
+		.bound_box {
+			margin-bottom: 12px;
+			padding: 10px 12px;
+			background-color: #f5f7fa;
+			border-radius: 6px;
+			.bound_label {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 6px;
+			}
+			.bound_server {
+				color: #909399;
+				font-size: 12px;
+			}
+			.bound_remark {
+				color: #0067e4;
+				font-size: 12px;
+				margin-left: 4px;
+			}
+			.bound_tip {
+				margin-top: 6px;
+				color: #909399;
+				font-size: 12px;
+			}
+		}
 		.input_item {
 			&.server {
 				display: flex;

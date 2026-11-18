@@ -6,23 +6,33 @@
 			mode="horizontal"
 			:ellipsis="false"
 			:router="true">
-			<template v-for="(item, index) in navOption" :key="index">
-				<el-menu-item v-if="(item.children || []).length === 0" :index="item.path || item.index">
-					{{ item.name }}
-				</el-menu-item>
-				<el-sub-menu v-else :index="item.path || item.index">
+			<template v-for="item in navOption" :key="item.id">
+				<el-sub-menu v-if="(item.children || []).length > 0" :index="menuIndex(item)">
 					<template #title>{{ item.name }}</template>
-					<template v-for="(child, cndex) in item.children" :key="cndex">
-						<el-menu-item :index="child.path || child.index">{{ child.name }}</el-menu-item>
-					</template>
+					<el-menu-item
+						v-for="child in item.children"
+						:key="child.id"
+						:index="menuIndex(child)">
+						{{ child.name }}
+					</el-menu-item>
 				</el-sub-menu>
+				<el-menu-item v-else :index="menuIndex(item)">{{ item.name }}</el-menu-item>
 			</template>
 		</el-menu>
 		<div class="header-user">
 			<template v-if="userStore.isLogged">
-				<span class="user-name" :title="userStore.displayName">{{ userStore.displayName }}</span>
-				<el-button v-if="userStore.isAdmin" type="primary" link @click="gotoAdmin">管理</el-button>
-				<el-button type="danger" plain @click="handleLogout">退出</el-button>
+				<el-dropdown class="user_dropdown" trigger="click" @command="handleUserCommand">
+					<span class="user_trigger" :title="userStore.displayName">
+						<span class="user-name">{{ userStore.displayName }}</span>
+						<span class="user-caret">▾</span>
+					</span>
+					<template #dropdown>
+						<el-dropdown-menu>
+							<el-dropdown-item command="profile">个人中心</el-dropdown-item>
+							<el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+						</el-dropdown-menu>
+					</template>
+				</el-dropdown>
 			</template>
 			<el-button type="primary" v-else @click="gotoLogin">登录</el-button>
 		</div>
@@ -34,110 +44,58 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
+import { useNavStore } from '@/stores/nav';
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const navStore = useNavStore();
 
-// 高亮页签直接取当前路由,不再使用 localStorage 缓存
-const activeIndex = computed(() => route.fullPath);
-
-const baseNavOption = [
-	{
-		name: '首页',
-		path: '/game/home',
-		index: '1',
-		children: []
-	},
-	{
-		name: '地下城介绍',
-		path: '/game/info/',
-		index: '2',
-		children: [
-			{
-				name: '巨人地下城',
-				desction: 'giant',
-				path: '/game/info/scene?id=11',
-				index: '2-1'
-			},
-			{
-				name: '龙之地下城',
-				desction: 'dragon',
-				path: '/game/info/scene?id=12',
-				index: '2-1'
-			},
-			{
-				name: '死亡地下城',
-				desction: 'necropolis',
-				path: '/game/info/scene?id=13',
-				index: '2-2'
-			},
-			{
-				name: '精灵地下城',
-				desction: 'spiritual',
-				path: '/game/info/scene?id=14',
-				index: '2-3'
-			},
-			{
-				name: '钢铁地下城',
-				desction: 'steel',
-				path: '/game/info/scene?id=15',
-				index: '2-4'
-			},
-			{
-				name: '惩罚者地下城',
-				desction: 'punisher',
-				path: '/game/info/scene?id=16',
-				index: '2-5'
-			}
-		]
-	},
-	{
-		name: '兑换码直兑',
-		path: '/game/coupon',
-		index: '4',
-		children: []
-	},
-	{
-		name: '留言板',
-		path: '/game/message',
-		index: '3',
-		children: []
+// 菜单高亮:普通页取完整路径(含 query,如 /info/scene?id=11);管理页统一高亮"管理"
+const activeIndex = computed(() => {
+	if (route.path.startsWith('/admin')) {
+		return '/admin';
 	}
-];
+	return route.fullPath;
+});
 
-// 管理员额外显示"管理"菜单项
+// 菜单项 index:有路径用路径(router 模式直接跳转),无路径(纯分组的父级)用 id 兜底
+const menuIndex = (item) => item.path || `nav-${item.id}`;
+
+// 导航数据驱动(两级树);管理员追加"管理"入口
 const navOption = computed(() => {
 	if (userStore.isAdmin) {
-		return baseNavOption.concat([
+		return (navStore.tree || []).concat([
 			{
+				id: 'admin-entry',
 				name: '管理',
-				path: '/game/admin',
-				index: '5',
+				path: '/admin',
 				children: []
 			}
 		]);
 	}
-	return baseNavOption;
+	return navStore.tree || [];
 });
 
-const gotoAdmin = () => {
-	router.push('/game/admin');
+const handleUserCommand = (command) => {
+	if (command === 'profile') {
+		router.push('/profile');
+		return;
+	}
+	if (command === 'logout') {
+		userStore.logout();
+		ElMessage.success('已退出登录');
+		if (route.path.startsWith('/admin') || route.path.startsWith('/profile')) {
+			router.push('/home');
+		}
+	}
 };
 
 const gotoLogin = () => {
 	router.push({
 		name: 'login',
-		query: route.path === '/game/login' ? {} : { redirect: route.fullPath }
+		query: route.path === '/login' ? {} : { redirect: route.fullPath }
 	});
-};
-
-const handleLogout = () => {
-	userStore.logout();
-	ElMessage.success('已退出登录');
-	if (route.path.startsWith('/game/admin')) {
-		router.push('/game/home');
-	}
 };
 </script>
 
@@ -159,13 +117,27 @@ const handleLogout = () => {
 		justify-content: flex-end;
 		gap: 8px;
 		border-bottom: 1px solid var(--el-menu-border-color);
+		.user_dropdown {
+			cursor: pointer;
+			outline: none;
+		}
+		.user_trigger {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			max-width: 200px;
+			color: #303133;
+			font-size: 14px;
+		}
 		.user-name {
-			max-width: 140px;
+			max-width: 160px;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
-			color: #303133;
-			font-size: 14px;
+		}
+		.user-caret {
+			color: #909399;
+			font-size: 12px;
 		}
 	}
 }
