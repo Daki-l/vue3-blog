@@ -22,7 +22,7 @@
 			<el-table-column prop="content" label="内容" />
 			<el-table-column prop="created_at" label="创建日期" width="180">
 				<template #default="{ row }">
-					<span>{{ row.created_at || row.createTime || '-' }}</span>
+					<span>{{ formatDateTime(row.created_at || row.createTime) }}</span>
 				</template>
 			</el-table-column>
 			<el-table-column prop="action" label="操作" width="160" align="right">
@@ -88,6 +88,7 @@ import {
 } from '@/services/admin';
 import { addReply } from '@/services/message';
 import { useUserStore } from '@/stores/user';
+import { formatDateTime } from '@/utils/format';
 
 const userStore = useUserStore();
 

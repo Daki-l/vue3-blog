@@ -15,7 +15,7 @@
 					</el-tag>
 				</el-descriptions-item>
 				<el-descriptions-item label="注册时间">
-					{{ userStore.user?.createdAt || userStore.user?.created_at || '-' }}
+					{{ formatDateTime(userStore.user?.createdAt || userStore.user?.created_at) }}
 				</el-descriptions-item>
 				<el-descriptions-item label="昵称">
 					<div class="nickname_row">
@@ -107,7 +107,7 @@
 					<template #default="{ row }">{{ row.label || '-' }}</template>
 				</el-table-column>
 				<el-table-column prop="createdAt" label="绑定时间" width="180">
-					<template #default="{ row }">{{ row.createdAt || row.created_at || '-' }}</template>
+					<template #default="{ row }">{{ formatDateTime(row.createdAt || row.created_at) }}</template>
 				</el-table-column>
 				<el-table-column label="操作" width="90" align="right">
 					<template #default="{ row }">
@@ -129,7 +129,7 @@
 			<template #header><span class="section_title">我的兑换记录</span></template>
 			<el-table :data="redemptionList" border v-loading="redemptionLoading" style="width: 100%">
 				<el-table-column prop="created_at" label="时间" width="180">
-					<template #default="{ row }">{{ row.created_at || row.createdAt || '-' }}</template>
+					<template #default="{ row }">{{ formatDateTime(row.created_at || row.createdAt) }}</template>
 				</el-table-column>
 				<el-table-column prop="server" label="服务器" width="170">
 					<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
@@ -163,6 +163,7 @@ import { useUserStore } from '@/stores/user';
 import { getHiveIds, addHiveId, deleteHiveId, changePassword } from '@/services/auth';
 import { getMyRedemptions } from '@/services/redemption';
 import { SERVER_OPTIONS, getServerLabel } from '@/common/constant';
+import { formatDateTime } from '@/utils/format';
 
 const router = useRouter();
 const userStore = useUserStore();

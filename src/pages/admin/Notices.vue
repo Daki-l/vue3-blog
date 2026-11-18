@@ -27,7 +27,7 @@
 				</template>
 			</el-table-column>
 			<el-table-column label="发布时间" width="170">
-				<template #default="{ row }">{{ row.startTime || row.start_time || '-' }}</template>
+				<template #default="{ row }">{{ formatDateTime(row.startTime || row.start_time) }}</template>
 			</el-table-column>
 			<el-table-column prop="source" label="来源" width="90">
 				<template #default>
@@ -95,6 +95,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getNotices } from '@/services/notice';
+import { formatDateTime } from '@/utils/format';
 import {
 	syncNotices,
 	createManualNotice,

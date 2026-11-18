@@ -17,9 +17,10 @@
 				<template #default="{ row }">{{ row.path || '(分组,无路径)' }}</template>
 			</el-table-column>
 			<el-table-column prop="sort" label="排序" width="80" sortable />
-			<el-table-column label="显示" width="90">
+			<el-table-column label="显示" width="110">
 				<template #default="{ row }">
-					<el-tag :type="row.visible === 1 ? 'success' : 'info'">
+					<el-tag v-if="row.inheritHidden" type="warning">随父隐藏</el-tag>
+					<el-tag v-else :type="row.visible === 1 ? 'success' : 'info'">
 						{{ row.visible === 1 ? '显示' : '隐藏' }}
 					</el-tag>
 				</template>
@@ -48,6 +49,23 @@
 			:title="editingId ? '编辑导航项' : '新增导航项'"
 			width="520">
 			<el-form :model="form" label-width="90px">
+				<el-form-item label="关联文章">
+					<el-select
+						v-model="form.articleId"
+						class="full_width"
+						clearable
+						filterable
+						placeholder="选择文章,自动填充名称与路径"
+						:loading="articleLoading"
+						@change="onArticleChange">
+						<el-option
+							v-for="a in articleOptions"
+							:key="a.id"
+							:label="articleLabel(a)"
+							:value="a.id" />
+					</el-select>
+					<div class="form_tip">选择后自动填入名称与路径(/info/scene?id=x),选中后仍可手改</div>
+				</el-form-item>
 				<el-form-item label="名称" required>
 					<el-input v-model="form.name" maxlength="20" placeholder="导航项名称" />
 				</el-form-item>
@@ -83,7 +101,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { getAdminNav, createNav, updateNav, deleteNav } from '@/services/admin';
+import { getAdminNav, createNav, updateNav, deleteNav, getAdminArticles } from '@/services/admin';
 import { useNavStore } from '@/stores/nav';
 
 const navStore = useNavStore();
@@ -99,8 +117,38 @@ const form = reactive({
 	path: '',
 	parentId: null,
 	sort: 0,
-	visible: 1
+	visible: 1,
+	articleId: null
 });
+
+// ===== 关联文章选择器 =====
+const articleOptions = ref([]);
+const articleLoading = ref(false);
+
+const articleLabel = (a) => {
+	return a.sub_title || a.subTitle ? `${a.title}(${a.sub_title || a.subTitle})` : a.title;
+};
+
+const loadArticles = async () => {
+	if (articleOptions.value.length > 0 || articleLoading.value) return;
+	articleLoading.value = true;
+	try {
+		const res = await getAdminArticles({ page: 1, pageSize: 50 });
+		articleOptions.value = res?.list || [];
+	} catch (e) {
+		console.error('获取文章列表失败', e);
+	} finally {
+		articleLoading.value = false;
+	}
+};
+
+const onArticleChange = (articleId) => {
+	if (!articleId) return;
+	const article = articleOptions.value.find((a) => Number(a.id) === Number(articleId));
+	if (!article) return;
+	form.name = article.title || form.name;
+	form.path = `/info/scene?id=${article.id}`;
+};
 
 const normalizeVisible = (value) => {
 	if (value === 0 || value === '0' || value === false) {
@@ -127,7 +175,7 @@ const displayRows = computed(() => {
 	const rows = [];
 	const byOrder = (a, b) => a.sort - b.sort || a.id - b.id;
 	roots.sort(byOrder).forEach((root) => {
-		rows.push({ ...root, depth: 0, prefix: '', key: `nav-${root.id}` });
+		rows.push({ ...root, depth: 0, prefix: '', key: `nav-${root.id}`, inheritHidden: false });
 		items
 			.filter((child) => Number(child.parentId) === Number(root.id))
 			.sort(byOrder)
@@ -136,7 +184,8 @@ const displayRows = computed(() => {
 					...child,
 					depth: 1,
 					prefix: '└ ',
-					key: `nav-${root.id}-${child.id}`
+					key: `nav-${root.id}-${child.id}`,
+					inheritHidden: root.visible !== 1
 				});
 			});
 	});
@@ -174,6 +223,7 @@ const initNavList = async () => {
 
 const openEditor = (row) => {
 	editingId.value = row ? row.id : null;
+	loadArticles();
 	if (row) {
 		form.name = row.name || '';
 		form.path = row.path || '';
@@ -187,6 +237,7 @@ const openEditor = (row) => {
 		form.sort = 0;
 		form.visible = 1;
 	}
+	form.articleId = null;
 	editorVisible.value = true;
 };
 
@@ -271,6 +322,13 @@ onMounted(() => {
 	}
 	.full_width {
 		width: 100%;
+	}
+	.form_tip {
+		width: 100%;
+		font-size: 12px;
+		color: #909399;
+		line-height: 1.4;
+		margin-top: 2px;
 	}
 }
 </style>

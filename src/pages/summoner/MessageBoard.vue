@@ -5,7 +5,7 @@
 				<div class="message-content">
 					<div class="message_header">
 						<span class="nickname">{{ msg.nickname }}</span>
-						<span class="time">{{ msg.created_at || msg.createTime }}</span>
+						<span class="time">{{ formatDateTime(msg.created_at || msg.createTime) }}</span>
 					</div>
 					<div class="message_body">{{ msg.content }}</div>
 					<div class="message_footer">
@@ -17,7 +17,7 @@
 				<div v-if="msg.replies && msg.replies.length > 0" class="replies">
 					<div v-for="reply in msg.replies" :key="reply.id" class="reply_item">
 						<span class="nickname">{{ reply.nickname }}</span>
-						<span class="time">{{ reply.created_at || reply.createTime }}</span>
+						<span class="time">{{ formatDateTime(reply.created_at || reply.createTime) }}</span>
 						<p>{{ reply.content }}</p>
 					</div>
 				</div>
@@ -72,6 +72,7 @@ import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getMessages, addMessage as addMessageApi, addReply as addReplyApi } from '@/services/message';
 import { useUserStore } from '@/stores/user';
+import { formatDateTime } from '@/utils/format';
 
 const userStore = useUserStore();
 

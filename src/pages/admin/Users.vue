@@ -38,7 +38,7 @@
 				</template>
 			</el-table-column>
 			<el-table-column prop="createdAt" label="注册时间" width="170">
-				<template #default="{ row }">{{ row.createdAt || row.created_at || '-' }}</template>
+				<template #default="{ row }">{{ formatDateTime(row.createdAt || row.created_at) }}</template>
 			</el-table-column>
 			<el-table-column label="操作" width="300" align="right">
 				<template #default="{ row }">
@@ -96,6 +96,7 @@ import {
 	deleteAdminUser
 } from '@/services/admin';
 import { useUserStore } from '@/stores/user';
+import { formatDateTime } from '@/utils/format';
 
 const userStore = useUserStore();
 

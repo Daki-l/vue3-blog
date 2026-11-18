@@ -26,7 +26,7 @@
 		</div>
 		<el-table :data="redemptionList" border style="width: 100%" v-loading="listLoading">
 			<el-table-column prop="created_at" label="时间" width="180" sortable>
-				<template #default="{ row }">{{ row.created_at || row.createdAt || '-' }}</template>
+				<template #default="{ row }">{{ formatDateTime(row.created_at || row.createdAt) }}</template>
 			</el-table-column>
 			<el-table-column label="用户" width="130">
 				<template #default="{ row }">{{ row.username || '-' }}</template>
@@ -67,6 +67,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { getAdminRedemptions } from '@/services/admin';
 import { getServerLabel } from '@/common/constant';
+import { formatDateTime } from '@/utils/format';
 
 const redemptionList = ref([]);
 const listLoading = ref(false);
