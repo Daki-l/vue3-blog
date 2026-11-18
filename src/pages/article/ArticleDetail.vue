@@ -1,9 +1,9 @@
 <template>
 	<div class="article-detail" v-loading="detailLoading">
-		<!-- 顶部封面图片 -->
+		<!-- 顶部封面图片(接口返回完整 URL) -->
 		<el-image
-			v-if="article.cover?.path"
-			:src="article.cover?.path"
+			v-if="coverUrl"
+			:src="coverUrl"
 			fit="cover"
 			class="article-cover"
 			alt="Article Cover"></el-image>
@@ -11,7 +11,7 @@
 		<!-- 文章内容 -->
 		<el-card shadow="hover" class="article-content">
 			<h2 class="title">{{ article.title }}</h2>
-			<h4 class="subtitle">{{ article.subTitle }}</h4>
+			<h4 class="subtitle">{{ subtitle }}</h4>
 			<div class="tags">
 				<el-tag v-for="(tag, index) in tagsArray" :key="index" class="tag">{{ tag }}</el-tag>
 			</div>
@@ -23,20 +23,20 @@
 		<!-- <comment-section :articleId="article.id" /> -->
 	</div>
 </template>
-  
+
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 // import CommentSection from '@/components/CommentSection.vue';
-import { getArticleDetailById } from '@/services/articleService';
+import { getArticleDetail } from '@/services/article';
 import { ElMessage } from 'element-plus';
 import { marked } from 'marked';
 
 const article = ref({
 	id: 0,
 	title: '',
-	subTitle: '',
-	cover: null,
+	subtitle: '',
+	cover_url: '',
 	tags: '',
 	intro: '',
 	content: ''
@@ -44,7 +44,10 @@ const article = ref({
 const tagsArray = ref([]);
 const detailLoading = ref(false);
 const route = useRoute();
-// const defaultCover = 'https://via.placeholder.com/1920x1200?text=No+Image';
+
+// snake_case 字段适配(兼容旧字段)
+const subtitle = computed(() => article.value.subtitle ?? article.value.subTitle ?? '');
+const coverUrl = computed(() => article.value.cover_url || article.value.cover?.path || '');
 
 const fetchArticleDetail = async () => {
 	let { id } = route?.query || {};
@@ -53,14 +56,15 @@ const fetchArticleDetail = async () => {
 	}
 	try {
 		detailLoading.value = true;
-		const response = await getArticleDetailById(id); // 假设文章 ID 为 4
-		// response.content = marked(response.content);
-		article.value = response;
-		tagsArray.value = response.tags.split(',').filter((tag) => tag.trim());
-		detailLoading.value = false;
+		const response = await getArticleDetail(id);
+		article.value = response || {};
+		tagsArray.value = String(response?.tags || '')
+			.split(',')
+			.filter((tag) => tag.trim());
 	} catch (error) {
 		console.error('Failed to fetch article detail:', error);
-		ElMessage.error(error);
+		ElMessage.error('获取文章详情失败');
+	} finally {
 		detailLoading.value = false;
 	}
 };
@@ -78,8 +82,8 @@ watch(
 	}
 );
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .article-detail {
 	padding: 20px;
 	min-height: 100%;
@@ -136,4 +140,3 @@ watch(
 	line-height: 1.8;
 }
 </style>
-  

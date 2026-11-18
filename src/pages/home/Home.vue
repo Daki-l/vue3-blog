@@ -48,10 +48,9 @@
 </template>
 
 <script setup>
-import moment from 'moment';
 import { ref } from 'vue';
 import { onMounted } from 'vue';
-import { getArticleList } from '@/services/articleService';
+import { getArticles } from '@/services/article';
 import ArticleCard from '@/components/ArticleCard.vue';
 
 const onLoading = ref(false);
@@ -67,11 +66,14 @@ function init() {
 const swiperList = ref([]);
 function initList() {
 	onLoading.value = true;
-	getArticleList().then((res) => {
-		let { list } = res;
-		swiperList.value = list;
-		onLoading.value = false;
-	});
+	getArticles({ page: 1, pageSize: 20 })
+		.then((res) => {
+			let { list } = res || {};
+			swiperList.value = list || [];
+		})
+		.finally(() => {
+			onLoading.value = false;
+		});
 }
 </script>
 

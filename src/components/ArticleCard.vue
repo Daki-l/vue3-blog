@@ -2,15 +2,15 @@
 	<section class="article-card">
 		<div class="item-img">
 			<div class="img-wrapper">
-				<img :src="(articleInfo.cover && articleInfo.cover.path) || defaultListImg" alt="" />
+				<img :src="coverUrl" alt="" />
 			</div>
 		</div>
 		<div class="item-content">
 			<div class="content-top">
 				<span class="info-time">
 					<i class="iconfont icon-date"></i>
-					<span>{{ moment(new Date(articleInfo.createDate)).format('YYYY-MM-DD') }}</span>
-					<span>{{ articleInfo.subTitle }}</span>
+					<span>{{ createdAt }}</span>
+					<span>{{ subtitle }}</span>
 				</span>
 			</div>
 			<div class="info-title">{{ articleInfo.title }}</div>
@@ -20,7 +20,7 @@
 					<el-tag
 						class="tag-item"
 						type="primary"
-						v-for="(tag, i) in articleInfo.tags.split(',').filter((e) => e)"
+						v-for="(tag, i) in tagsArray"
 						:key="i">
 						{{ tag }}
 					</el-tag>
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import moment from 'moment';
 import constant from '@/common/constant';
 import router from '@/router';
@@ -44,14 +44,28 @@ const props = defineProps({
 	cardInfo: Object
 });
 
-const articleInfo = ref(props.cardInfo);
+const articleInfo = ref(props.cardInfo || {});
+
+// 新接口 snake_case 字段适配(兼容旧字段)
+const coverUrl = computed(() => {
+	return articleInfo.value.cover_url || articleInfo.value.cover?.path || defaultListImg;
+});
+const subtitle = computed(() => articleInfo.value.subtitle ?? articleInfo.value.subTitle ?? '');
+const createdAt = computed(() => {
+	let time = articleInfo.value.created_at ?? articleInfo.value.createDate;
+	return time ? moment(new Date(time)).format('YYYY-MM-DD') : '';
+});
+const tagsArray = computed(() => {
+	return String(articleInfo.value.tags || '')
+		.split(',')
+		.filter((e) => e);
+});
 
 function gotoActicleDetail() {
-	let { id, status } = articleInfo.value;
-	console.log(' id, status }--', id, status);
+	let { id } = articleInfo.value;
 	router.push({
 		name: 'articelDetail',
-		query: { id, status }
+		query: { id }
 	});
 }
 </script>

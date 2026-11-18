@@ -3,36 +3,38 @@
 		<div class="title">Summoner's War(魔灵召唤)</div>
 		<div class="top_header">
 			<div class="button_list">
-				<el-button @click="getCodeList({ force: true })">获取最新兑换码</el-button>
+				<el-button @click="initCodeList()">获取最新兑换码</el-button>
 				<el-button @click="setCodeList()">一键填入兑换码</el-button>
-				<!-- <el-button @click="getUserInfo()">查询召唤师</el-button> -->
-				<el-button @click="beforeSendRequest()">提交兑换</el-button>
+				<el-button type="primary" @click="beforeSendRequest()">提交兑换</el-button>
 			</div>
 			<div class="top_right">
 				<span>更新日期：</span>
-				<span>{{ stashTime }}</span>
+				<span>{{ updateTime }}</span>
 			</div>
+		</div>
+		<div class="login_tip" v-if="!userStore.isLogged">
+			<el-alert
+				title="兑换功能需要登录，未登录将跳转登录页"
+				type="info"
+				show-icon
+				:closable="false" />
 		</div>
 		<div class="code_list">
 			<el-table :data="codeList" style="width: 100%" v-loading="onLoading">
-				<el-table-column prop="coupon" label="兑换码" width="180">
+				<el-table-column prop="code" label="兑换码" width="180">
 					<template #default="scope">
-						<a :href="'https://withhive.me/313/' + scope.row.coupon">
-							<span style="margin-left: 10px">{{ scope.row.coupon }}</span>
+						<a :href="getcouponUrl(scope.row)" target="_blank" rel="noopener">
+							<span style="margin-left: 10px">{{ (scope.row.code || '').toUpperCase() }}</span>
 						</a>
 					</template>
 				</el-table-column>
 				<el-table-column prop="content" label="内容" />
-				<el-table-column prop="createTime" label="创建日期" width="180" />
+				<el-table-column prop="created_at" label="创建日期" width="180" />
 			</el-table>
-			<!-- <div class="codeListMap">
-                <span>兑换码列表：</span>
-                <span>{{ codeList.map(e => e.coupon).join(';') }}</span>
-            </div> -->
 		</div>
 		<div class="input_list">
 			<div class="input_item server">
-				<label for="coupon">服务器选择:</label>
+				<label for="server">服务器选择:</label>
 				<el-select v-model="serverValue" placeholder="请选择">
 					<el-option
 						v-for="item in serverOption"
@@ -42,7 +44,7 @@
 				</el-select>
 			</div>
 			<div class="input_item">
-				<label for="hiveid">Hive ID (多个用分号分隔):</label>
+				<label for="hiveid">Hive ID (多个用分号分隔,最多6个):</label>
 				<el-input type="text" id="hiveid" v-model="hiveIds"></el-input>
 			</div>
 			<div class="input_item">
@@ -50,33 +52,58 @@
 				<el-input type="text" id="coupon" v-model="coupons"></el-input>
 			</div>
 		</div>
-		<div class="result_list">
+		<div class="result_list" v-if="resultList.length > 0">
+			<div class="result_title">兑换结果：</div>
 			<div class="result_item" v-for="(item, index) in resultList" :key="index">
 				<span class="id">Hive ID: {{ item.hiveid }}</span>
-				<span class="content">兑换码: {{ item.coupon }} ~ {{ getCouponContent(item.coupon) }}</span>
-				<span class="result">{{ JSON.stringify(item.retMsg || item.error) }}</span>
+				<span class="content">
+					兑换码: {{ item.coupon }} ~ {{ getCouponContent(item.coupon) }}
+				</span>
+				<span class="result" :class="{ success: item.retCode == 100 }">
+					{{ item.retMsg || item.error || (item.retCode == 100 ? '成功' : '失败') }}
+				</span>
 			</div>
+		</div>
+		<div class="mine_list" v-if="userStore.isLogged">
+			<div class="result_title">我的兑换记录：</div>
+			<el-table :data="mineList" border v-loading="mineLoading">
+				<el-table-column prop="created_at" label="时间" width="180" />
+				<el-table-column prop="server" label="服务器" width="120" />
+				<el-table-column label="Hive ID">
+					<template #default="{ row }">{{ row.hive_id || row.hiveid || '-' }}</template>
+				</el-table-column>
+				<el-table-column label="兑换码">
+					<template #default="{ row }">{{ row.codes || row.coupon || '-' }}</template>
+				</el-table-column>
+				<el-table-column label="结果">
+					<template #default="{ row }">{{ row.retMsg || row.ret_msg || row.result || '-' }}</template>
+				</el-table-column>
+			</el-table>
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import {
-	getSummonerCode,
-	getUserInfoList,
-	setCodeToUsers
-} from '@/services/summonerServices/summonerServices.js';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { getCoupons } from '@/services/coupon';
+import { checkRedemption, redeemCoupons, getMyRedemptions } from '@/services/redemption';
+import { useUserStore } from '@/stores/user';
+
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
 
 const hiveIds = ref('');
 const coupons = ref('');
 const codeList = ref([]);
-const userInfoList = ref([]);
 const resultList = ref([]);
+const mineList = ref([]);
 const onLoading = ref(false);
 const fullscreenLoading = ref(false);
-const stashTime = ref('');
+const mineLoading = ref(false);
+const updateTime = ref('');
 const serverOption = ref([
 	{ value: 'global', label: '全球服务器(Global)' },
 	{ value: 'korea', label: '韩国服务器(Korea)' },
@@ -86,167 +113,167 @@ const serverOption = ref([
 	{ value: 'europe', label: '欧洲服务器(Europe)' }
 ]);
 const serverValue = ref('china');
+
 onMounted(() => {
 	initCodeList();
+	if (userStore.isLogged) {
+		initMineList();
+	}
 });
 
-let initCodeList = () => {
-	let codeInfo = JSON.parse(localStorage.getItem('codeInfo')) || {};
-	let currentDate = new Date().toISOString().split('T')[0];
-	if (codeInfo.createTime === currentDate) {
-		stashTime.value = currentDate;
-		codeList.value = (codeInfo.list || []).filter((e) => {
-			return e.status === 'verified';
-		});
-	} else {
-		getCodeList();
+// 获取最新兑换码信息
+let initCodeList = async () => {
+	onLoading.value = true;
+	try {
+		const res = await getCoupons();
+		codeList.value = res?.list || [];
+		updateTime.value = res?.updateTime || '';
+	} catch (err) {
+		console.error('获取数据时出错:', err);
+	} finally {
+		onLoading.value = false;
 	}
 };
 
-// 获取最新兑换码信息
-let getCodeList = async (props = {}) => {
-	onLoading.value = true;
-	getSummonerCode(props)
-		.then((res) => {
-			let { createTime, list } = res;
-			let curList = list.map((e) => {
-				e.coupon = e.coupon.toLowerCase();
-				return e;
-			});
-			localStorage.setItem('codeInfo', JSON.stringify(res));
-			codeList.value = (curList || []).filter((e) => {
-				return e.status === 'verified';
-			});
-			stashTime.value = createTime;
-		})
-		.catch((err) => {
-			console.error('获取数据时出错:', err);
-			let codeInfo = JSON.parse(localStorage.getItem('codeInfo')) || {};
-			stashTime.value = codeInfo.createTime;
-			codeList.value = (codeInfo.list || []).filter((e) => {
-				return e.status === 'verified';
-			});
-		})
-		.finally(() => {
-			onLoading.value = false;
-		});
+let getcouponUrl = (row) => {
+	if (row.url) {
+		return row.url;
+	}
+	return `https://withhive.me/313/${row.code}`;
 };
 
+// 一键填入:取列表 code 分号连接
 let setCodeList = () => {
 	let codesStr = codeList.value
 		.map((e) => {
-			return e.coupon;
+			return e.code;
 		})
+		.filter((e) => !!e)
 		.join(';');
 	coupons.value = codesStr || '';
+	if (!codesStr) {
+		ElMessage.warning('暂无可用兑换码');
+	}
 };
-// 获取召唤师名称
-let getUserInfo = () => {
-	// let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
-	fullscreenLoading.value = true;
-	// let promiseList = [];
-	let params = {
-		server: serverValue.value,
-		hiveIds: hiveIds.value
-	};
-	getUserInfoList(params)
-		.then((res) => {
-			let list = [];
-			res.forEach((e) => {
-				let { retCode, retMsg, userData = {}, hiveid, coupon } = e;
-				if (retCode != 100) {
-					list.push({
-						result: { retCode, retMsg },
-						hiveid,
-						coupon
-					});
-				} else {
-					list.push({ result: userData, hiveid, coupon, ...userData });
-				}
-			});
-			console.log('userInfoList--', list);
-			let accountList = list
-				.map((e) => {
-					return e.wizard_name;
-				})
-				.join(';');
-			ElMessageBox.confirm(`${accountList}，是否兑换到以上账号！`, '提示', {
-				// if you want to disable its autofocus
-				// autofocus: false,
-				confirmButtonText: '确认',
-				cancelButtonText: '取消'
-			}).then(() => {
-				if (coupons.value === '') {
-					ElMessage.error('请输入兑换码！');
-					return;
-				}
-				sendRequests();
-			});
-			userInfoList.value = list;
-		})
-		.catch((err) => {
-			console.log('err==', err);
-		})
-		.finally(() => {
-			fullscreenLoading.value = false;
-		});
+
+const parseList = (text) => {
+	return (text || '')
+		.split(';')
+		.map((e) => e.trim())
+		.filter((e) => !!e);
+};
+
+// 未登录点击兑换:跳登录页并携带 redirect
+const gotoLogin = () => {
+	ElMessage.warning('请先登录后再兑换');
+	router.push({
+		name: 'login',
+		query: { redirect: route.fullPath }
+	});
 };
 
 let beforeSendRequest = () => {
-	let hiveidsList = hiveIds.value.split(';').map((id) => id.trim());
-
-	if (new Date().getTime() < new Date('2025-01-18 12:00:00').getTime()) {
-		// ElMessage.info('服务器出现错误，请点击链接跳转到游戏自行兑换。');
-		// return;
-	}
-
-	if (hiveidsList.length > 6) {
-		console.log('一次最多支持6个账号！');
-		ElMessage.error('一次最多支持6个账号！');
-		hiveidsList.length = 6;
-		hiveIds.value = hiveidsList.join(';');
+	if (!userStore.isLogged) {
+		gotoLogin();
 		return;
 	}
-	if (hiveidsList.length === 0 || hiveIds.value == '') {
+	let hiveidsList = parseList(hiveIds.value);
+	if (hiveidsList.length === 0) {
 		ElMessage.error('请输入账号！');
 		return;
 	}
-	getUserInfo();
+	if (hiveidsList.length > 6) {
+		ElMessage.error('一次最多支持6个账号！');
+		hiveIds.value = hiveidsList.slice(0, 6).join(';');
+		return;
+	}
+	if (parseList(coupons.value).length === 0) {
+		ElMessage.error('请输入兑换码！');
+		return;
+	}
+	checkSummoners(hiveidsList);
 };
 
-// 批量兑换兑换码
-let sendRequests = async () => {
+// 先校验召唤师名,确认后再兑换
+let checkSummoners = (hiveidsList) => {
 	fullscreenLoading.value = true;
-
-	let params = {
-		country: 'CN',
-		lang: 'zh-hans',
-		server: 'china',
-		hiveIds: hiveIds.value,
-		coupons: coupons.value
-	};
-	setCodeToUsers(params)
+	checkRedemption({
+		server: serverValue.value,
+		hiveIds: hiveidsList
+	})
 		.then((res) => {
-			console.log('result----', res);
-			// 更新结果列表
-			resultList.value = res || [];
-			// 确保加载状态关闭
-			fullscreenLoading.value = false;
+			let checkList = res || [];
+			// 存在校验失败的账号直接结束
+			let failed = checkList.filter((e) => e.retCode != 100);
+			if (failed.length > 0) {
+				ElMessage.error(
+					failed.map((e) => `${e.hiveid}: ${e.retMsg || '校验失败'}`).join(';')
+				);
+				return;
+			}
+			let accountList = checkList
+				.map((e) => (e.wizardName ? `${e.wizardName}(${e.hiveid})` : e.hiveid))
+				.join('、');
+			ElMessageBox.confirm(`是否兑换到以下账号：${accountList}`, '提示', {
+				confirmButtonText: '确认',
+				cancelButtonText: '取消',
+				type: 'warning'
+			})
+				.then(() => {
+					sendRequests(hiveidsList);
+				})
+				.catch(() => {});
 		})
 		.catch((err) => {
-			console.log('err==', err);
+			console.log('check err==', err);
 		})
 		.finally(() => {
 			fullscreenLoading.value = false;
 		});
 };
 
+// 批量兑换:server 使用所选服务器
+let sendRequests = async (hiveidsList) => {
+	fullscreenLoading.value = true;
+	try {
+		const res = await redeemCoupons({
+			server: serverValue.value,
+			hiveIds: hiveidsList,
+			codes: parseList(coupons.value)
+		});
+		resultList.value = res || [];
+		if (userStore.isLogged) {
+			initMineList();
+		}
+	} catch (err) {
+		console.log('redeem err==', err);
+	} finally {
+		fullscreenLoading.value = false;
+	}
+};
+
+// 我的兑换记录
+let initMineList = async () => {
+	mineLoading.value = true;
+	try {
+		const res = await getMyRedemptions();
+		mineList.value = res?.list || [];
+	} catch (err) {
+		console.error('获取兑换记录失败:', err);
+	} finally {
+		mineLoading.value = false;
+	}
+};
+
 let getCouponContent = (coupon) => {
+	if (!coupon) {
+		return '';
+	}
 	let curCoupon =
 		codeList.value.find((e) => {
-			return e.coupon === coupon;
+			return (e.code || '').toLowerCase() === String(coupon).toLowerCase();
 		}) || {};
-	return curCoupon.content;
+	return curCoupon.content || '';
 };
 </script>
 
@@ -263,6 +290,9 @@ let getCouponContent = (coupon) => {
 	.top_header {
 		display: flex;
 		justify-content: space-between;
+		margin-bottom: 12px;
+	}
+	.login_tip {
 		margin-bottom: 12px;
 	}
 	.code_list {
@@ -296,6 +326,11 @@ let getCouponContent = (coupon) => {
 	}
 	.result_list {
 		margin-top: 20px;
+		.result_title {
+			font-size: 16px;
+			font-weight: 600;
+			margin-bottom: 8px;
+		}
 		.result_item {
 			.id {
 				display: inline-block;
@@ -312,7 +347,18 @@ let getCouponContent = (coupon) => {
 				text-overflow: ellipsis;
 			}
 			.result {
+				&.success {
+					color: #67c23a;
+				}
 			}
+		}
+	}
+	.mine_list {
+		margin-top: 24px;
+		.result_title {
+			font-size: 16px;
+			font-weight: 600;
+			margin-bottom: 8px;
 		}
 	}
 }

@@ -1,23 +1,15 @@
 <template>
 	<div class="message_board">
 		<div class="message_list" v-loading="loading">
-			<div v-for="msg in messageList" :key="msg.messageId" class="message_item">
+			<div v-for="msg in messageList" :key="msg.id" class="message_item">
 				<div class="message-content">
 					<div class="message_header">
 						<span class="nickname">{{ msg.nickname }}</span>
-						<span class="time">{{ msg.createTime }}</span>
+						<span class="time">{{ msg.created_at || msg.createTime }}</span>
 					</div>
 					<div class="message_body">{{ msg.content }}</div>
 					<div class="message_footer">
-						<div class="message_time">
-							{{ new Date(msg.timestamp).format('yyyy-MM-dd HH:mm:ss') }}
-						</div>
-						<button
-							v-if="msg.notReply !== '1' && ENV.MODE == 'development'"
-							@click="toggleReplyForm(msg.messageId)"
-							class="reply_btn">
-							回复
-						</button>
+						<button @click="toggleReplyForm(msg.id)" class="reply_btn">回复</button>
 					</div>
 				</div>
 
@@ -25,13 +17,13 @@
 				<div v-if="msg.replies && msg.replies.length > 0" class="replies">
 					<div v-for="reply in msg.replies" :key="reply.id" class="reply_item">
 						<span class="nickname">{{ reply.nickname }}</span>
-						<span class="time">{{ reply.createTime }}</span>
+						<span class="time">{{ reply.created_at || reply.createTime }}</span>
 						<p>{{ reply.content }}</p>
 					</div>
 				</div>
 
 				<!-- 回复区 -->
-				<div v-if="replyingTo === msg.messageId" class="reply_form">
+				<div v-if="replyingTo === msg.id" class="reply_form">
 					<el-input
 						v-model="replyNickName"
 						placeholder="输入你的昵称"
@@ -41,11 +33,21 @@
 						v-model="replyContent"
 						placeholder="输入你的回复..."
 						class="reply_textarea"></el-input>
-					<el-button @click="addReply(msg.messageId)" :disabled="loading" class="send_btn">
+					<el-button @click="addReply(msg.id)" :disabled="loading" class="send_btn">
 						{{ loading ? '提交中...' : '发送回复' }}
 					</el-button>
 				</div>
 			</div>
+			<el-empty v-if="!loading && messageList.length === 0" description="还没有留言，快来抢沙发~" />
+		</div>
+		<div class="pagination_box" v-if="total > 0">
+			<el-pagination
+				background
+				layout="prev, pager, next"
+				:total="total"
+				:page-size="pageSize"
+				:current-page="page"
+				@current-change="handlePageChange"></el-pagination>
 		</div>
 		<div class="add_message">
 			<el-input
@@ -64,15 +66,14 @@
 		</div>
 	</div>
 </template>
-  
+
 <script setup>
 import { onMounted, ref } from 'vue';
-import {
-	getMessageList,
-	addMessageFn,
-	addReplyFn
-} from '@/services/summonerServices/summonerServices.js';
 import { ElMessage } from 'element-plus';
+import { getMessages, addMessage as addMessageApi, addReply as addReplyApi } from '@/services/message';
+import { useUserStore } from '@/stores/user';
+
+const userStore = useUserStore();
 
 // 数据
 const nickname = ref('');
@@ -82,96 +83,87 @@ const replyNickName = ref('');
 const messageList = ref([]);
 const replyingTo = ref(null);
 const loading = ref(false);
-const ENV = ref(import.meta.env);
+const page = ref(1);
+const total = ref(0);
+const pageSize = ref(20);
 
 onMounted(() => {
-	// 页面加载时获取留言
-	getMessages();
-});
-// 获取留言列表
-const getMessages = async () => {
-	loading.value = true;
-	try {
-		const response = await getMessageList({ page: 1 });
-		console.log('response;;0000', response);
-		let { list = [] } = response || {};
-		messageList.value = list.sort((a, b) => {
-			// 将时间字符串转换为Date对象
-			const dateA = new Date(a.timestamp);
-			const dateB = new Date(b.timestamp);
-
-			// 比较两个时间，如果dateA早于dateB，则返回正值，反之返回负值
-			// 为了让时间越晚的排在越前面，我们交换a和b的位置
-			return dateB - dateA;
-		});
-		loading.value = false;
-	} catch (error) {
-		console.error('获取留言失败', error);
-		loading.value = false;
+	// 登录用户昵称自动填充(可修改)
+	if (userStore.isLogged && userStore.displayName) {
+		nickname.value = userStore.displayName;
 	}
+	getMessageList();
+});
+
+const handlePageChange = (newPage) => {
+	page.value = newPage;
+	getMessageList();
 };
 
-// 新增留言
-const addMessage = async () => {
-	if (!nickname.value || !messageContent.value) {
-		alert('昵称和留言内容不能为空！');
-		return;
-	}
-
+// 获取留言列表
+const getMessageList = async () => {
 	loading.value = true;
 	try {
-		let props = {
-			nickname: nickname.value,
-			content: messageContent.value
-		};
-		addMessageFn(props)
-			.then(() => {
-				getMessages(); // 刷新留言列表
-				nickname.value = '';
-				messageContent.value = '';
-				ElMessage.success('留言成功！');
-			})
-			.catch((err) => {
-				alert('留言失败，请稍后再试', err);
-			});
+		const response = await getMessages(page.value);
+		messageList.value = response?.list || [];
+		total.value = response?.total || 0;
+		// 用首页返回条数推断后端分页大小,保证分页器页码正确
+		if (page.value === 1 && messageList.value.length > 0) {
+			pageSize.value = messageList.value.length;
+		}
 	} catch (error) {
-		console.error('留言失败', error);
-		alert('留言失败，请稍后再试');
+		console.error('获取留言失败', error);
 	} finally {
 		loading.value = false;
 	}
 };
 
-// 新增回复
-const addReply = async (messageId) => {
-	if (!replyContent.value) {
-		alert('回复内容不能为空！');
+// 新增留言(游客可发)
+const addMessage = async () => {
+	if (!nickname.value.trim() || !messageContent.value.trim()) {
+		ElMessage.warning('昵称和留言内容不能为空！');
 		return;
 	}
-	if (!replyNickName.value) {
-		alert('回复昵称不能为空！');
-		return;
-	}
-
 	loading.value = true;
 	try {
-		let props = {
-			messageId,
-			nickname: replyNickName.value,
-			content: replyContent.value
-		};
-		addReplyFn(props)
-			.then(() => {
-				getMessages(); // 刷新留言列表
-				replyContent.value = '';
-				replyingTo.value = null;
-			})
-			.catch((err) => {
-				alert('回复失败，请稍后再试', err);
-			});
+		await addMessageApi({
+			nickname: nickname.value.trim(),
+			content: messageContent.value.trim()
+		});
+		getMessageList();
+		messageContent.value = '';
+		ElMessage.success('留言成功！');
 	} catch (error) {
+		// 429 等错误提示由 axios 拦截器统一处理(发言太频繁)
+		console.error('留言失败', error);
+	} finally {
+		loading.value = false;
+	}
+};
+
+// 新增回复(游客可发)
+const addReply = async (messageId) => {
+	if (!replyContent.value.trim()) {
+		ElMessage.warning('回复内容不能为空！');
+		return;
+	}
+	if (!replyNickName.value.trim()) {
+		ElMessage.warning('回复昵称不能为空！');
+		return;
+	}
+	loading.value = true;
+	try {
+		await addReplyApi(messageId, {
+			nickname: replyNickName.value.trim(),
+			content: replyContent.value.trim()
+		});
+		getMessageList();
+		replyContent.value = '';
+		replyingTo.value = null;
+		ElMessage.success('回复成功！');
+	} catch (error) {
+		// 429 等错误提示由 axios 拦截器统一处理
 		console.error('回复失败', error);
-		alert('回复失败，请稍后再试');
 	} finally {
 		loading.value = false;
 	}
@@ -179,11 +171,16 @@ const addReply = async (messageId) => {
 
 // 切换显示回复框
 const toggleReplyForm = (messageId) => {
-	console.log(';=replyingTo===--', messageId);
 	replyingTo.value = replyingTo.value === messageId ? null : messageId;
+	if (replyingTo.value !== null) {
+		// 回复昵称默认:登录用户用昵称,游客用留言昵称或空
+		replyNickName.value = userStore.isLogged && userStore.displayName
+			? userStore.displayName
+			: nickname.value;
+	}
 };
 </script>
-  
+
 <style lang="less">
 .message_board {
 	max-width: 800px;
@@ -194,8 +191,13 @@ const toggleReplyForm = (messageId) => {
 	background-color: #ffffff;
 	.message_list {
 		margin-top: 20px;
-		height: calc(100% - 140px - 20px);
+		height: calc(100% - 140px - 50px);
 		overflow: auto;
+	}
+	.pagination_box {
+		display: flex;
+		justify-content: center;
+		margin-top: 10px;
 	}
 	.add_message {
 		margin: 10px 0;
@@ -294,4 +296,3 @@ const toggleReplyForm = (messageId) => {
 	color: #aaa;
 }
 </style>
-  

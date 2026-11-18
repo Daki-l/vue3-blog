@@ -47,24 +47,20 @@
 				<div class="artical_item">
 					<span>{{ '文章一' }}</span>
 				</div>
-				<div class="artical_item">
-					<span>{{ '文章一' }}</span>
-				</div>
-				<div class="artical_item">
-					<span>{{ '文章一' }}</span>
-				</div>
 			</div>
 		</div>
 	</div>
 </template>
-  
+
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getNoticeFn, getNoticesActivityFn } from '@/services/summonerServices/summonerServices.js';
+import { getNotices } from '@/services/notice';
 import { ElMessage } from 'element-plus';
-import { summpnerStore } from '@/stores/summoner.js'
+import { useNoticeStore } from '@/stores/notice.js';
+
 const router = useRouter();
+const noticeStore = useNoticeStore();
 const title = ref('魔灵召唤：天空之役');
 
 const onLoading = ref(false);
@@ -75,7 +71,7 @@ const urlOption = ref({
 	IOS: 'https://apps.apple.com/cn/app/魔灵召唤-天空之影/id852912420',
 	Android: 'http://play.qpyou.cn/b?i=8387&g=8109&gc=7976',
 	service: 'https://customer.withhive.com/com2us/ask/313',
-    terms: 'https://terms.withhive.com/terms/policy/view/M337'
+	terms: 'https://terms.withhive.com/terms/policy/view/M337'
 });
 
 onMounted(() => {
@@ -84,26 +80,28 @@ onMounted(() => {
 
 const initNoticeList = async () => {
 	try {
-        let { getNoticeTime } = summpnerStore;
-        // 没有获取到时间 肯定没有缓存，执行请求, 当前时间小于缓存的时间 相差大于12小时，执行请求
-        let timeFlag = !getNoticeTime || new Date().getTime() - getNoticeTime > (12 * 3600000) ? false : true;
+		let { getNoticeTime } = noticeStore;
+		// 缓存 12 小时内直接使用内存缓存
+		let timeFlag = !getNoticeTime || new Date().getTime() - getNoticeTime > (12 * 3600000) ? false : true;
 
-        if ((summpnerStore?.noticeList || []).length > 0 && (summpnerStore?.noticeActivityList || []).length > 0 && timeFlag) {
-            noticeList.value = summpnerStore?.noticeList || [];
-		    noticeActivityList.value = summpnerStore?.noticeActivityList || [];
-        } else {
-            onLoading.value = true;
-            let noticeReslut = await getNoticeFn();
-            let curNoticeList = noticeReslut?.notice_list || [];
-            let noticeActivityReslut = await getNoticesActivityFn();
-            let curNoticeActivityList = noticeActivityReslut?.notice_list || [];
-            noticeList.value = curNoticeList;
-            noticeActivityList.value = curNoticeActivityList;
-            summpnerStore.noticeList = curNoticeList;
-            summpnerStore.noticeActivityList = curNoticeActivityList;
-            summpnerStore.getNoticeTime = new Date().getTime();
-            onLoading.value = false;
-        }
+		if ((noticeStore?.noticeList || []).length > 0 && (noticeStore?.noticeActivityList || []).length > 0 && timeFlag) {
+			noticeList.value = noticeStore?.noticeList || [];
+			noticeActivityList.value = noticeStore?.noticeActivityList || [];
+		} else {
+			onLoading.value = true;
+			const [noticeReslut, noticeActivityReslut] = await Promise.all([
+				getNotices('notice'),
+				getNotices('activity')
+			]);
+			let curNoticeList = noticeReslut?.list || [];
+			let curNoticeActivityList = noticeActivityReslut?.list || [];
+			noticeList.value = curNoticeList;
+			noticeActivityList.value = curNoticeActivityList;
+			noticeStore.noticeList = curNoticeList;
+			noticeStore.noticeActivityList = curNoticeActivityList;
+			noticeStore.getNoticeTime = new Date().getTime();
+			onLoading.value = false;
+		}
 	} catch {
 		ElMessage.error('获取最新信息失败，请稍后重试！');
 		onLoading.value = false;
@@ -120,11 +118,11 @@ const openUrl = (key) => {
 };
 
 const openDetail = (row) => {
-    summpnerStore.noticeDetail = row;
-    router.push({ name: 'noticeDetail'})
-}
+	noticeStore.noticeDetail = row;
+	router.push({ name: 'noticeDetail', query: { id: row.id } });
+};
 </script>
-  
+
 <style scoped lang="less">
 .summoner_home_wrapper {
 	.wrapper_top {
@@ -199,7 +197,7 @@ const openDetail = (row) => {
 		overflow: auto;
 		margin-top: 20px;
 		.activity_card {
-            cursor: pointer;
+			cursor: pointer;
 			width: 30%;
 			height: 280px;
 			margin-left: 24px;
@@ -242,4 +240,3 @@ const openDetail = (row) => {
 	}
 }
 </style>
-  

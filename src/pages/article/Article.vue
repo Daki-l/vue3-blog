@@ -14,7 +14,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { getArticleList } from '@/services/articleService';
+import { getArticles } from '@/services/article';
 import { onMounted } from 'vue';
 import ArticleCard from '@/components/ArticleCard.vue';
 import BillForm from '@/components/BillForm.vue';
@@ -66,11 +66,22 @@ function inistFilterOption() {
 const articleList = ref([]);
 function initList() {
 	listLoading.value = true;
-	getArticleList().then((res) => {
-		let { list } = res;
-		articleList.value = list;
-		listLoading.value = false;
-	});
+	let params = {
+		page: 1,
+		pageSize: 20
+	};
+	// 标签筛选(全部时不传)
+	if (formData.value.tag && formData.value.tag !== 'null') {
+		params.tag = formData.value.tag;
+	}
+	getArticles(params)
+		.then((res) => {
+			let { list } = res || {};
+			articleList.value = list || [];
+		})
+		.finally(() => {
+			listLoading.value = false;
+		});
 }
 </script>
 <style scoped>

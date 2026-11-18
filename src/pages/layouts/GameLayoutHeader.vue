@@ -5,8 +5,7 @@
 			class="header-nav"
 			mode="horizontal"
 			:ellipsis="false"
-			:router="true"
-			@select="handleSelect">
+			:router="true">
 			<template v-for="(item, index) in navOption" :key="index">
 				<el-menu-item v-if="(item.children || []).length === 0" :index="item.path || item.index">
 					{{ item.name }}
@@ -20,34 +19,30 @@
 			</template>
 		</el-menu>
 		<div class="header-user">
-			<!-- <div class="theme-btns">
-				<el-switch
-					v-model="themeValue"
-					active-value="light"
-					inactive-value="dark"
-					@change="themeChange" />
-			</div> -->
-			<div class="user-info" v-if="false">
-				<img class="info-img" src="" alt="" />
-				<div class="info-name">{{ userInfo.name }}</div>
-			</div>
-			<el-button type="primary" v-if="false">登录</el-button>
+			<template v-if="userStore.isLogged">
+				<span class="user-name" :title="userStore.displayName">{{ userStore.displayName }}</span>
+				<el-button v-if="userStore.isAdmin" type="primary" link @click="gotoAdmin">管理</el-button>
+				<el-button type="danger" plain @click="handleLogout">退出</el-button>
+			</template>
+			<el-button type="primary" v-else @click="gotoLogin">登录</el-button>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
+import { useUserStore } from '@/stores/user';
 
-const activeIndex = ref('/game/coupon'); // 默认页签
-const ENV = ref(import.meta.env);
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
 
-const handleSelect = (key, keyPath) => {
-	// 当用户点击时，更新 activeIndex
-	localStorage.setItem('activeIndex', key); // 保存选择的页签
-};
+// 高亮页签直接取当前路由,不再使用 localStorage 缓存
+const activeIndex = computed(() => route.fullPath);
 
-const navOption = ref([
+const baseNavOption = [
 	{
 		name: '首页',
 		path: '/game/home',
@@ -109,36 +104,41 @@ const navOption = ref([
 		index: '3',
 		children: []
 	}
-	// {
-	// 	name: '资源',
-	// 	path: '/game/static',
-	// 	index: '5'
-	// }
-]);
-console.log('ENV.value.MODE;;---', ENV.value);
-if (ENV.value.MODE === 'development') {
-	navOption.value.push({
-		name: '操作',
-		path: '/game/action',
-		index: '4'
-	});
-}
-const userInfo = ref({
-	id: '123',
-	name: ''
+];
+
+// 管理员额外显示"管理"菜单项
+const navOption = computed(() => {
+	if (userStore.isAdmin) {
+		return baseNavOption.concat([
+			{
+				name: '管理',
+				path: '/game/admin',
+				index: '5',
+				children: []
+			}
+		]);
+	}
+	return baseNavOption;
 });
 
-const themeValue = ref('light');
-function themeChange(e) {
-	document.documentElement.setAttribute('theme', e);
-}
-// 在页面加载时获取 localStorage 中保存的 activeIndex
-onMounted(() => {
-	const savedIndex = localStorage.getItem('activeIndex');
-	if (savedIndex) {
-		activeIndex.value = savedIndex;
+const gotoAdmin = () => {
+	router.push('/game/admin');
+};
+
+const gotoLogin = () => {
+	router.push({
+		name: 'login',
+		query: route.path === '/game/login' ? {} : { redirect: route.fullPath }
+	});
+};
+
+const handleLogout = () => {
+	userStore.logout();
+	ElMessage.success('已退出登录');
+	if (route.path.startsWith('/game/admin')) {
+		router.push('/game/home');
 	}
-});
+};
 </script>
 
 <style lang="less">
@@ -150,14 +150,23 @@ onMounted(() => {
 		width: 80%;
 	}
 	.header-user {
-        background-color: #FFFFFF;
+		background-color: #ffffff;
 		width: 20%;
 		height: var(--el-menu-horizontal-height);
 		padding: 0 24px;
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
+		gap: 8px;
 		border-bottom: 1px solid var(--el-menu-border-color);
+		.user-name {
+			max-width: 140px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			color: #303133;
+			font-size: 14px;
+		}
 	}
 }
 </style>

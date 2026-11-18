@@ -3,7 +3,6 @@
  */
 
 import {isEmptyStrict} from "@/utils/util";
-import _ from "lodash";
 
 /**
  * 生成随机数

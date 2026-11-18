@@ -4,7 +4,6 @@ import { createPinia } from 'pinia';
 import ElementPlus from 'element-plus';
 import router from './router';
 import App from './App.vue';
-import './mock';
 import "./utils/prototype";
 
 import 'moment/locale/zh-cn';
