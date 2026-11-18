@@ -14,7 +14,7 @@
 		</div>
 		<div class="login_tip" v-if="!userStore.isLogged">
 			<el-alert
-				title="兑换功能需要登录，未登录将跳转登录页"
+				title="游客可直接兑换单个账号；登录后支持批量 6 个账号，并保存兑换记录"
 				type="info"
 				show-icon
 				:closable="false" />
@@ -97,7 +97,6 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCoupons } from '@/services/coupon';
 import { checkRedemption, redeemCoupons, getMyRedemptions } from '@/services/redemption';
@@ -106,8 +105,6 @@ import { useUserStore } from '@/stores/user';
 import { SERVER_OPTIONS, getServerLabel } from '@/common/constant';
 import { formatDateTime } from '@/utils/format';
 
-const route = useRoute();
-const router = useRouter();
 const userStore = useUserStore();
 
 const hiveIds = ref('');
@@ -206,23 +203,16 @@ const parseList = (text) => {
 		.filter((e) => !!e);
 };
 
-// 未登录点击兑换:跳登录页并携带 redirect
-const gotoLogin = () => {
-	ElMessage.warning('请先登录后再兑换');
-	router.push({
-		name: 'login',
-		query: { redirect: route.fullPath }
-	});
-};
-
 let beforeSendRequest = () => {
-	if (!userStore.isLogged) {
-		gotoLogin();
-		return;
-	}
 	let hiveidsList = parseList(hiveIds.value);
 	if (hiveidsList.length === 0) {
 		ElMessage.error('请输入账号！');
+		return;
+	}
+	// 游客限单账号,登录用户限 6 个
+	if (!userStore.isLogged && hiveidsList.length > 1) {
+		ElMessage.error('游客每次仅可兑换 1 个账号，登录后可批量兑换 6 个');
+		hiveIds.value = hiveidsList[0];
 		return;
 	}
 	if (hiveidsList.length > 6) {
