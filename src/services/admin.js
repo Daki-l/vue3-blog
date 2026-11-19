@@ -243,8 +243,16 @@ async function replayDegradeBuffer() {
     return http.post('/admin/degrade/replay');
 }
 
+/**
+ * 历史 check 事件(兑换尝试痕迹) {hiveid, page, pageSize} -> {list,total}
+ */
+async function getCheckHistory(params) {
+    return http.get('/admin/check-history', params);
+}
+
 export {
     getAdminCoupons,
+    getCheckHistory,
     getDegradeStatus,
     setDegradeEnabled,
     replayDegradeBuffer,
