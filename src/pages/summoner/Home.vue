@@ -159,26 +159,29 @@ const openDetail = (row) => {
 				padding: 20px 0;
 			}
 		}
-		.top_right {
-			width: 60%;
-			padding-left: 24px;
-			.notice_top {
+	.top_right {
+		width: 60%;
+		padding-left: 24px;
+		// 文字公告保持固定高度+内部滚动(原样式);带图活动区下方自然流式
+		max-height: 250px;
+		.notice_top {
+			font-size: 16px;
+			font-weight: 600;
+			color: #313131;
+			height: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			.more {
 				font-size: 16px;
 				font-weight: 600;
-				color: #313131;
-				height: 40px;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				.more {
-					font-size: 16px;
-					font-weight: 600;
-				}
 			}
-			// 自然高度:随公告条数增长,由 layout-content 整体滚动
-			.notice_list {
-				display: flex;
-				flex-direction: column;
+		}
+		.notice_list {
+			height: calc(100% - 40px);
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
 				.notice_item {
 					cursor: pointer;
 					padding-right: 12px;
