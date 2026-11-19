@@ -28,7 +28,6 @@
   
 <script setup>
 import { onMounted, ref } from 'vue';
-import axios from 'axios';
 
 // 定义响应式变量
 const fileList = ref([]);
@@ -53,24 +52,13 @@ onMounted(() => {
 	listFiles();
 });
 
-// 下载文件
-const downloadFile = async (fileName) => {
-	isDownloading.value = true;
-	try {
-		const response = await axios.get('https://summoner-static.gooliuqi.workers.dev/download', {
-			params: { file: fileName },
-			responseType: 'blob' // 指定响应类型为 blob
-		});
-
-		const blob = response.data;
-		const downloadLink = document.createElement('a');
-		downloadLink.href = URL.createObjectURL(blob);
-		downloadLink.download = fileName;
-		downloadLink.click();
-	} catch (error) {
-		errorMessage.value = error.response ? error.response.data : error.message;
-	} finally {
-		isDownloading.value = false;
+// 下载文件:直接打开官方 CDN 直链(不再经旧 summoner-static Worker 中转)
+const downloadFile = (fileName) => {
+	const file = fileList.value.find((f) => f.text === fileName);
+	if (file && file.url) {
+		window.open(file.url, '_blank');
+	} else {
+		errorMessage.value = '未找到下载地址';
 	}
 };
 const openUrl = (file) => {
