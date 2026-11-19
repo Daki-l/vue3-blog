@@ -34,7 +34,6 @@
 			<div class="top_right">
 				<div class="notice_top">
 					<span>公告：</span>
-					<el-button class="more" type="primary" link @click="moreNotice">更多</el-button>
 				</div>
 				<div class="notice_list" v-loading="onLoading">
 					<span class="notice_item" v-for="(item, index) in noticeList" :key="index" @click="openDetail(item)">
@@ -128,10 +127,6 @@ const initNoticeList = async () => {
 		ElMessage.error('获取最新信息失败，请稍后重试！');
 		onLoading.value = false;
 	}
-};
-
-const moreNotice = () => {
-	router.push({ name: 'noticeList', query: { key: 'notice' } });
 };
 
 const openUrl = (key) => {
