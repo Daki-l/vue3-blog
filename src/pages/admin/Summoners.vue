@@ -37,6 +37,11 @@
 			<el-table-column label="最近兑换" width="170">
 				<template #default="{ row }">{{ formatDateTime(row.last_at) }}</template>
 			</el-table-column>
+			<el-table-column label="最后有效兑换" width="170">
+				<template #default="{ row }">
+					<span :class="{ success_text: row.last_success_at }">{{ formatDateTime(row.last_success_at) }}</span>
+				</template>
+			</el-table-column>
 			<el-table-column label="绑定用户" width="110">
 				<template #default="{ row }">{{ row.bound_username || '-' }}</template>
 			</el-table-column>
