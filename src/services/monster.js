@@ -1,14 +1,15 @@
 /**
  * 魔灵图鉴数据服务
- * 数据全部静态化在 R2(static.linow.us.kg/sw/),读路径零 Worker/零 D1:
- *   列表: /sw/data/monsters_min.json(全量精简,前端内存筛选)
- *   详情: /sw/data/monster/{com2us_id}.json(按需单只)
- * 图片仅存文件名,由此处统一拼自家 CDN 链接(不再引用上游 CloudFront)。
+ * 数据 JSON 经 api.linow.us.kg/sw/data/* 代理(Worker R2 直读+边缘缓存,带 CORS);
+ * 图片直连 static.linow.us.kg/sw/(img 标签无 CORS 限制),只存文件名统一拼链接。
+ * 列表一次拉全量精简(945 条)后前端内存筛选;详情按需单只。
  * 中文预留:详情数据未来可含 zh 覆盖层,经 pick() 做 zh||en 合并。
  */
 
 const STATIC = import.meta.env.VITE_STATIC_BASE || 'https://static.linow.us.kg';
+const API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 export const SW_BASE = `${STATIC}/sw`;
+const SW_DATA = `${API}/sw/data`;
 
 export const monsterImg = (file, large = false) => `${SW_BASE}/${large ? 'monsters' : 'monsters36'}/${file}`;
 export const skillIconUrl = (file) => `${SW_BASE}/skills/${file}`;
@@ -26,12 +27,12 @@ async function getJson(url) {
 
 /** 全量精简列表(945 条,一次拉取后内存筛选) */
 export function fetchMonsterList() {
-	return getJson(`${SW_BASE}/data/monsters_min.json`);
+	return getJson(`${SW_DATA}/monsters_min.json`);
 }
 
 /** 单只魔灵详情 */
 export function fetchMonster(id) {
-	return getJson(`${SW_BASE}/data/monster/${id}.json`);
+	return getJson(`${SW_DATA}/monster/${id}.json`);
 }
 
 /** 元素/定位枚举(展示层中文,数据值英文) */
