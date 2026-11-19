@@ -250,8 +250,16 @@ async function getCheckHistory(params) {
     return http.get('/admin/check-history', params);
 }
 
+/**
+ * 召唤师详情统一记录(兑换+历史查询合并时间线) {hiveid, page, pageSize} -> {list,total}
+ */
+async function getSummonerRecords(params) {
+    return http.get('/admin/summoner-records', params);
+}
+
 export {
     getAdminCoupons,
+    getSummonerRecords,
     getCheckHistory,
     getDegradeStatus,
     setDegradeEnabled,

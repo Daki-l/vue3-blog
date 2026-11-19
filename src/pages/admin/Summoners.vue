@@ -59,67 +59,40 @@
 				@current-change="handlePageChange" />
 		</div>
 
-		<!-- 详情抽屉:兑换记录 + 历史查询记录 双Tab -->
+		<!-- 详情抽屉:统一记录(兑换流水+历史查询按时间合并;历史行兑换码/结果为空,服务器按同账号补齐) -->
 		<el-drawer v-model="detailVisible" :title="detailTitle" size="60%">
-			<el-tabs v-model="detailTab">
-				<el-tab-pane label="兑换记录" name="redeem">
-					<el-table :data="detailList" border v-loading="detailLoading" size="small">
-						<el-table-column label="时间" width="165">
-							<template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
-						</el-table-column>
-						<el-table-column label="兑换码" min-width="150">
-							<template #default="{ row }">{{ row.code }}</template>
-						</el-table-column>
-						<el-table-column label="服务器" width="130">
-							<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
-						</el-table-column>
-						<el-table-column label="结果" min-width="180" show-overflow-tooltip>
-							<template #default="{ row }">
-								<span :class="{ success_text: isSuccess(row) }">{{ row.ret_msg || row.retMsg || '-' }}</span>
-							</template>
-						</el-table-column>
-						<el-table-column label="IP" width="130">
-							<template #default="{ row }">{{ row.ip || '-' }}</template>
-						</el-table-column>
-						<template #empty>
-							<el-empty description="该账号暂无兑换记录" :image-size="70" />
-						</template>
-					</el-table>
-					<div class="pagination_box" v-if="detailTotal > detailPageSize">
-						<el-pagination background small layout="total, prev, pager, next" :total="detailTotal" :page-size="detailPageSize" :current-page="detailPage" @current-change="handleDetailPageChange" />
-					</div>
-				</el-tab-pane>
-				<el-tab-pane label="历史查询记录" name="check">
-					<div class="check_tip">2024-11 ~ 2025-11 的历史查询(兑换尝试痕迹,来自旧系统账号缓存;当时兑换流水未留存)</div>
-					<el-table :data="checkList" border v-loading="checkLoading" size="small">
-						<el-table-column label="时间" width="165">
-							<template #default="{ row }">{{ formatDateTime(row.checked_at) }}</template>
-						</el-table-column>
-						<el-table-column label="召唤师" min-width="120">
-							<template #default="{ row }">{{ row.wizard_name || '-' }}</template>
-						</el-table-column>
-						<el-table-column label="服务器" width="130">
-							<template #default="{ row }">{{ getServerLabel(row.server) || row.server_name || '-' }}</template>
-						</el-table-column>
-						<el-table-column label="IP" width="140">
-							<template #default="{ row }">{{ row.ip || '-' }}</template>
-						</el-table-column>
-						<template #empty>
-							<el-empty description="暂无历史查询记录" :image-size="70" />
-						</template>
-					</el-table>
-					<div class="pagination_box" v-if="checkTotal > checkPageSize">
-						<el-pagination background small layout="total, prev, pager, next" :total="checkTotal" :page-size="checkPageSize" :current-page="checkPage" @current-change="handleCheckPageChange" />
-					</div>
-				</el-tab-pane>
-			</el-tabs>
+			<el-table :data="detailList" border v-loading="detailLoading" size="small">
+				<el-table-column label="时间" width="165">
+					<template #default="{ row }">{{ formatDateTime(row.at) }}</template>
+				</el-table-column>
+				<el-table-column label="兑换码" min-width="150">
+					<template #default="{ row }">{{ row.code || '-' }}</template>
+				</el-table-column>
+				<el-table-column label="服务器" width="130">
+					<template #default="{ row }">{{ getServerLabel(row.server) || '-' }}</template>
+				</el-table-column>
+				<el-table-column label="结果" min-width="180" show-overflow-tooltip>
+					<template #default="{ row }">
+						<span :class="{ success_text: !row.is_check && isSuccess(row) }">{{ row.is_check ? '-' : (row.ret_msg || row.retMsg || '-') }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="IP" width="140">
+					<template #default="{ row }">{{ row.ip || '-' }}</template>
+				</el-table-column>
+				<template #empty>
+					<el-empty description="该账号暂无记录" :image-size="70" />
+				</template>
+			</el-table>
+			<div class="pagination_box" v-if="detailTotal > detailPageSize">
+				<el-pagination background small layout="total, prev, pager, next" :total="detailTotal" :page-size="detailPageSize" :current-page="detailPage" @current-change="handleDetailPageChange" />
+			</div>
 		</el-drawer>
 	</div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { getAdminSummoners, getAdminRedemptions, getCheckHistory } from '@/services/admin';
+import { getAdminSummoners, getSummonerRecords } from '@/services/admin';
 import { getServerLabel } from '@/common/constant';
 import { formatDateTime } from '@/utils/format';
 
@@ -139,7 +112,6 @@ const detailTotal = ref(0);
 const detailPage = ref(1);
 const detailPageSize = 20;
 const detailHiveid = ref('');
-const detailTab = ref('redeem');
 
 const isSuccess = (row) => row.retCode == 100 || row.ret_code == 100;
 
@@ -173,7 +145,7 @@ const handlePageChange = (newPage) => {
 const loadDetail = async () => {
 	detailLoading.value = true;
 	try {
-		const res = await getAdminRedemptions({
+		const res = await getSummonerRecords({
 			hiveid: detailHiveid.value,
 			page: detailPage.value,
 			pageSize: detailPageSize
@@ -181,7 +153,7 @@ const loadDetail = async () => {
 		detailList.value = res?.list || [];
 		detailTotal.value = Number(res?.total) || 0;
 	} catch (e) {
-		console.error('获取兑换详情失败', e);
+		console.error('获取详情记录失败', e);
 	} finally {
 		detailLoading.value = false;
 	}
@@ -189,37 +161,10 @@ const loadDetail = async () => {
 
 const openDetail = (row) => {
 	detailHiveid.value = row.hiveid;
-	detailTitle.value = `${row.wizard_name || row.hiveid}(${row.hiveid}) 的记录`;
+	detailTitle.value = `${row.wizard_name || row.hiveid}(${row.hiveid}) 的兑换记录`;
 	detailPage.value = 1;
-	detailTab.value = 'redeem';
 	detailVisible.value = true;
 	loadDetail();
-	loadCheckList();
-};
-
-// ===== 历史查询记录(check) =====
-const checkList = ref([]);
-const checkLoading = ref(false);
-const checkTotal = ref(0);
-const checkPage = ref(1);
-const checkPageSize = 20;
-
-const loadCheckList = async () => {
-	checkLoading.value = true;
-	try {
-		const res = await getCheckHistory({ hiveid: detailHiveid.value, page: checkPage.value, pageSize: checkPageSize });
-		checkList.value = res?.list || [];
-		checkTotal.value = Number(res?.total) || 0;
-	} catch (e) {
-		console.error('获取查询记录失败', e);
-	} finally {
-		checkLoading.value = false;
-	}
-};
-
-const handleCheckPageChange = (newPage) => {
-	checkPage.value = newPage;
-	loadCheckList();
 };
 
 const handleDetailPageChange = (newPage) => {
@@ -260,12 +205,6 @@ onMounted(() => {
 	}
 	.success_text {
 		color: #67c23a;
-	}
-	.check_tip {
-		font-size: 12px;
-		color: #909399;
-		margin-bottom: 8px;
-		line-height: 1.5;
 	}
 }
 </style>
