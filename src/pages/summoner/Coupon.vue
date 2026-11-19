@@ -35,10 +35,19 @@
 		<div class="input_list">
 			<!-- 已绑定 Hive 账号快捷选择(与手动输入二选一) -->
 			<div class="bound_box" v-if="userStore.isLogged && boundList.length > 0">
-				<label class="bound_label">使用已绑定账号:</label>
+				<div class="bound_header">
+					<label class="bound_label">使用已绑定账号:</label>
+					<el-checkbox
+						class="bound_all"
+						:model-value="isAllBoundSelected"
+						:indeterminate="isBoundIndeterminate"
+						@change="handleToggleAllBound">
+						全选
+					</el-checkbox>
+				</div>
 				<el-checkbox-group v-model="selectedBound" :max="6" @change="handleBoundChange">
 					<el-checkbox v-for="item in boundList" :key="item.id" :value="item.hiveId">
-						{{ item.hiveId }}
+						{{ item.wizardName ? item.wizardName + '(' + item.hiveId + ')' : item.hiveId }}
 						<span class="bound_server">（{{ getServerLabel(item.server) }}）</span>
 						<span v-if="item.label" class="bound_remark">{{ item.label }}</span>
 					</el-checkbox>
@@ -96,7 +105,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCoupons } from '@/services/coupon';
 import { checkRedemption, redeemCoupons, getMyRedemptions } from '@/services/redemption';
@@ -159,6 +168,37 @@ let handleBoundChange = (selected) => {
 // 手动输入:清空绑定账号勾选(二选一)
 let handleManualInput = () => {
 	selectedBound.value = [];
+};
+
+// ===== 绑定账号"全选"联动(受 max 6 限制) =====
+const BOUND_SELECT_LIMIT = 6;
+
+// 可全选的上限:超过 6 个只能取前 6
+const isAllBoundSelected = computed(() => {
+	if (boundList.value.length === 0) {
+		return false;
+	}
+	const limit = Math.min(BOUND_SELECT_LIMIT, boundList.value.length);
+	return selectedBound.value.length >= limit;
+});
+
+const isBoundIndeterminate = computed(() => {
+	return selectedBound.value.length > 0 && !isAllBoundSelected.value;
+});
+
+let handleToggleAllBound = (checked) => {
+	if (!checked) {
+		// 取消全选:清空勾选并同步清空自动填入的 Hive ID
+		selectedBound.value = [];
+		hiveIds.value = '';
+		return;
+	}
+	const allIds = boundList.value.slice(0, BOUND_SELECT_LIMIT).map((item) => item.hiveId);
+	if (boundList.value.length > BOUND_SELECT_LIMIT) {
+		ElMessage.warning(`一次最多支持 ${BOUND_SELECT_LIMIT} 个账号，已选择前 ${BOUND_SELECT_LIMIT} 个`);
+	}
+	selectedBound.value = allIds;
+	handleBoundChange(allIds);
 };
 
 // 获取最新兑换码信息
@@ -320,7 +360,7 @@ let getCouponContent = (coupon) => {
 
 <style lang="less">
 .coupon_wrapper {
-	height: calc(100% - 24px);
+	min-height: calc(100% - 24px);
 	padding: 20px;
 	background-color: #ffffff;
 	.title {
@@ -355,10 +395,22 @@ let getCouponContent = (coupon) => {
 			padding: 10px 12px;
 			background-color: #f5f7fa;
 			border-radius: 6px;
-			.bound_label {
-				display: block;
-				font-weight: 600;
+			.bound_header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
 				margin-bottom: 6px;
+				.bound_label {
+					font-weight: 600;
+				}
+				.bound_all {
+					height: auto;
+				}
+			}
+			.el-checkbox-group {
+				display: flex;
+				flex-wrap: wrap;
+				column-gap: 16px;
 			}
 			.bound_server {
 				color: #909399;
@@ -425,6 +477,49 @@ let getCouponContent = (coupon) => {
 			font-size: 16px;
 			font-weight: 600;
 			margin-bottom: 8px;
+		}
+	}
+	// 手机 web:按钮组换行,表单项 100% 宽,结果条目不超宽(表格由 el-table 自带横向滚动)
+	@media (max-width: 768px) {
+		padding: 12px;
+		.top_header {
+			flex-wrap: wrap;
+			gap: 8px;
+			.button_list {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				.el-button {
+					margin-left: 0;
+				}
+			}
+		}
+		.input_list {
+			.input_item.server {
+				flex-wrap: wrap;
+				label {
+					margin-right: 8px;
+				}
+				.el-select {
+					width: 100%;
+				}
+			}
+			.el-input {
+				width: 100%;
+			}
+		}
+		.result_list {
+			.result_item {
+				.id,
+				.content {
+					display: block;
+					width: auto;
+					max-width: 100%;
+				}
+				.content {
+					margin: 2px 0;
+				}
+			}
 		}
 	}
 }

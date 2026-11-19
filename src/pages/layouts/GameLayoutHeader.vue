@@ -62,10 +62,18 @@ const activeIndex = computed(() => {
 // 菜单项 index:有路径用路径(router 模式直接跳转),无路径(纯分组的父级)用 id 兜底
 const menuIndex = (item) => item.path || `nav-${item.id}`;
 
-// 导航数据驱动(两级树);管理员追加"管理"入口
+// 固定入口:个人中心(所有用户可见,未登录点击由路由守卫跳登录)
+const profileEntry = {
+	id: 'profile-entry',
+	name: '个人中心',
+	path: '/profile',
+	children: []
+};
+
+// 导航数据驱动(两级树);尾部追加"个人中心",管理员再追加"管理"入口
 const navOption = computed(() => {
 	if (userStore.isAdmin) {
-		return (navStore.tree || []).concat([
+		return (navStore.tree || []).concat([profileEntry], [
 			{
 				id: 'admin-entry',
 				name: '管理',
@@ -74,7 +82,7 @@ const navOption = computed(() => {
 			}
 		]);
 	}
-	return navStore.tree || [];
+	return (navStore.tree || []).concat([profileEntry]);
 });
 
 const handleUserCommand = (command) => {
@@ -138,6 +146,36 @@ const gotoLogin = () => {
 		.user-caret {
 			color: #909399;
 			font-size: 12px;
+		}
+	}
+	// 手机 web:菜单横向滑动,用户区压缩
+	@media (max-width: 768px) {
+		.header-nav {
+			flex: 1 1 auto;
+			width: auto;
+			min-width: 0;
+			overflow-x: auto;
+			overflow-y: hidden;
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+			&::-webkit-scrollbar {
+				display: none;
+				height: 0;
+			}
+			> li {
+				flex-shrink: 0;
+			}
+		}
+		.header-user {
+			flex: 0 0 auto;
+			width: auto;
+			padding: 0 10px;
+			.user_trigger {
+				max-width: none;
+			}
+			.user-name {
+				max-width: 60px;
+			}
 		}
 	}
 }

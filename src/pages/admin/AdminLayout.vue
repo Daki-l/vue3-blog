@@ -48,5 +48,41 @@ const activeMenu = computed(() => route.path);
 		padding: 12px 16px 24px;
 		overflow-y: auto;
 	}
+	// 手机 web:侧栏改为顶部横向滚动菜单,main 占满剩余宽度
+	@media (max-width: 768px) {
+		.admin_container {
+			flex-direction: column;
+		}
+		.admin_aside {
+			// el-aside 通过 width prop 设置了行内宽度,需 !important 覆盖
+			width: 100% !important;
+			border-right: none;
+			border-bottom: solid 1px #e6e8eb;
+			.admin_menu {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				height: auto;
+				white-space: nowrap;
+				overflow-x: auto;
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+				&::-webkit-scrollbar {
+					display: none;
+					height: 0;
+				}
+				.el-menu-item {
+					flex-shrink: 0;
+					height: 48px;
+					line-height: 48px;
+					padding: 0 14px;
+				}
+			}
+		}
+		.admin_main {
+			padding: 12px 8px 16px;
+			overflow: visible;
+		}
+	}
 }
 </style>

@@ -228,5 +228,18 @@ const goBack = () => {
 		margin-top: 8px;
 		text-align: center;
 	}
+	// 手机 web:卡片占满宽度,容器可纵向滚动(注册表单较高时不被裁掉)
+	@media (max-width: 768px) {
+		overflow-y: auto;
+		padding: 16px;
+		.login_card {
+			width: 100%;
+			max-width: 420px;
+			margin: auto;
+			:deep(.el-card__body) {
+				padding: 16px;
+			}
+		}
+	}
 }
 </style>

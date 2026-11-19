@@ -61,5 +61,16 @@ onMounted(() => {
 	img {
 		width: 100%;
 	}
+	.notice_content {
+		// 富文本内容中的宽表格等不撑破容器
+		overflow-x: auto;
+		img {
+			max-width: 100%;
+		}
+	}
+	// 手机 web:内边距压缩
+	@media (max-width: 768px) {
+		padding: 10px 12px;
+	}
 }
 </style>

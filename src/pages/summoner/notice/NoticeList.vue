@@ -120,5 +120,30 @@ const openDetail = (row) => {
 			}
 		}
 	}
+	// 手机 web:活动卡片两列,高度自然(公告表格由 el-table 自带横向滚动)
+	@media (max-width: 768px) {
+		padding: 0 12px;
+		.active_tabs {
+			.activity_card {
+				width: calc(50% - 12px);
+				height: auto;
+				margin-left: 12px;
+				margin-bottom: 28px;
+				.actitity_img {
+					height: auto;
+				}
+				.activity_title {
+					font-size: 14px;
+					.time {
+						position: static;
+						display: block;
+						font-size: 13px;
+						font-weight: 400;
+						color: #909399;
+					}
+				}
+			}
+		}
+	}
 }
 </style>

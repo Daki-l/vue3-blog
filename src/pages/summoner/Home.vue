@@ -161,7 +161,6 @@ const openDetail = (row) => {
 		}
 		.top_right {
 			width: 60%;
-			max-height: 250px;
 			padding-left: 24px;
 			.notice_top {
 				font-size: 16px;
@@ -176,11 +175,10 @@ const openDetail = (row) => {
 					font-weight: 600;
 				}
 			}
+			// 自然高度:随公告条数增长,由 layout-content 整体滚动
 			.notice_list {
-				height: calc(100% - 40px);
 				display: flex;
 				flex-direction: column;
-				overflow-y: auto;
 				.notice_item {
 					cursor: pointer;
 					padding-right: 12px;
@@ -188,21 +186,28 @@ const openDetail = (row) => {
 					justify-content: space-between;
 					color: #0067e4;
 					margin-bottom: 12px;
+					span {
+						white-space: nowrap;
+					}
+					span:first-child {
+						overflow: hidden;
+						text-overflow: ellipsis;
+					}
 				}
 			}
 		}
 	}
+	// 活动卡片自然流式:随内容下移,无内部小滚动条
 	.wrapper_activity {
-		height: 303px;
-		overflow: auto;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 24px;
 		margin-top: 20px;
+		padding: 0 24px;
 		.activity_card {
 			cursor: pointer;
-			width: 30%;
+			flex: 0 0 calc((100% - 48px) / 3);
 			height: 280px;
-			margin-left: 24px;
-			margin-bottom: 24px;
-			float: left;
 			background-color: #ffffff;
 			.actitity_img {
 				width: 100%;
@@ -236,6 +241,75 @@ const openDetail = (row) => {
 			padding: 0px 0 10px;
 		}
 		.artical_list {
+		}
+	}
+	// 手机 web:两栏纵向堆叠,按钮换行,活动卡片两列
+	@media (max-width: 768px) {
+		.wrapper_top {
+			flex-direction: column;
+			padding: 16px 12px;
+			.top_left {
+				width: 100%;
+				padding-left: 0;
+				.left_header {
+					height: auto;
+					padding-left: 0;
+					img {
+						width: 96px;
+						height: 96px;
+					}
+					.left_title {
+						margin-left: 14px;
+					}
+				}
+				.left_description {
+					padding: 12px 0;
+				}
+			}
+			.left_btns {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				.el-button {
+					margin-left: 0;
+					flex: 1 1 calc(50% - 8px);
+				}
+			}
+			.top_right {
+				width: 100%;
+				padding-left: 0;
+				margin-top: 16px;
+				.notice_list {
+					.notice_item {
+						flex-direction: column;
+						align-items: flex-start;
+						gap: 2px;
+					}
+				}
+			}
+		}
+		.wrapper_activity {
+			padding: 0 12px;
+			gap: 24px 12px;
+			.activity_card {
+				flex: 0 0 calc((100% - 12px) / 2);
+				height: auto;
+				.actitity_img {
+					height: auto;
+				}
+				.activity_title {
+					.time {
+						position: static;
+						display: block;
+						font-size: 13px;
+						font-weight: 400;
+						color: #909399;
+					}
+				}
+			}
+		}
+		.wrapper_list {
+			padding: 16px 12px;
 		}
 	}
 }

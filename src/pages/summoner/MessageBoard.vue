@@ -296,4 +296,30 @@ const toggleReplyForm = (messageId) => {
 	font-size: 12px;
 	color: #aaa;
 }
+
+/* 手机 web:容器全宽,内边距压缩,列表自然展开由 layout-content 滚动 */
+@media (max-width: 768px) {
+	.message_board {
+		max-width: 100%;
+		padding: 0 10px 10px;
+		overflow: visible;
+		.message_list {
+			height: auto;
+			overflow: visible;
+		}
+		.add_message {
+			height: auto;
+			overflow: visible;
+		}
+	}
+	.message_item {
+		padding: 10px;
+		.message_header {
+			flex-wrap: wrap;
+		}
+	}
+	.replies {
+		padding-left: 8px;
+	}
+}
 </style>

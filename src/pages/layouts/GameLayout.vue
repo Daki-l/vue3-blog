@@ -38,14 +38,19 @@ const isWideRoute = computed(
 <style lang="less">
 .blog_layout_wrapper {
 	width: 100%;
-	height: 100vh;
-	display: block;
-	overflow: auto;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 	background-color: #f7f8fa;
 	.layout-header {
+		flex-shrink: 0;
 	}
+	// 唯一纵向滚动容器:页面级不出滚动条
 	.layout-content {
-		height: calc(100% - var(--el-menu-horizontal-height));
+		flex: 1 1 auto;
+		min-height: 0;
+		width: 100%;
 		max-width: 1100px;
 		margin: 0 auto;
 		overflow-y: auto;
@@ -55,6 +60,16 @@ const isWideRoute = computed(
 		}
 	}
 	.layout-footer {
+		flex-shrink: 0;
+	}
+	// 手机 web:去掉版心限制,内容占满全宽
+	@media (max-width: 768px) {
+		.layout-content {
+			max-width: 100%;
+			&.wide_content {
+				max-width: 100%;
+			}
+		}
 	}
 }
 .article_advertising_right {

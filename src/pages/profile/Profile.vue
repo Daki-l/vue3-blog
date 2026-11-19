@@ -5,7 +5,7 @@
 		<!-- 区块1 基本信息 -->
 		<el-card shadow="never" class="section_card" v-loading="baseLoading">
 			<template #header><span class="section_title">基本信息</span></template>
-			<el-descriptions :column="2" border>
+			<el-descriptions :column="isMobile ? 1 : 2" border>
 				<el-descriptions-item label="用户名">
 					{{ userStore.user?.username || '-' }}
 				</el-descriptions-item>
@@ -100,6 +100,9 @@
 				<el-table-column prop="hiveId" label="账号" min-width="140">
 					<template #default="{ row }">{{ row.hiveId || row.hive_id || '-' }}</template>
 				</el-table-column>
+				<el-table-column prop="wizardName" label="召唤师" min-width="110">
+					<template #default="{ row }">{{ row.wizardName || '-' }}</template>
+				</el-table-column>
 				<el-table-column prop="server" label="服务器" width="170">
 					<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 				</el-table-column>
@@ -156,7 +159,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
@@ -167,6 +170,13 @@ import { formatDateTime } from '@/utils/format';
 
 const router = useRouter();
 const userStore = useUserStore();
+
+// 手机 web:基本信息描述列表改单列
+const isMobile = ref(false);
+let mobileMediaQuery = null;
+const handleMobileMediaChange = (event) => {
+	isMobile.value = event.matches;
+};
 
 // ===== 区块1 基本信息 =====
 const baseLoading = ref(false);
@@ -344,6 +354,11 @@ const isRedeemSuccess = (row) => {
 };
 
 onMounted(async () => {
+	if (typeof window.matchMedia === 'function') {
+		mobileMediaQuery = window.matchMedia('(max-width: 768px)');
+		isMobile.value = mobileMediaQuery.matches;
+		mobileMediaQuery.addEventListener('change', handleMobileMediaChange);
+	}
 	// 拉取最新用户信息(含 hiveIds)
 	baseLoading.value = true;
 	try {
@@ -355,6 +370,10 @@ onMounted(async () => {
 	}
 	initHiveList();
 	initRedemptionList();
+});
+
+onBeforeUnmount(() => {
+	mobileMediaQuery?.removeEventListener('change', handleMobileMediaChange);
 });
 </script>
 
@@ -400,6 +419,34 @@ onMounted(async () => {
 	}
 	.success_text {
 		color: #67c23a;
+	}
+	// 手机 web:内边距压缩,表单项占满全宽(表格由 el-table 自带横向滚动)
+	@media (max-width: 768px) {
+		padding: 12px;
+		.page_title {
+			margin: 4px 0 12px;
+		}
+		.nickname_row {
+			flex-wrap: wrap;
+			.nickname_input {
+				width: 140px;
+			}
+		}
+		.password_form {
+			max-width: 100%;
+		}
+		.hive_add_form {
+			.hive_input {
+				flex: 1 1 calc(50% - 8px);
+				width: auto;
+				min-width: 0;
+			}
+			.hive_select {
+				width: auto;
+				flex: 1 1 calc(50% - 8px);
+				min-width: 0;
+			}
+		}
 	}
 }
 </style>
