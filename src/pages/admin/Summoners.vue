@@ -17,7 +17,12 @@
 			</el-radio-group>
 			<el-button type="primary" @click="handleSearch">查询</el-button>
 		</div>
-		<el-table :data="summonerList" border style="width: 100%" v-loading="listLoading">
+		<el-table
+			:data="summonerList"
+			border
+			style="width: 100%"
+			v-loading="listLoading"
+			@sort-change="handleSortChange">
 			<el-table-column label="Hive ID" min-width="110">
 				<template #default="{ row }">{{ row.hiveid }}</template>
 			</el-table-column>
@@ -27,20 +32,15 @@
 			<el-table-column label="服务器" width="110">
 				<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 			</el-table-column>
-			<el-table-column label="兑换次数" width="90" sortable prop="total" />
-			<el-table-column label="查询次数" width="90" sortable prop="query_count">
+			<el-table-column label="兑换次数" width="90" sortable="custom" prop="total" />
+			<el-table-column label="查询次数" width="90" sortable="custom" prop="query_count">
 				<template #default="{ row }">{{ row.query_count ?? '-' }}</template>
 			</el-table-column>
-			<el-table-column label="首次兑换" width="150">
+			<el-table-column label="首次兑换" width="150" sortable="custom" prop="first_at">
 				<template #default="{ row }">{{ formatDateTime(row.first_at) }}</template>
 			</el-table-column>
-			<el-table-column label="最近兑换" width="150">
+			<el-table-column label="最近兑换" width="150" sortable="custom" prop="last_at">
 				<template #default="{ row }">{{ formatDateTime(row.last_at) }}</template>
-			</el-table-column>
-			<el-table-column label="最后有效兑换" width="150">
-				<template #default="{ row }">
-					<span :class="{ success_text: row.last_success_at }">{{ formatDateTime(row.last_success_at) }}</span>
-				</template>
 			</el-table-column>
 			<el-table-column label="绑定用户" width="100">
 				<template #default="{ row }">{{ row.bound_username || '-' }}</template>
@@ -118,6 +118,10 @@ const detailPage = ref(1);
 const detailPageSize = 20;
 const detailHiveid = ref('');
 
+// 服务端分页,排序走后端(取消排序恢复默认:最近兑换倒序)
+const sortField = ref('');
+const sortOrder = ref('');
+
 const isSuccess = (row) => row.retCode == 100 || row.ret_code == 100;
 
 const initList = async () => {
@@ -127,6 +131,10 @@ const initList = async () => {
 		if (keyword.value.trim()) {
 			params.keyword = keyword.value.trim();
 		}
+		if (sortField.value && sortOrder.value) {
+			params.sortField = sortField.value;
+			params.sortOrder = sortOrder.value;
+		}
 		const res = await getAdminSummoners(params);
 		summonerList.value = res?.list || [];
 		total.value = Number(res?.total) || 0;
@@ -135,6 +143,14 @@ const initList = async () => {
 	} finally {
 		listLoading.value = false;
 	}
+};
+
+// el-table custom 排序:ascending/descending/null(取消)
+const handleSortChange = ({ prop, order }) => {
+	sortField.value = order ? prop : '';
+	sortOrder.value = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
+	page.value = 1;
+	initList();
 };
 
 const handleSearch = () => {
