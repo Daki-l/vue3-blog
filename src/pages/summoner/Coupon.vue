@@ -31,7 +31,13 @@
 					</template>
 				</el-table-column>
 				<el-table-column prop="content" label="奖励内容" min-width="240" show-overflow-tooltip />
-				<el-table-column prop="created_at" label="上架日期" width="120" />
+				<el-table-column prop="created_at" label="上架日期" width="110" />
+				<el-table-column label="最后有效兑换" width="160">
+					<template #default="{ row }">
+						<span v-if="row.last_success_at" class="success_text">{{ formatDateTime(row.last_success_at) }}</span>
+						<span v-else class="muted_text">-</span>
+					</template>
+				</el-table-column>
 			</el-table>
 		</div>
 
@@ -534,6 +540,10 @@ let getCouponContent = (coupon) => {
 
 	.success_text {
 		color: #67c23a;
+	}
+
+	.muted_text {
+		color: #c0c4cc;
 	}
 
 	@media (max-width: 768px) {

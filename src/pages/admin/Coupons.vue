@@ -33,7 +33,13 @@
 			</el-table-column>
 			<el-table-column prop="content" label="内容" />
 			<el-table-column prop="source" label="来源" width="120" />
-			<el-table-column prop="created_at" label="创建日期" width="140" sortable />
+			<el-table-column prop="created_at" label="创建日期" width="120" sortable />
+			<el-table-column label="最后有效兑换" width="170" sortable prop="last_success_at">
+				<template #default="{ row }">
+					<span v-if="row.last_success_at" style="color: #67c23a">{{ formatDateTime(row.last_success_at) }}</span>
+					<span v-else style="color: #c0c4cc">-</span>
+				</template>
+			</el-table-column>
 			<el-table-column prop="status" label="状态" width="100" sortable>
 				<template #default="{ row }">
 					<el-tag :type="isCouponActive(row) ? 'success' : 'danger'">
