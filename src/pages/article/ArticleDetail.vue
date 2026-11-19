@@ -1,5 +1,11 @@
 <template>
 	<div class="article-detail" v-loading="detailLoading">
+		<div class="detail_header">
+			<el-button link @click="goBack">
+				<span class="back_arrow">←</span> 返回
+			</el-button>
+			<span class="detail_title">{{ article.title || '详情' }}</span>
+		</div>
 		<!-- 顶部封面图片(接口返回完整 URL) -->
 		<el-image
 			v-if="coverUrl"
@@ -26,11 +32,20 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 // import CommentSection from '@/components/CommentSection.vue';
 import { getArticleDetail } from '@/services/article';
 import { ElMessage } from 'element-plus';
 import { marked } from 'marked';
+
+const goBack = () => {
+	// 有浏览历史回上一页,否则回首页
+	if (window.history.state && window.history.state.back) {
+		router.back();
+	} else {
+		router.push('/home');
+	}
+};
 
 const article = ref({
 	id: 0,
@@ -44,6 +59,7 @@ const article = ref({
 const tagsArray = ref([]);
 const detailLoading = ref(false);
 const route = useRoute();
+const router = useRouter();
 
 // snake_case 字段适配(兼容旧字段)
 const subtitle = computed(() => article.value.subtitle ?? article.value.subTitle ?? '');
@@ -87,6 +103,27 @@ watch(
 .article-detail {
 	padding: 20px;
 	min-height: 100%;
+
+	.detail_header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding-bottom: 8px;
+		margin-bottom: 12px;
+		border-bottom: solid 1px #ebeef5;
+		.back_arrow {
+			font-size: 15px;
+		}
+		.detail_title {
+			flex: 1;
+			font-size: 15px;
+			font-weight: 600;
+			color: #303133;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
 }
 
 .article-cover {

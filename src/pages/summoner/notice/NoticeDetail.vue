@@ -1,5 +1,11 @@
 <template>
 	<div class="notice_detail" v-loading="onLoading">
+		<div class="detail_header">
+			<el-button link @click="goBack">
+				<span class="back_arrow">←</span> 返回
+			</el-button>
+			<span class="detail_title">{{ noticeDetail?.title || '公告详情' }}</span>
+		</div>
 		<div class="notice_content" v-html="noticeDetail && noticeDetail.content"></div>
 	</div>
 </template>
@@ -16,9 +22,13 @@ const noticeStore = useNoticeStore();
 const noticeDetail = ref({});
 const onLoading = ref(false);
 
-const gotoList = () => {
-	// 无缓存数据时跳回列表页
-	router.replace({ name: 'noticeList' });
+const goBack = () => {
+	// 有浏览历史回上一页,否则回首页
+	if (window.history.state && window.history.state.back) {
+		router.back();
+	} else {
+		router.push('/home');
+	}
 };
 
 const fetchDetail = async (id) => {
@@ -29,10 +39,10 @@ const fetchDetail = async (id) => {
 			noticeDetail.value = res;
 			noticeStore.noticeDetail = res;
 		} else {
-			gotoList();
+			goBack();
 		}
 	} catch (e) {
-		gotoList();
+		goBack();
 	} finally {
 		onLoading.value = false;
 	}
@@ -48,7 +58,7 @@ onMounted(() => {
 	if (id) {
 		fetchDetail(id);
 	} else {
-		gotoList();
+		goBack();
 	}
 });
 </script>
@@ -56,8 +66,28 @@ onMounted(() => {
 <style lang="less">
 .notice_detail {
 	background-color: #ffffff;
-	padding: 10px 24px;
+	padding: 10px 24px 24px;
 	height: 100%;
+	.detail_header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding-bottom: 8px;
+		margin-bottom: 8px;
+		border-bottom: solid 1px #ebeef5;
+		.back_arrow {
+			font-size: 15px;
+		}
+		.detail_title {
+			flex: 1;
+			font-size: 15px;
+			font-weight: 600;
+			color: #303133;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
 	img {
 		width: 100%;
 	}
@@ -70,7 +100,7 @@ onMounted(() => {
 	}
 	// 手机 web:内边距压缩
 	@media (max-width: 768px) {
-		padding: 10px 12px;
+		padding: 10px 12px 16px;
 	}
 }
 </style>

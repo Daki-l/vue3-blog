@@ -25,13 +25,19 @@
 					<span>{{ formatDateTime(row.created_at || row.createTime) }}</span>
 				</template>
 			</el-table-column>
-			<el-table-column prop="action" label="操作" width="160" align="right">
+			<el-table-column prop="action" label="操作" width="230" align="right">
 				<template #default="{ row }">
 					<el-button type="primary" link v-if="!row.__isReply" @click="openReplyDialog(row)">
 						回复
 					</el-button>
 					<el-button type="primary" link @click="openUpdateMessageDialog(row)">修改内容</el-button>
-					<el-popconfirm title="确认删除该条内容！" @confirm="handleDeleteMessage(row)">
+					<el-button
+						:type="row.status === 'hidden' ? 'success' : 'warning'"
+						link
+						@click="handleToggleHide(row)">
+						{{ row.status === 'hidden' ? '恢复' : '隐藏' }}
+					</el-button>
+					<el-popconfirm title="确认彻底删除该条内容？(隐藏可恢复,删除不可)" @confirm="handleDeleteMessage(row)">
 						<template #reference>
 							<el-button type="danger" link>删除</el-button>
 						</template>
@@ -181,6 +187,20 @@ const submitUpdateMessage = async () => {
 	} finally {
 		updateDialogLoading.value = false;
 	}
+};
+
+// 隐藏/恢复(软删,前台不显示)
+const handleToggleHide = (row) => {
+	const next = row.status === 'hidden' ? 'visible' : 'hidden';
+	const request = row.__isReply ? updateReply : updateMessage;
+	request(row.id, { status: next })
+		.then(() => {
+			ElMessage.success(next === 'hidden' ? '已隐藏(前台不可见)' : '已恢复展示');
+			initMessageList();
+		})
+		.catch((e) => {
+			console.error('操作失败', e);
+		});
 };
 
 // 删除留言/回复
