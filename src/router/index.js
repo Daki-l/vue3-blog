@@ -11,6 +11,8 @@ import Profile from '../pages/profile/Profile.vue';
 import NotFound from '../pages/NotFound.vue';
 import NoticeList from '../pages/summoner/notice/NoticeList.vue';
 import NoticeDetail from '../pages/summoner/notice/NoticeDetail.vue';
+import MonsterList from '../pages/summoner/monster/MonsterList.vue';
+import MonsterDetail from '../pages/summoner/monster/MonsterDetail.vue';
 import AdminLayout from '../pages/admin/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
 import AdminCoupons from '../pages/admin/Coupons.vue';
@@ -61,6 +63,17 @@ const routes = [
                 path: '/message',
                 name: 'message',
                 component: MessageBoard
+            },
+            {
+                // 魔灵图鉴(数据静态化在 R2 /sw/,公开访问)
+                path: '/monster',
+                name: 'monsterList',
+                component: MonsterList
+            },
+            {
+                path: '/monster/:id',
+                name: 'monsterDetail',
+                component: MonsterDetail
             },
             {
                 // 旧静态下载页保留(不在导航中展示)
