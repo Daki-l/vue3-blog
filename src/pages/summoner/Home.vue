@@ -13,10 +13,22 @@
 				</div>
 				<div class="left_description">全球实时战略角色扮演 全世界1亿+下载量！ 130多国创第一</div>
 				<div class="left_btns">
-					<el-button type="default" @click="openUrl('Android')">安卓下载</el-button>
-					<el-button type="default" @click="openUrl('IOS')">苹果下载</el-button>
-					<el-button type="default" @click="openUrl('service')">客服投诉地址</el-button>
-					<el-button type="default" @click="openUrl('terms')">官方服务条款</el-button>
+					<el-button
+						v-for="btn in primaryBtns"
+						:key="btn.key"
+						type="default"
+						@click="openUrl(btn.key)">{{ btn.label }}</el-button>
+					<el-dropdown trigger="click" @command="openUrl">
+						<el-button type="default" class="more_btn">更多 ▾</el-button>
+						<template #dropdown>
+							<el-dropdown-menu>
+								<el-dropdown-item
+									v-for="btn in moreBtns"
+									:key="btn.key"
+									:command="btn.key">{{ btn.label }}</el-dropdown-item>
+							</el-dropdown-menu>
+						</template>
+					</el-dropdown>
 				</div>
 			</div>
 			<div class="top_right">
@@ -73,6 +85,16 @@ const urlOption = ref({
 	service: 'https://customer.withhive.com/com2us/ask/313',
 	terms: 'https://terms.withhive.com/terms/policy/view/M337'
 });
+
+// 主按钮(常驻展示)与更多下拉(后续新增入口往这里追加即可)
+const primaryBtns = [
+	{ key: 'Android', label: '安卓下载' },
+	{ key: 'IOS', label: '苹果下载' }
+];
+const moreBtns = [
+	{ key: 'service', label: '客服投诉地址' },
+	{ key: 'terms', label: '官方服务条款' }
+];
 
 onMounted(() => {
 	initNoticeList();
