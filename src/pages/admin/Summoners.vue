@@ -18,31 +18,31 @@
 			<el-button type="primary" @click="handleSearch">查询</el-button>
 		</div>
 		<el-table :data="summonerList" border style="width: 100%" v-loading="listLoading">
-			<el-table-column label="Hive ID" min-width="120">
+			<el-table-column label="Hive ID" min-width="110">
 				<template #default="{ row }">{{ row.hiveid }}</template>
 			</el-table-column>
-			<el-table-column label="召唤师" min-width="160">
+			<el-table-column label="召唤师" min-width="130">
 				<template #default="{ row }">{{ row.wizard_name || '-' }}</template>
 			</el-table-column>
-			<el-table-column label="服务器" width="150">
+			<el-table-column label="服务器" width="110">
 				<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 			</el-table-column>
-			<el-table-column label="兑换次数" width="100" sortable prop="total" />
-			<el-table-column label="查询次数" width="100" sortable prop="query_count">
+			<el-table-column label="兑换次数" width="90" sortable prop="total" />
+			<el-table-column label="查询次数" width="90" sortable prop="query_count">
 				<template #default="{ row }">{{ row.query_count ?? '-' }}</template>
 			</el-table-column>
-			<el-table-column label="首次兑换" width="170">
+			<el-table-column label="首次兑换" width="150">
 				<template #default="{ row }">{{ formatDateTime(row.first_at) }}</template>
 			</el-table-column>
-			<el-table-column label="最近兑换" width="170">
+			<el-table-column label="最近兑换" width="150">
 				<template #default="{ row }">{{ formatDateTime(row.last_at) }}</template>
 			</el-table-column>
-			<el-table-column label="最后有效兑换" width="170">
+			<el-table-column label="最后有效兑换" width="150">
 				<template #default="{ row }">
 					<span :class="{ success_text: row.last_success_at }">{{ formatDateTime(row.last_success_at) }}</span>
 				</template>
 			</el-table-column>
-			<el-table-column label="绑定用户" width="110">
+			<el-table-column label="绑定用户" width="100">
 				<template #default="{ row }">{{ row.bound_username || '-' }}</template>
 			</el-table-column>
 			<el-table-column label="操作" width="90" align="right">
