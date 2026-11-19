@@ -198,7 +198,7 @@ const goBack = () => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(135deg, #e0f2ff 0%, #f7f8fa 100%);
+	background: #f0f5fb;
 	.login_card {
 		width: 420px;
 		:deep(.el-card__body) {

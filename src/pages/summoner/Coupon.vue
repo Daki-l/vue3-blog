@@ -1,17 +1,10 @@
 <template>
 	<div class="coupon_wrapper" v-loading.fullscreen.lock="fullscreenLoading">
-		<div class="title">Summoner's War(魔灵召唤)</div>
-		<div class="top_header">
-			<div class="button_list">
-				<el-button @click="initCodeList()">获取最新兑换码</el-button>
-				<el-button @click="setCodeList()">一键填入兑换码</el-button>
-				<el-button type="primary" @click="beforeSendRequest()">提交兑换</el-button>
-			</div>
-			<div class="top_right">
-				<span>更新日期：</span>
-				<span>{{ formatDateTime(updateTime) }}</span>
-			</div>
+		<div class="page_header">
+			<div class="page_title">兑换码直兑</div>
+			<div class="update_time" v-if="updateTime">更新于 {{ formatDateTime(updateTime) }}</div>
 		</div>
+
 		<div class="login_tip" v-if="!userStore.isLogged">
 			<el-alert
 				title="游客可直接兑换单个账号；登录后支持批量 6 个账号，并保存兑换记录"
@@ -19,24 +12,37 @@
 				show-icon
 				:closable="false" />
 		</div>
-		<div class="code_list">
-			<el-table :data="codeList" style="width: 100%" v-loading="onLoading">
-				<el-table-column prop="code" label="兑换码" width="180">
+
+		<!-- 卡片:兑换码列表 -->
+		<div class="coupon_card">
+			<div class="card_header">
+				<span class="card_title">最新兑换码</span>
+				<div class="card_actions">
+					<el-button size="small" :loading="onLoading" @click="initCodeList()">刷新</el-button>
+					<el-button size="small" type="primary" plain @click="setCodeList()">一键填入兑换码</el-button>
+				</div>
+			</div>
+			<el-table :data="codeList" style="width: 100%" v-loading="onLoading" size="default">
+				<el-table-column prop="code" label="兑换码" width="200">
 					<template #default="scope">
-						<a :href="getcouponUrl(scope.row)" target="_blank" rel="noopener">
-							<span style="margin-left: 10px">{{ (scope.row.code || '').toUpperCase() }}</span>
+						<a class="code_link" :href="getcouponUrl(scope.row)" target="_blank" rel="noopener">
+							{{ (scope.row.code || '').toUpperCase() }}
 						</a>
 					</template>
 				</el-table-column>
-				<el-table-column prop="content" label="内容" />
-				<el-table-column prop="created_at" label="创建日期" width="180" />
+				<el-table-column prop="content" label="奖励内容" min-width="240" show-overflow-tooltip />
+				<el-table-column prop="created_at" label="上架日期" width="120" />
 			</el-table>
 		</div>
-		<div class="input_list">
-			<!-- 已绑定 Hive 账号快捷选择(与手动输入二选一) -->
+
+		<!-- 卡片:兑换操作 -->
+		<div class="coupon_card">
+			<div class="card_header">
+				<span class="card_title">兑换操作</span>
+			</div>
 			<div class="bound_box" v-if="userStore.isLogged && boundList.length > 0">
 				<div class="bound_header">
-					<label class="bound_label">使用已绑定账号:</label>
+					<label class="bound_label">使用已绑定账号</label>
 					<el-checkbox
 						class="bound_all"
 						:model-value="isAllBoundSelected"
@@ -52,52 +58,67 @@
 						<span v-if="item.label" class="bound_remark">{{ item.label }}</span>
 					</el-checkbox>
 				</el-checkbox-group>
-				<div class="bound_tip">勾选后自动填入下方 Hive ID(最多 6 个)；也可直接手动输入，二者取其一</div>
+				<div class="bound_tip">勾选后自动填入 Hive ID（最多 6 个）；也可直接手动输入，二者取其一</div>
 			</div>
-			<div class="input_item server">
-				<label for="server">服务器选择:</label>
-				<el-select v-model="serverValue" placeholder="请选择">
-					<el-option
-						v-for="item in serverOption"
-						:key="item.value"
-						:label="item.label"
-						:value="item.value"></el-option>
-				</el-select>
+			<div class="form_grid">
+				<div class="input_item">
+					<label for="server">服务器</label>
+					<el-select v-model="serverValue" placeholder="请选择">
+						<el-option
+							v-for="item in serverOption"
+							:key="item.value"
+							:label="item.label"
+							:value="item.value"></el-option>
+					</el-select>
+				</div>
+				<div class="input_item">
+					<label for="hiveid">Hive ID（多个用分号分隔，游客 1 个 / 登录最多 6 个）</label>
+					<el-input type="text" id="hiveid" v-model="hiveIds" placeholder="如 408601 或 408601;295135" @input="handleManualInput"></el-input>
+				</div>
 			</div>
-			<div class="input_item">
-				<label for="hiveid">Hive ID (多个用分号分隔,最多6个):</label>
-				<el-input type="text" id="hiveid" v-model="hiveIds" @input="handleManualInput"></el-input>
+			<div class="input_item full">
+				<label for="coupon">兑换码（多个用分号分隔）</label>
+				<el-input type="text" id="coupon" v-model="coupons" placeholder="可点上方一键填入，或手动输入"></el-input>
 			</div>
-			<div class="input_item">
-				<label for="coupon">兑换码 (多个用分号分隔):</label>
-				<el-input type="text" id="coupon" v-model="coupons"></el-input>
-			</div>
-		</div>
-		<div class="result_list" v-if="resultList.length > 0">
-			<div class="result_title">兑换结果：</div>
-			<div class="result_item" v-for="(item, index) in resultList" :key="index">
-				<span class="id">Hive ID: {{ item.hiveid }}</span>
-				<span class="content">
-					兑换码: {{ item.coupon }} ~ {{ getCouponContent(item.coupon) }}
-				</span>
-				<span class="result" :class="{ success: item.retCode == 100 }">
-					{{ item.retMsg || item.error || (item.retCode == 100 ? '成功' : '失败') }}
-				</span>
+			<div class="submit_bar">
+				<el-button type="primary" size="large" @click="beforeSendRequest()">提交兑换</el-button>
 			</div>
 		</div>
-		<div class="mine_list" v-if="userStore.isLogged">
-			<div class="result_title">我的兑换记录：</div>
-			<el-table :data="mineList" border v-loading="mineLoading">
-				<el-table-column prop="created_at" label="时间" width="180" />
-				<el-table-column prop="server" label="服务器" width="120" />
+
+		<!-- 卡片:兑换结果 -->
+		<div class="coupon_card" v-if="resultList.length > 0">
+			<div class="card_header">
+				<span class="card_title">兑换结果</span>
+			</div>
+			<div class="result_item" v-for="(item, index) in resultList" :key="index" :class="{ success: item.retCode == 100 }">
+				<span class="r_code">{{ item.coupon }}</span>
+				<span class="r_account">{{ item.hiveid }}</span>
+				<span class="r_msg">{{ item.retMsg || item.error || (item.retCode == 100 ? '成功' : '失败') }}</span>
+			</div>
+		</div>
+
+		<!-- 卡片:我的兑换记录 -->
+		<div class="coupon_card" v-if="userStore.isLogged">
+			<div class="card_header">
+				<span class="card_title">我的兑换记录</span>
+			</div>
+			<el-table :data="mineList" v-loading="mineLoading" size="small">
+				<el-table-column label="时间" width="170">
+					<template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+				</el-table-column>
+				<el-table-column label="服务器" width="110">
+					<template #default="{ row }">{{ getServerLabel(row.server) || '-' }}</template>
+				</el-table-column>
 				<el-table-column label="Hive ID">
 					<template #default="{ row }">{{ row.hive_id || row.hiveid || '-' }}</template>
 				</el-table-column>
 				<el-table-column label="兑换码">
 					<template #default="{ row }">{{ row.codes || row.coupon || '-' }}</template>
 				</el-table-column>
-				<el-table-column label="结果">
-					<template #default="{ row }">{{ row.retMsg || row.ret_msg || row.result || '-' }}</template>
+				<el-table-column label="结果" min-width="160" show-overflow-tooltip>
+					<template #default="{ row }">
+						<span :class="{ success_text: row.retCode == 100 }">{{ row.retMsg || row.ret_msg || row.result || '-' }}</span>
+					</template>
 				</el-table-column>
 			</el-table>
 		</div>
@@ -360,166 +381,169 @@ let getCouponContent = (coupon) => {
 
 <style lang="less">
 .coupon_wrapper {
-	min-height: calc(100% - 24px);
-	padding: 20px;
-	background-color: #ffffff;
-	.title {
-		font-size: 20px;
-		font-weight: 600;
-		margin: 12px 0;
-	}
-	.top_header {
+	padding: 20px 24px 32px;
+	background-color: #f5f7fa;
+	min-height: 100%;
+
+	.page_header {
 		display: flex;
+		align-items: baseline;
 		justify-content: space-between;
-		margin-bottom: 12px;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 16px;
+		.page_title {
+			font-size: 20px;
+			font-weight: 600;
+			color: #303133;
+			padding-left: 10px;
+			border-left: 4px solid #409eff;
+		}
+		.update_time {
+			font-size: 12px;
+			color: #909399;
+		}
 	}
+
 	.login_tip {
-		margin-bottom: 12px;
+		margin-bottom: 16px;
 	}
-	.code_list {
-		.el-table {
-			.el-table__row {
-				.cell {
-					display: -webkit-box;
-					-webkit-line-clamp: 2;
-					-webkit-box-orient: vertical;
-					overflow: hidden;
-				}
-			}
-		}
-	}
-	.input_list {
-		margin-top: 20px;
-		.bound_box {
-			margin-bottom: 12px;
-			padding: 10px 12px;
-			background-color: #f5f7fa;
-			border-radius: 6px;
-			.bound_header {
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				margin-bottom: 6px;
-				.bound_label {
-					font-weight: 600;
-				}
-				.bound_all {
-					height: auto;
-				}
-			}
-			.el-checkbox-group {
-				display: flex;
-				flex-wrap: wrap;
-				column-gap: 16px;
-			}
-			.bound_server {
-				color: #909399;
-				font-size: 12px;
-			}
-			.bound_remark {
-				color: #0067e4;
-				font-size: 12px;
-				margin-left: 4px;
-			}
-			.bound_tip {
-				margin-top: 6px;
-				color: #909399;
-				font-size: 12px;
-			}
-		}
-		.input_item {
-			&.server {
-				display: flex;
-				align-items: center;
-				margin-bottom: 12px;
-				label {
-					white-space: nowrap;
-					margin-right: 20px;
-				}
-				.el-select {
-					width: 250px;
-				}
-			}
-		}
-	}
-	.result_list {
-		margin-top: 20px;
-		.result_title {
-			font-size: 16px;
-			font-weight: 600;
-			margin-bottom: 8px;
-		}
-		.result_item {
-			.id {
-				display: inline-block;
-				width: 160px;
-				overflow: hidden;
-				white-space: nowrap;
-				text-overflow: ellipsis;
-			}
-			.content {
-				display: inline-block;
-				width: 600px;
-				overflow: hidden;
-				white-space: nowrap;
-				text-overflow: ellipsis;
-			}
-			.result {
-				&.success {
-					color: #67c23a;
-				}
-			}
-		}
-	}
-	.mine_list {
-		margin-top: 24px;
-		.result_title {
-			font-size: 16px;
-			font-weight: 600;
-			margin-bottom: 8px;
-		}
-	}
-	// 手机 web:按钮组换行,表单项 100% 宽,结果条目不超宽(表格由 el-table 自带横向滚动)
-	@media (max-width: 768px) {
-		padding: 12px;
-		.top_header {
+
+	.coupon_card {
+		background: #ffffff;
+		border-radius: 10px;
+		padding: 16px 20px 20px;
+		margin-bottom: 16px;
+		box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
+
+		.card_header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
 			flex-wrap: wrap;
-			gap: 8px;
-			.button_list {
+			gap: 10px;
+			margin-bottom: 14px;
+			.card_title {
+				font-size: 15px;
+				font-weight: 600;
+				color: #303133;
+				padding-left: 8px;
+				border-left: 3px solid #409eff;
+			}
+			.card_actions {
 				display: flex;
-				flex-wrap: wrap;
 				gap: 8px;
-				.el-button {
-					margin-left: 0;
-				}
 			}
 		}
-		.input_list {
-			.input_item.server {
-				flex-wrap: wrap;
-				label {
-					margin-right: 8px;
-				}
-				.el-select {
-					width: 100%;
-				}
-			}
-			.el-input {
-				width: 100%;
+	}
+
+	.code_link {
+		color: #409eff;
+		font-weight: 600;
+		letter-spacing: 0.4px;
+	}
+
+	.bound_box {
+		background: #f8f9fb;
+		border: 1px solid #ebeef5;
+		border-radius: 8px;
+		padding: 10px 14px;
+		margin-bottom: 16px;
+		.bound_header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 6px;
+			.bound_label {
+				font-size: 13px;
+				font-weight: 600;
+				color: #606266;
 			}
 		}
-		.result_list {
-			.result_item {
-				.id,
-				.content {
-					display: block;
-					width: auto;
-					max-width: 100%;
-				}
-				.content {
-					margin: 2px 0;
-				}
-			}
+		.bound_server {
+			color: #909399;
+			font-size: 12px;
+		}
+		.bound_remark {
+			color: #67c23a;
+			font-size: 12px;
+			margin-left: 4px;
+		}
+		.bound_tip {
+			font-size: 12px;
+			color: #909399;
+			margin-top: 6px;
+		}
+	}
+
+	.form_grid {
+		display: grid;
+		grid-template-columns: 240px 1fr;
+		gap: 14px 16px;
+		margin-bottom: 14px;
+	}
+
+	.input_item {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		&.full {
+			margin-bottom: 4px;
+		}
+		label {
+			font-size: 13px;
+			color: #606266;
+		}
+	}
+
+	.submit_bar {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 6px;
+	}
+
+	.result_item {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 10px 14px;
+		border-radius: 8px;
+		background: #fef0f0;
+		border-left: 3px solid #f56c6c;
+		margin-bottom: 8px;
+		font-size: 13px;
+		flex-wrap: wrap;
+		&.success {
+			background: #f0f9eb;
+			border-left-color: #67c23a;
+		}
+		.r_code {
+			font-weight: 600;
+			color: #303133;
+			min-width: 150px;
+		}
+		.r_account {
+			color: #606266;
+			min-width: 100px;
+		}
+		.r_msg {
+			color: #909399;
+			flex: 1;
+		}
+	}
+
+	.success_text {
+		color: #67c23a;
+	}
+
+	@media (max-width: 768px) {
+		padding: 12px 12px 24px;
+		.form_grid {
+			grid-template-columns: 100%;
+		}
+		.result_item .r_code,
+		.result_item .r_account {
+			min-width: 0;
 		}
 	}
 }

@@ -324,7 +324,7 @@ onMounted(() => {
 					border-radius: 4px 4px 0 0;
 					.visit_bar {
 						width: 100%;
-						background: linear-gradient(180deg, #95d475 0%, #67c23a 100%);
+						background: #67c23a;
 						border-radius: 4px 4px 0 0;
 						transition: height 0.3s;
 					}
@@ -364,7 +364,7 @@ onMounted(() => {
 					border-radius: 4px 4px 0 0;
 					.trend_bar {
 						width: 100%;
-						background: linear-gradient(180deg, #79bbff 0%, #409eff 100%);
+						background: #409eff;
 						border-radius: 4px 4px 0 0;
 						transition: height 0.3s;
 					}

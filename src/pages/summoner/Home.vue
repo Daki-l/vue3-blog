@@ -180,6 +180,15 @@ const openDetail = (row) => {
 			.left_description {
 				padding: 20px 0;
 			}
+			.left_btns {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				padding-right: 24px;
+				.el-button {
+					margin-left: 0;
+				}
+			}
 		}
 	.top_right {
 		width: 60%;
