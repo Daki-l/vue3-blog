@@ -15,8 +15,9 @@
 							:key="e.value"
 							class="elem_btn"
 							:class="{ active: element === e.value }"
-							:style="element === e.value ? { backgroundColor: e.color, borderColor: e.color } : {}"
+							:style="element === e.value && e.color ? { backgroundColor: e.color, borderColor: e.color } : {}"
 							@click="element = e.value">
+							<img v-if="e.value" class="elem_btn_icon" :src="elementIconUrl(e.value)" />
 							{{ e.label }}
 						</button>
 					</div>
@@ -51,7 +52,7 @@
 				</div>
 				<div class="card_name" :title="m.name">{{ m.name }}</div>
 				<div class="card_meta">
-					<span class="elem_dot" :style="{ backgroundColor: elementMeta(m.element).color }"></span>
+					<img class="elem_icon" :src="elementIconUrl(m.element)" :alt="m.element" />
 					<span class="card_stars">{{ '★'.repeat(m.stars) }}</span>
 				</div>
 			</div>
@@ -64,7 +65,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Search } from '@element-plus/icons-vue';
-import { fetchMonsterList, monsterImg, elementMeta, ELEMENTS, ARCHETYPES } from '@/services/monster';
+import { fetchMonsterList, monsterImg, elementMeta, elementIconUrl, ELEMENTS, ARCHETYPES } from '@/services/monster';
 
 const router = useRouter();
 
@@ -172,12 +173,21 @@ onMounted(async () => {
 			font-size: 13px;
 			cursor: pointer;
 			transition: all 0.15s;
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			.elem_btn_icon {
+				width: 15px;
+				height: 15px;
+				object-fit: contain;
+			}
 			&:hover {
 				border-color: #409eff;
 				color: #409eff;
 			}
 			&.active {
 				color: #ffffff;
+				.elem_btn_icon { filter: brightness(1.6); }
 			}
 		}
 	}
@@ -222,10 +232,10 @@ onMounted(async () => {
 			justify-content: center;
 			gap: 6px;
 			margin-top: 2px;
-			.elem_dot {
-				width: 8px;
-				height: 8px;
-				border-radius: 50%;
+			.elem_icon {
+				width: 14px;
+				height: 14px;
+				object-fit: contain;
 			}
 			.card_stars {
 				font-size: 10px;

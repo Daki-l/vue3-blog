@@ -16,6 +16,8 @@ export const skillIconUrl = (file) => `${SW_BASE}/skills/${file}`;
 // 上游仅引用 36px 队长/效果图标(无全尺寸目录),沿用小图
 export const leaderIconUrl = (file) => `${SW_BASE}/leader_skills36/${file}`;
 export const effectIconUrl = (file) => `${SW_BASE}/skill_effects36/${file}`;
+/** 官方元素图标(elements/ 全尺寸,原站直接复用) */
+export const elementIconUrl = (v) => `${SW_BASE}/elements/${String(v).toLowerCase()}.png`;
 
 /** zh||en 字段合并(中文化预留,当前数据无 zh 自然回退英文) */
 export const pick = (zh, en) => (zh && String(zh).trim() ? zh : en);
@@ -36,13 +38,13 @@ export function fetchMonster(id) {
 	return getJson(`${SW_DATA}/monster/${id}.json`);
 }
 
-/** 元素/定位枚举(展示层中文,数据值英文) */
+/** 元素/定位枚举(展示层中文,数据值英文;色值取自官方元素图标采样) */
 export const ELEMENTS = [
-	{ value: 'Water', label: '水', color: '#4a90d9' },
-	{ value: 'Fire', label: '火', color: '#e2593f' },
-	{ value: 'Wind', label: '风', color: '#8fbf3f' },
-	{ value: 'Light', label: '光', color: '#d9a521' },
-	{ value: 'Dark', label: '暗', color: '#8e6fbf' }
+	{ value: 'Water', label: '水', color: '#1f6fb2' },
+	{ value: 'Fire', label: '火', color: '#e07b1e' },
+	{ value: 'Wind', label: '风', color: '#bd9725' },
+	{ value: 'Light', label: '光', color: '#dcc05a' },
+	{ value: 'Dark', label: '暗', color: '#7a2f8f' }
 ];
 
 export const ARCHETYPES = [
