@@ -128,8 +128,8 @@
 						<div class="section_title">{{ t('monster.balanceTitle') }}<span class="section_count">{{ balanceList.length }}</span></div>
 						<div class="bal_item" v-for="(b, i) in shownBalance" :key="i">
 							<span class="bal_date">{{ b.date }}</span>
-							<span class="bal_badge" :class="balClass(b.changeType)">{{ b.changeType }}</span>
-							<span class="bal_skill" v-if="b.skillName">{{ b.slot }} {{ b.skillName }}</span>
+							<span class="bal_badge" :class="balClass(b.changeType)">{{ balTypeLabel(b.changeType) }}</span>
+							<span class="bal_skill" v-if="b.skillName">{{ b.slot }} {{ balSkillName(b) }}</span>
 							<span class="bal_text">{{ b.text }}</span>
 						</div>
 						<div class="bal_more" v-if="balanceList.length > 5" @click="showAllBalance = !showAllBalance">
@@ -186,7 +186,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, fetchForms, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
+	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, fetchForms, fetchBalanceDb, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
 	elementIconUrl, elementMeta, archetypeLabel, pick, statLabel
 } from '@/services/monster';
 import { t, isZh } from '@/common/i18n';
@@ -279,6 +279,18 @@ const balClass = (t) => {
 	if (/Decreas|Removed|nerf/i.test(t)) return 'down';
 	return 'mid';
 };
+/** 补丁类型中文(未收录类型回退原文) */
+const balTypeLabel = (v) => {
+	const key = 'monster.balType.' + v;
+	const hit = t(key);
+	return hit === key ? v : hit;
+};
+/** 补丁记录里的技能名 -> 本魔灵中文技能名(按英文名对齐槽位) */
+const balSkillName = (b) => {
+	if (!isZh() || !b.skillName) return b.skillName;
+	const i = (m.value.skills || []).findIndex((s) => s.name === b.skillName);
+	return (i >= 0 ? m.value.zh?.skills?.[i]?.name : '') || b.skillName;
+};
 
 const goBack = () => {
 	if (window.history.state && window.history.state.back) router.back();
@@ -302,19 +314,43 @@ const load = async (id) => {
 	onLoading.value = true;
 	m.value = {};
 	try {
-		const [detail, list, zhAll, zhNames, formsMap] = await Promise.all([
+		const [detail, list, zhAll, zhNames, formsMap, balanceDb] = await Promise.all([
 			fetchMonster(id),
 			fetchMonsterList().catch(() => []),
 			fetchZhSkills().catch(() => null),
 			fetchZhNames().catch(() => null),
-			fetchForms().catch(() => null)
+			fetchForms().catch(() => null),
+			fetchBalanceDb().catch(() => null)
 		]);
 		m.value = detail || {};
 		formsDb.value = formsMap;
+		// 平衡补丁: 本地库(swlens 端点全量爬取)优先, 上游详情内嵌记录已过时;
+		// 本地形态(未觉醒/一觉)继承觉醒链最终形态的补丁史(同族技能演进)
+		const balId = balanceDb?.[id]?.length
+			? id
+			: (detail?._localForm ? (detail.awakening_chain || []).slice(-1)[0] : null);
+		if (balId && balanceDb?.[balId]?.length) m.value.balance = balanceDb[balId];
 		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文); 英文语言不叠加。
-		// 本地形态库条目自带 zh_name/zh_family(未觉醒=族名, 觉醒=最终形态名)
 		if (isZh()) {
-			m.value.zh = zhAll?.[detail?.com2us_id] || (detail?.zh_name ? { name: detail.zh_name, family: detail.zh_family } : null);
+			const zid = detail?.com2us_id;
+			let zh = zhAll?.[zid];
+			// 未觉醒/一觉形态(本地形态库): 技能中文继承觉醒链最终形态(同族技能族内一致, 按槽位对齐)
+			if (!zh && zid && detail?._localForm) {
+				const chain = detail.awakening_chain || [];
+				const zhFinal = chain.length ? zhAll?.[chain[chain.length - 1]] : null;
+				if (zhFinal?.skills?.length) {
+					zh = {
+						name: detail.zh_name || zhFinal.name,
+						family: detail.zh_family || zhFinal.family,
+						skills: (detail.skills || [])
+							.map((s) => zhFinal.skills[(s.slot || 0) - 1])
+							.filter(Boolean)
+					};
+				}
+			}
+			// 名称以官方字典刷新后的 zh_names 为准(zh_skills 内嵌名可能为旧译)
+			if (zh && zhNames?.[zid]?.n) zh = { ...zh, name: zhNames[zid].n, family: zhNames[zid].f || zh.family };
+			m.value.zh = zh || (detail?.zh_name ? { name: detail.zh_name, family: detail.zh_family } : null);
 		}
 		// min 列表名同步中文化(觉醒形态/同族切换提示)
 		if (zhNames && isZh()) {

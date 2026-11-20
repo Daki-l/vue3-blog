@@ -72,6 +72,13 @@ export function fetchZhSkills() {
   return zhSkillsCache;
 }
 
+/** 平衡补丁本地库(swlens 开放端点全量爬取, 优先于上游详情内嵌的过时记录) */
+let balanceCache = null;
+export function fetchBalanceDb() {
+  balanceCache = balanceCache || getJson(`${ZH_BASE}/balance.json`);
+  return balanceCache;
+}
+
 /** 元素/定位枚举(数据值英文;展示名经 i18n,色值取自官方元素图标采样) */
 import { t } from '@/common/i18n';
 
