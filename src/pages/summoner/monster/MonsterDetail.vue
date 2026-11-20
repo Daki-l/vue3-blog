@@ -36,14 +36,13 @@
 							<div class="bonus_line" v-if="m.awaken_bonus"><span><b>觉醒加成</b> {{ T(m.zh?.awaken_bonus, m.awaken_bonus) }}</span></div>
 						</div>
 
-						<!-- 基础属性:三列,min~max 可见 -->
+						<!-- 基础属性:三列,仅最低~最高(原站口径) -->
 						<div class="panel_sec">
 							<div class="sec_label">基础属性</div>
 							<div class="stat_mini_grid">
 								<div class="stat_mini" v-for="key in statKeys" :key="key">
 									<span class="sm_label">{{ STAT_LABELS[key] || key }}</span>
-									<span class="sm_value">{{ fmtStat(m.stats?.[key]) }}</span>
-									<span class="sm_range" v-if="m.stats?.[key]">{{ m.stats[key].min }}~{{ m.stats[key].max }}{{ m.stats[key].isPercent ? '%' : '' }}</span>
+									<span class="sm_value">{{ fmtRange(m.stats?.[key]) }}</span>
 								</div>
 							</div>
 						</div>
@@ -178,6 +177,8 @@ const T = pick;
 const statKeys = ['hp', 'atk', 'def', 'spd', 'cr', 'cd', 'res', 'acc', 'skillups'];
 
 const fmtStat = (s) => (s ? s.value + (s.isPercent ? '%' : '') : '-');
+/** 原站口径:仅最低~最高 */
+const fmtRange = (s) => (s ? `${s.min}~${s.max}${s.isPercent ? '%' : ''}` : '-');
 
 /** 觉醒形态:来自增强数据 forms,叠加 min 列表名称/可跳转标记 */
 const forms = computed(() => {
@@ -341,14 +342,13 @@ watch(() => route.params.id, (id) => id && load(id));
 		.stat_mini {
 			background: #f8f9fb;
 			border-radius: 6px;
-			padding: 4px 4px 5px;
+			padding: 5px 4px 6px;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 			cursor: default;
 			.sm_label { font-size: 11px; color: #909399; line-height: 1.3; text-align: center; }
-			.sm_value { font-size: 13px; font-weight: 700; color: #303133; line-height: 1.4; }
-			.sm_range { font-size: 10px; color: #c0c4cc; line-height: 1.2; }
+			.sm_value { font-size: 12.5px; font-weight: 700; color: #303133; line-height: 1.4; white-space: nowrap; }
 		}
 	}
 
