@@ -3,23 +3,23 @@
 		<!-- 发言区(置顶卡片) -->
 		<div class="compose_card">
 			<div class="compose_identity">
-				<div class="avatar" :style="avatarStyle(composeNickname || '游')">{{ avatarChar(composeNickname || '游') }}</div>
+				<div class="avatar" :style="avatarStyle(composeNickname || t('message.guest'))">{{ avatarChar(composeNickname || t('message.guest')) }}</div>
 				<div class="identity_main">
 					<template v-if="userStore.isLogged">
 						<div class="identity_name">
 							{{ userStore.displayName }}
-							<el-tag size="small" :type="userStore.isAdmin ? 'danger' : 'primary'">{{ userStore.isAdmin ? '官方' : '站内' }}</el-tag>
+							<el-tag size="small" :type="userStore.isAdmin ? 'danger' : 'primary'">{{ userStore.isAdmin ? t('common.official') : t('common.onSite') }}</el-tag>
 						</div>
 					</template>
 					<template v-else>
 						<div class="guest_row">
-							<el-input v-model="composeNickname" class="nick_input" maxlength="20" placeholder="你的昵称">
+							<el-input v-model="composeNickname" class="nick_input" maxlength="20" :placeholder="t('coupon.notePlaceholder')">
 								<template #append>
-									<el-button link @click="useRandomName">随机</el-button>
+									<el-button link @click="useRandomName">{{ t('coupon.random') }}</el-button>
 								</template>
 							</el-input>
 						</div>
-						<div class="guest_tip">游客发布 · 昵称会记住,下次自动填入</div>
+						<div class="guest_tip">{{ t('message.guestTip') }}</div>
 					</template>
 				</div>
 			</div>
@@ -30,9 +30,9 @@
 				maxlength="500"
 				show-word-limit
 				resize="none"
-				placeholder="说点什么吧…(每小时最多 6 条)" />
+				:placeholder="t('message.placeholder')" />
 			<div class="compose_bar">
-				<el-button type="primary" :loading="sending" @click="submitMessage">发布留言</el-button>
+				<el-button type="primary" :loading="sending" @click="submitMessage">{{ t('message.publish') }}</el-button>
 			</div>
 		</div>
 
@@ -43,14 +43,14 @@
 				<div class="msg_main">
 					<div class="msg_head">
 						<span class="nickname">{{ msg.nickname }}</span>
-						<el-tag v-if="msg.badge === 'admin'" size="small" type="danger" effect="plain">官</el-tag>
-						<el-tag v-else-if="msg.badge === 'user'" size="small" type="primary" effect="plain">站内</el-tag>
+						<el-tag v-if="msg.badge === 'admin'" size="small" type="danger" effect="plain">{{ t('common.official') }}</el-tag>
+						<el-tag v-else-if="msg.badge === 'user'" size="small" type="primary" effect="plain">{{ t('common.onSite') }}</el-tag>
 						<span class="floor">#{{ msg.id }}</span>
 					</div>
 					<div class="msg_content">{{ msg.content }}</div>
 					<div class="msg_foot">
 						<span class="time" :title="formatDateTime(msg.created_at)">{{ relativeTime(msg.created_at) }}</span>
-						<el-button link size="small" @click="openReply(msg, null)">回复</el-button>
+						<el-button link size="small" @click="openReply(msg, null)">{{ t('message.reply') }}</el-button>
 					</div>
 
 					<!-- 回复列表 -->
@@ -62,7 +62,7 @@
 									<span class="nickname">{{ reply.nickname }}</span>
 									<span v-if="targetName(msg, reply)" class="reply_at">@{{ targetName(msg, reply) }}</span>
 									<span class="time" :title="formatDateTime(reply.created_at)">{{ relativeTime(reply.created_at) }}</span>
-									<el-button link size="small" class="reply_btn_inline" @click="openReply(msg, reply)">回复</el-button>
+									<el-button link size="small" class="reply_btn_inline" @click="openReply(msg, reply)">{{ t('message.reply') }}</el-button>
 								</div>
 								<div class="reply_content">{{ reply.content }}</div>
 							</div>
@@ -72,7 +72,7 @@
 					<!-- 回复输入框(展开式) -->
 					<div class="reply_box" v-if="replyingTo && replyingTo.messageId === msg.id">
 						<div class="reply_box_tip" v-if="replyingTo.reply">
-							回复 @{{ replyingTo.reply.nickname }}:
+							{{ t('message.replyTo', replyingTo.reply.nickname) }}
 						</div>
 						<el-input
 							v-if="!userStore.isLogged"
@@ -80,7 +80,7 @@
 							class="reply_nick"
 							size="small"
 							maxlength="20"
-							placeholder="你的昵称" />
+							:placeholder="t('coupon.notePlaceholder')" />
 						<el-input
 							v-model="replyContent"
 							type="textarea"
@@ -88,23 +88,24 @@
 							:rows="2"
 							maxlength="500"
 							resize="none"
-							placeholder="回复内容…" />
+							:placeholder="t('message.replyPlaceholder')" />
 						<div class="reply_box_bar">
-							<el-button size="small" @click="closeReply">取消</el-button>
-							<el-button size="small" type="primary" :loading="sending" @click="submitReply(msg)">发送回复</el-button>
+							<el-button size="small" @click="closeReply">{{ t('common.cancel') }}</el-button>
+							<el-button size="small" type="primary" :loading="sending" @click="submitReply(msg)">{{ t('message.sendReply') }}</el-button>
 						</div>
 					</div>
 				</div>
 			</div>
-			<el-empty v-if="!loading && messageList.length === 0" description="还没有留言,来抢一楼" :image-size="90" />
+			<el-empty v-if="!loading && messageList.length === 0" :description="t('message.empty')" :image-size="90" />
 			<div class="load_more" v-if="hasMore">
-				<el-button :loading="loading" @click="loadMore">加载更多</el-button>
+				<el-button :loading="loading" @click="loadMore">{{ t('message.loadMore') }}</el-button>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
+import { t } from '@/common/i18n';
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getMessages, addMessage, addReply } from '@/services/message';
@@ -171,7 +172,7 @@ const submitMessage = async () => {
 		return;
 	}
 	if (!composeContent.value.trim()) {
-		ElMessage.warning('留言内容不能为空');
+		ElMessage.warning(t('message.needContent'));
 		return;
 	}
 	sending.value = true;
@@ -181,7 +182,7 @@ const submitMessage = async () => {
 			localStorage.setItem(NICK_KEY, nickname); // 游客昵称记忆
 		}
 		composeContent.value = '';
-		ElMessage.success('留言成功!');
+		ElMessage.success(t('message.ok'));
 		initList();
 	} catch (e) {
 		// 错误提示由拦截器统一处理
@@ -210,11 +211,11 @@ const closeReply = () => {
 const submitReply = async (msg) => {
 	const nickname = userStore.isLogged ? userStore.displayName : replyNickname.value.trim();
 	if (!nickname) {
-		ElMessage.warning('请先填写昵称');
+		ElMessage.warning(t('message.needNickname'));
 		return;
 	}
 	if (!replyContent.value.trim()) {
-		ElMessage.warning('回复内容不能为空');
+		ElMessage.warning(t('message.replyEmpty'));
 		return;
 	}
 	sending.value = true;
@@ -229,7 +230,7 @@ const submitReply = async (msg) => {
 			composeNickname.value = nickname;
 		}
 		closeReply();
-		ElMessage.success('回复成功!');
+		ElMessage.success(t('message.replyOk'));
 		initList();
 	} catch (e) {
 		// 拦截器统一提示

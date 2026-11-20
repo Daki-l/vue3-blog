@@ -1,13 +1,13 @@
 <template>
 	<div class="coupon_wrapper" v-loading.fullscreen.lock="fullscreenLoading">
 		<div class="page_header">
-			<div class="page_title">兑换码直兑</div>
-			<div class="update_time" v-if="updateTime">更新于 {{ formatDateTime(updateTime) }}</div>
+			<div class="page_title">{{ t('coupon.title') }}</div>
+			<div class="update_time" v-if="updateTime">{{ t('profile.updateAt', formatDateTime(updateTime)) }}</div>
 		</div>
 
 		<div class="login_tip" v-if="!userStore.isLogged">
 			<el-alert
-				title="游客可直接兑换单个账号；登录后支持批量 6 个账号，并保存兑换记录"
+				:title="t('coupon.guestTip')"
 				type="info"
 				show-icon
 				:closable="false" />
@@ -16,23 +16,23 @@
 		<!-- 卡片:兑换码列表 -->
 		<div class="coupon_card">
 			<div class="card_header">
-				<span class="card_title">最新兑换码</span>
+				<span class="card_title">{{ t('coupon.latest') }}</span>
 				<div class="card_actions">
-					<el-button size="small" :loading="onLoading" @click="initCodeList()">刷新</el-button>
-					<el-button size="small" type="primary" plain @click="setCodeList()">一键填入兑换码</el-button>
+					<el-button size="small" :loading="onLoading" @click="initCodeList()">{{ t('common.refresh') }}</el-button>
+					<el-button size="small" type="primary" plain @click="setCodeList()">{{ t('coupon.fillCodes') }}</el-button>
 				</div>
 			</div>
 			<el-table :data="codeList" style="width: 100%" v-loading="onLoading" size="default">
-				<el-table-column prop="code" label="兑换码" width="200">
+				<el-table-column prop="code" :label="t('coupon.codes')" width="200">
 					<template #default="scope">
 						<a class="code_link" :href="getcouponUrl(scope.row)" target="_blank" rel="noopener">
 							{{ (scope.row.code || '').toUpperCase() }}
 						</a>
 					</template>
 				</el-table-column>
-				<el-table-column prop="content" label="奖励内容" min-width="240" show-overflow-tooltip />
-				<el-table-column prop="created_at" label="上架日期" width="110" />
-				<el-table-column label="最后有效兑换" width="160">
+				<el-table-column prop="content" :label="t('coupon.reward')" min-width="240" show-overflow-tooltip />
+				<el-table-column prop="created_at" :label="t('coupon.publishDate')" width="110" />
+				<el-table-column :label="t('coupon.lastRedeem')" width="160">
 					<template #default="{ row }">
 						<span v-if="row.last_success_at" class="success_text">{{ formatDateTime(row.last_success_at) }}</span>
 						<span v-else class="muted_text">-</span>
@@ -44,17 +44,17 @@
 		<!-- 卡片:兑换操作 -->
 		<div class="coupon_card">
 			<div class="card_header">
-				<span class="card_title">兑换操作</span>
+				<span class="card_title">{{ t('coupon.submit') }}</span>
 			</div>
 			<div class="bound_box" v-if="userStore.isLogged && boundList.length > 0">
 				<div class="bound_header">
-					<label class="bound_label">使用已绑定账号</label>
+					<label class="bound_label">{{ t('coupon.useBound') }}</label>
 					<el-checkbox
 						class="bound_all"
 						:model-value="isAllBoundSelected"
 						:indeterminate="isBoundIndeterminate"
 						@change="handleToggleAllBound">
-						全选
+										{{ t('common.selectAll') }}
 					</el-checkbox>
 				</div>
 				<el-checkbox-group v-model="selectedBound" :max="6" @change="handleBoundChange">
@@ -64,12 +64,12 @@
 						<span v-if="item.label" class="bound_remark">{{ item.label }}</span>
 					</el-checkbox>
 				</el-checkbox-group>
-				<div class="bound_tip">勾选后自动填入 Hive ID（最多 6 个）；也可直接手动输入，二者取其一</div>
+				<div class="bound_tip">{{ t('coupon.boundTip') }}</div>
 			</div>
 			<div class="form_grid">
 				<div class="input_item">
-					<label for="server">服务器</label>
-					<el-select v-model="serverValue" placeholder="请选择">
+					<label for="server">{{ t('common.server') }}</label>
+					<el-select v-model="serverValue" :placeholder="t('common.select')">
 						<el-option
 							v-for="item in serverOption"
 							:key="item.value"
@@ -78,50 +78,50 @@
 					</el-select>
 				</div>
 				<div class="input_item">
-					<label for="hiveid">Hive ID（多个用分号分隔，游客 1 个 / 登录最多 6 个）</label>
-					<el-input type="text" id="hiveid" v-model="hiveIds" placeholder="如 408601 或 408601;295135" @input="handleManualInput"></el-input>
+					<label for="hiveid">{{ t('coupon.hiveIds') }}</label>
+					<el-input type="text" id="hiveid" v-model="hiveIds" :placeholder="t('coupon.hiveExample')" @input="handleManualInput"></el-input>
 				</div>
 			</div>
 			<div class="input_item full">
-				<label for="coupon">兑换码（多个用分号分隔）</label>
-				<el-input type="text" id="coupon" v-model="coupons" placeholder="可点上方一键填入，或手动输入"></el-input>
+				<label for="coupon">{{ t('coupon.codesMulti') }}</label>
+				<el-input type="text" id="coupon" v-model="coupons" :placeholder="t('coupon.autoFill')"></el-input>
 			</div>
 			<div class="submit_bar">
-				<el-button type="primary" size="large" @click="beforeSendRequest()">提交兑换</el-button>
+				<el-button type="primary" size="large" @click="beforeSendRequest()">{{ t('coupon.submit') }}</el-button>
 			</div>
 		</div>
 
 		<!-- 卡片:兑换结果 -->
 		<div class="coupon_card" v-if="resultList.length > 0">
 			<div class="card_header">
-				<span class="card_title">兑换结果</span>
+				<span class="card_title">{{ t('coupon.result') }}</span>
 			</div>
 			<div class="result_item" v-for="(item, index) in resultList" :key="index" :class="{ success: item.retCode == 100 }">
 				<span class="r_code">{{ item.coupon }}</span>
 				<span class="r_account">{{ item.hiveid }}</span>
-				<span class="r_msg">{{ item.retMsg || item.error || (item.retCode == 100 ? '成功' : '失败') }}</span>
+				<span class="r_msg">{{ item.retMsg || item.error || (item.retCode == 100 ? t('coupon.success') : t('coupon.fail')) }}</span>
 			</div>
 		</div>
 
 		<!-- 卡片:我的兑换记录 -->
 		<div class="coupon_card" v-if="userStore.isLogged">
 			<div class="card_header">
-				<span class="card_title">我的兑换记录</span>
+				<span class="card_title">{{ t('redemption.mine') }}</span>
 			</div>
 			<el-table :data="mineList" v-loading="mineLoading" size="small">
-				<el-table-column label="时间" width="170">
+				<el-table-column :label="t('common.time')" width="170">
 					<template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
 				</el-table-column>
-				<el-table-column label="服务器" width="110">
+				<el-table-column :label="t('common.server')" width="110">
 					<template #default="{ row }">{{ getServerLabel(row.server) || '-' }}</template>
 				</el-table-column>
 				<el-table-column label="Hive ID">
 					<template #default="{ row }">{{ row.hive_id || row.hiveid || '-' }}</template>
 				</el-table-column>
-				<el-table-column label="兑换码">
+				<el-table-column :label="t('coupon.codes')">
 					<template #default="{ row }">{{ row.codes || row.coupon || '-' }}</template>
 				</el-table-column>
-				<el-table-column label="结果" min-width="160" show-overflow-tooltip>
+				<el-table-column :label="t('common.result')" min-width="160" show-overflow-tooltip>
 					<template #default="{ row }">
 						<span :class="{ success_text: row.retCode == 100 }">{{ row.retMsg || row.ret_msg || row.result || '-' }}</span>
 					</template>
@@ -132,6 +132,7 @@
 </template>
 
 <script setup>
+import { t } from '@/common/i18n';
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCoupons } from '@/services/coupon';
@@ -259,7 +260,7 @@ let setCodeList = () => {
 		.join(';');
 	coupons.value = codesStr || '';
 	if (!codesStr) {
-		ElMessage.warning('暂无可用兑换码');
+		ElMessage.warning(t('coupon.noCodes'));
 	}
 };
 
@@ -273,22 +274,22 @@ const parseList = (text) => {
 let beforeSendRequest = () => {
 	let hiveidsList = parseList(hiveIds.value);
 	if (hiveidsList.length === 0) {
-		ElMessage.error('请输入账号！');
+		ElMessage.error(t('coupon.inputAccount'));
 		return;
 	}
 	// 游客限单账号,登录用户限 6 个
 	if (!userStore.isLogged && hiveidsList.length > 1) {
-		ElMessage.error('游客每次仅可兑换 1 个账号，登录后可批量兑换 6 个');
+		ElMessage.error(t('coupon.guestOnlyOne'));
 		hiveIds.value = hiveidsList[0];
 		return;
 	}
 	if (hiveidsList.length > 6) {
-		ElMessage.error('一次最多支持6个账号！');
+		ElMessage.error(t('coupon.maxSix'));
 		hiveIds.value = hiveidsList.slice(0, 6).join(';');
 		return;
 	}
 	if (parseList(coupons.value).length === 0) {
-		ElMessage.error('请输入兑换码！');
+		ElMessage.error(t('coupon.inputCodes'));
 		return;
 	}
 	checkSummoners(hiveidsList);

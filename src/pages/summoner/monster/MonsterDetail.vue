@@ -2,9 +2,9 @@
 	<div class="monster_detail" v-loading="onLoading">
 		<div class="detail_header">
 			<el-button link @click="goBack">
-				<span class="back_arrow">←</span> 返回
+				<span class="back_arrow">←</span> {{ t('common.back') }}
 			</el-button>
-			<span class="detail_title">{{ T(m.zh?.name, m.name) || '魔灵详情' }}</span>
+			<span class="detail_title">{{ T(m.zh?.name, m.name) || t('monster.detail') }}</span>
 		</div>
 
 		<template v-if="m && m.com2us_id">
@@ -18,30 +18,30 @@
 							<div class="stars_row">{{ '★'.repeat(m.natural_stars) }}</div>
 							<div class="elem_line">
 								<img class="elem_icon" :src="elementIconUrl(m.element)" />
-								<span>{{ elementMeta(m.element).label }}属性 · {{ archetypeLabel(m.archetype) }}</span>
+								<span>{{ t('monster.elementAttr', elementMeta(m.element).label) }} · {{ archetypeLabel(m.archetype) }}</span>
 							</div>
 						</div>
 
 						<!-- 基础信息 -->
 						<div class="panel_sec">
-							<div class="sec_label">基础信息</div>
-							<div class="meta_row"><span>定位</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
-							<div class="meta_row"><span>家族</span><b>{{ T(m.zh?.family, m.family) }}</b></div>
-							<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>未觉醒</span><b>{{ T(m.zh?.family, m.unawakened_name) }}</b></div>
-							<div class="meta_row" v-if="m.collab"><span>联动</span><b>{{ m.collab }}</b></div>
+							<div class="sec_label">{{ t('monster.basicInfo') }}</div>
+							<div class="meta_row"><span>{{ t('monster.archetype') }}</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
+							<div class="meta_row"><span>{{ t('monster.family') }}</span><b>{{ T(m.zh?.family, m.family) }}</b></div>
+							<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>{{ t('monster.unawakened') }}</span><b>{{ T(m.zh?.family, m.unawakened_name) }}</b></div>
+							<div class="meta_row" v-if="m.collab"><span>{{ t('monster.collab') }}</span><b>{{ m.collab }}</b></div>
 							<div class="bonus_line leader" v-if="m.leader_skill && m.leader_skill.text">
 								<img class="leader_icon" :src="leaderIconUrl(m.leader_skill.icon)" v-if="m.leader_skill.icon" />
-								<span><b>队长技</b> {{ T(m.zh?.leader_skill, m.leader_skill.text) }}</span>
+								<span><b>{{ t('monster.leaderSkill') }}</b> {{ T(m.zh?.leader_skill, m.leader_skill.text) }}</span>
 							</div>
-							<div class="bonus_line" v-if="m.awaken_bonus"><span><b>觉醒加成</b> {{ T(m.zh?.awaken_bonus, m.awaken_bonus) }}</span></div>
+							<div class="bonus_line" v-if="m.awaken_bonus"><span><b>{{ t('monster.awakenBonus') }}</b> {{ T(m.zh?.awaken_bonus, m.awaken_bonus) }}</span></div>
 						</div>
 
 						<!-- 基础属性:三列,仅最低~最高(原站口径) -->
 						<div class="panel_sec">
-							<div class="sec_label">基础属性</div>
+							<div class="sec_label">{{ t('monster.baseStats') }}</div>
 							<div class="stat_mini_grid">
 								<div class="stat_mini" v-for="key in statKeys" :key="key">
-									<span class="sm_label">{{ STAT_LABELS[key] || key }}</span>
+									<span class="sm_label">{{ statLabel(key) }}</span>
 									<span class="sm_value">{{ fmtRange(m.stats?.[key]) }}</span>
 								</div>
 							</div>
@@ -49,13 +49,13 @@
 
 						<!-- 觉醒形态:带进阶箭头 -->
 						<div class="panel_sec" v-if="forms.length">
-							<div class="sec_label">觉醒形态</div>
+							<div class="sec_label">{{ t('monster.awakenForms') }}</div>
 							<div class="forms_row">
 								<template v-for="(f, i) in forms" :key="f.id">
 									<div
 										class="form_item"
 										:class="{ current: f.id === m.com2us_id, off: !f.linked }"
-										:title="f.linked ? `${f.name || ''} (#${f.id})` : `#${f.id} 未收录`"
+										:title="f.linked ? t('monster.formTitle', f.name, f.id) : t('monster.notLinked', f.id)"
 										@click="f.linked && f.id !== m.com2us_id && goDetail(f.id)">
 										<img :src="monsterImg(f.image)" loading="lazy" />
 										<span class="stage_n">{{ i + 1 }}</span>
@@ -67,14 +67,14 @@
 
 						<!-- 同族元素切换(方形瓦片 + 官方元素图标角标) -->
 						<div class="panel_sec" v-if="siblings.length">
-							<div class="sec_label">同族切换</div>
+							<div class="sec_label">{{ t('monster.sameFamily') }}</div>
 							<div class="sib_row">
 								<div
 									v-for="s in siblings"
 									:key="s.id"
 									class="sib_item"
 									:class="{ current: s.id === m.com2us_id }"
-									:title="`${s.name}(${elementMeta(s.element).label})`"
+									:title="t('monster.sibTitle', s.name, elementMeta(s.element).label)"
 									@click="s.id !== m.com2us_id && goDetail(s.id)">
 									<img :src="monsterImg(s.image)" loading="lazy" />
 									<img class="sib_elem" :src="elementIconUrl(s.element)" :alt="s.element" />
@@ -91,13 +91,13 @@
 							<img class="skill_icon" :src="skillIconUrl(s.icon)" v-if="s.icon" />
 							<div class="skill_head_texts">
 								<div class="skill_name_row">
-									<span class="skill_slot">技能 {{ s.slot }}</span>
+									<span class="skill_slot">{{ t('monster.skill', s.slot) }}</span>
 									<span class="skill_name">{{ T(m.zh?.skills?.[i]?.name, s.name) }}</span>
 									<span class="skill_lv" v-if="s.level_text">{{ s.level_text }}</span>
 								</div>
 								<div class="skill_sub" v-if="s.multiplier">
-									倍率系数:<code>{{ s.multiplier }}</code>
-									<template v-if="s.scales_with && s.scales_with.length"> · 依赖 {{ s.scales_with.join(' / ') }}</template>
+									{{ t('monster.multiplier') }}<code>{{ s.multiplier }}</code>
+									<template v-if="s.scales_with && s.scales_with.length"> · {{ t('monster.scalesWith') }} {{ s.scales_with.join(' / ') }}</template>
 								</div>
 							</div>
 						</div>
@@ -115,7 +115,7 @@
 							</span>
 						</div>
 						<div class="skillup_box" v-if="s.skillups && s.skillups.length">
-							<div class="skillup_title">强化效果</div>
+							<div class="skillup_title">{{ t('monster.skillups') }}</div>
 							<div class="skillup_item" v-for="su in s.skillups" :key="su.n">
 								<span class="su_n">+{{ su.n }}</span>
 								<span>{{ T(m.zh?.skills?.[i]?.skillups?.[su.n - 1]?.text, su.text) }}</span>
@@ -125,7 +125,7 @@
 
 					<!-- 平衡补丁时间线 -->
 					<div class="section_card" v-if="balanceList.length">
-						<div class="section_title">平衡补丁记录<span class="section_count">{{ balanceList.length }}</span></div>
+						<div class="section_title">{{ t('monster.balanceTitle') }}<span class="section_count">{{ balanceList.length }}</span></div>
 						<div class="bal_item" v-for="(b, i) in shownBalance" :key="i">
 							<span class="bal_date">{{ b.date }}</span>
 							<span class="bal_badge" :class="balClass(b.changeType)">{{ b.changeType }}</span>
@@ -133,7 +133,7 @@
 							<span class="bal_text">{{ b.text }}</span>
 						</div>
 						<div class="bal_more" v-if="balanceList.length > 5" @click="showAllBalance = !showAllBalance">
-							{{ showAllBalance ? '收起' : `展开全部 ${balanceList.length} 条` }}
+							{{ showAllBalance ? t('monster.collapse') : t('monster.showAll', balanceList.length) }}
 						</div>
 					</div>
 				</div>
@@ -142,18 +142,18 @@
 			<!-- 底部 3v3 展示区(占位,阶段二接入:登录后查看该魔灵相关防守/克制) -->
 			<div class="section_card pvp3_section">
 				<div class="section_title">
-					3v3 攻防
-					<span class="section_count">该魔灵相关的防守队伍与克制方案(建设中)</span>
+					{{ t('monster.pvp3Title') }}
+					<span class="section_count">{{ t('monster.pvp3Desc') }}</span>
 				</div>
 				<div class="pvp3_placeholder">
 					<div class="ph_team" v-for="n in 3" :key="n">
 						<span class="ph_slot" v-for="k in 3" :key="k"></span>
 					</div>
-					<p class="ph_text">3v3 数据准备中,完成后此处展示该魔灵出场的防守队伍与推荐克制(需登录)</p>
+					<p class="ph_text">{{ t('monster.pvp3Placeholder') }}</p>
 				</div>
 			</div>
 		</template>
-		<el-empty v-else-if="!onLoading" description="未找到该魔灵" :image-size="90" />
+		<el-empty v-else-if="!onLoading" :description="t('monster.notFound')" :image-size="90" />
 	</div>
 </template>
 
@@ -162,8 +162,9 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
 	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
-	elementIconUrl, elementMeta, archetypeLabel, pick, STAT_LABELS
+	elementIconUrl, elementMeta, archetypeLabel, pick, statLabel
 } from '@/services/monster';
+import { t, isZh } from '@/common/i18n';
 
 const route = useRoute();
 const router = useRouter();
@@ -230,10 +231,10 @@ const load = async (id) => {
 			fetchZhNames().catch(() => null)
 		]);
 		m.value = detail || {};
-		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文)
-		if (zhAll) m.value.zh = zhAll[detail?.com2us_id] || null;
+		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文); 英文语言不叠加
+		if (zhAll && isZh()) m.value.zh = zhAll[detail?.com2us_id] || null;
 		// min 列表名同步中文化(觉醒形态/同族切换提示)
-		if (zhNames) {
+		if (zhNames && isZh()) {
 			for (const it of list) {
 				const z = zhNames[it.id];
 				if (z?.n) it.name = z.n;

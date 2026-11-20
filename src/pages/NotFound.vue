@@ -1,14 +1,15 @@
 <template>
 	<div class="not_found_wrapper">
-		<el-empty :image-size="160" description="页面不存在或已被移动 (404)">
-			<div class="not_found_tip">你访问的地址没有对应页面，可能已迁移到新路径</div>
-			<el-button type="primary" @click="goHome">返回首页</el-button>
+		<el-empty :image-size="160" description="{{ t('notfound.title') }}">
+			<div class="not_found_tip">{{ t('notfound.desc') }}</div>
+			<el-button type="primary" @click="goHome">{{ t('common.backHome') }}</el-button>
 		</el-empty>
 	</div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { t } from '@/common/i18n';
 
 const router = useRouter();
 

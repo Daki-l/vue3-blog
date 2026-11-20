@@ -1,6 +1,7 @@
+import { t } from '@/common/i18n';
 <template>
     <div class="layout-footer-wrapper">
-        <div class="copyright-info">版权所有 Copyright(©)2020-2027</div>
+        <div class="copyright-info">{{ t('footer.copyright') }}</div>
     </div>
 </template>
 

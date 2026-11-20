@@ -1,17 +1,17 @@
 <template>
 	<div class="notice_list">
 		<el-tabs v-model="activeName" class="active_tabs">
-			<el-tab-pane label="公告" name="notice">
+			<el-tab-pane :label="t('notice.tab')" name="notice">
 				<el-table border :data="noticeList" v-loading="onLoading">
-					<el-table-column prop="noticeTitle" label="标题">
+					<el-table-column prop="noticeTitle" :label="t('common.title')">
 						<template #default="{ row }">
 							<span class="notice_title" @click="openDetail(row)">{{ row.noticeTitle }}</span>
 						</template>
 					</el-table-column>
-					<el-table-column prop="startTime" label="发布日期" width="180"></el-table-column>
+					<el-table-column prop="startTime" :label="t('notice.publishDate')" width="180"></el-table-column>
 				</el-table>
 			</el-tab-pane>
-			<el-tab-pane label="活动" name="activity">
+			<el-tab-pane :label="t('common.activity')" name="activity">
 				<div class="activity_card" v-for="(item, index) in noticeActivityList" :key="index" @click="openDetail(item)">
 					<img class="actitity_img" :src="item.cropImage" alt="" />
 					<div class="activity_title">
@@ -26,6 +26,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { t } from '@/common/i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { getNotices } from '@/services/notice';
 import { useNoticeStore } from '@/stores/notice.js';

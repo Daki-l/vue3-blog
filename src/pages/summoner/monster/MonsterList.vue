@@ -1,14 +1,14 @@
 <template>
 	<div class="monster_list" v-loading="onLoading">
 		<div class="page_header">
-			<span class="page_title">魔灵图鉴</span>
-			<span class="page_count" v-if="!onLoading">共 {{ filtered.length }} 只</span>
+			<span class="page_title">{{ t('monster.title') }}</span>
+			<span class="page_count" v-if="!onLoading">{{ t('monster.count', filtered.length) }}</span>
 		</div>
 
 		<div class="filter_card">
 			<div class="filter_row">
 				<div class="filter_group">
-					<span class="filter_label">元素</span>
+					<span class="filter_label">{{ t('monster.element') }}</span>
 					<div class="elem_btns">
 						<button
 							v-for="e in elementOptions"
@@ -23,19 +23,19 @@
 					</div>
 				</div>
 				<div class="filter_group">
-					<span class="filter_label">定位</span>
-					<el-select v-model="archetype" class="filter_select" clearable placeholder="全部">
+					<span class="filter_label">{{ t('monster.archetype') }}</span>
+					<el-select v-model="archetype" class="filter_select" clearable :placeholder="t('common.all')">
 						<el-option v-for="a in archetypeOptions" :key="a.value" :label="a.label" :value="a.value" />
 					</el-select>
 				</div>
 				<div class="filter_group">
-					<span class="filter_label">星级</span>
-					<el-select v-model="stars" class="filter_select" clearable placeholder="全部">
-						<el-option v-for="s in 5" :key="s" :label="s + ' 星'" :value="s" />
+					<span class="filter_label">{{ t('monster.stars') }}</span>
+					<el-select v-model="stars" class="filter_select" clearable :placeholder="t('common.all')">
+						<el-option v-for="s in 5" :key="s" :label="s + ' ' + t('monster.starsUnit')" :value="s" />
 					</el-select>
 				</div>
 				<div class="filter_group grow">
-					<el-input v-model="keyword" placeholder="搜索名称 / 家族" clearable :prefix-icon="Search" />
+					<el-input v-model="keyword" :placeholder="t('monster.searchPlaceholder')" clearable :prefix-icon="Search" />
 				</div>
 			</div>
 		</div>
@@ -57,7 +57,7 @@
 				</div>
 			</div>
 		</div>
-		<el-empty v-else-if="!onLoading" description="没有符合条件的魔灵" :image-size="90" />
+		<el-empty v-else-if="!onLoading" :description="t('monster.empty')" :image-size="90" />
 	</div>
 </template>
 
@@ -66,6 +66,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Search } from '@element-plus/icons-vue';
 import { fetchMonsterList, fetchZhNames, monsterImg, elementMeta, elementIconUrl, ELEMENTS, ARCHETYPES } from '@/services/monster';
+import { t, isZh } from '@/common/i18n';
 
 const router = useRouter();
 
@@ -76,8 +77,8 @@ const archetype = ref('');
 const stars = ref(null);
 const keyword = ref('');
 
-const elementOptions = [{ value: '', label: '全部' }, ...ELEMENTS];
-const archetypeOptions = ARCHETYPES;
+const elementOptions = [{ value: '', label: t('common.all') }, ...ELEMENTS.map((e) => ({ ...e, label: t('elem.' + e.value) }))];
+const archetypeOptions = ARCHETYPES.map((v) => ({ value: v, label: t('arch.' + v) }));
 
 const filtered = computed(() => {
 	const kw = keyword.value.trim().toLowerCase();
@@ -101,8 +102,8 @@ onMounted(async () => {
 			fetchMonsterList(),
 			fetchZhNames().catch(() => null)
 		]);
-		// 简中覆盖(name/family 缺省回退英文, 搜索随之支持中文)
-		if (zh) {
+		// 简中覆盖仅中文语言生效(英文回退上游原文, 搜索随之支持双语)
+		if (zh && isZh()) {
 			for (const m of list) {
 				const z = zh[m.id];
 				if (!z) continue;

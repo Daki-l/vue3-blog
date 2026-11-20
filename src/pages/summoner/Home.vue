@@ -11,7 +11,7 @@
 						<span class="left_type">RPG</span>
 					</div>
 				</div>
-				<div class="left_description">全球实时战略角色扮演 全世界1亿+下载量！ 130多国创第一</div>
+				<div class="left_description">{{ t('home.slogan') }}</div>
 				<div class="left_btns">
 					<el-button
 						v-for="btn in primaryBtns"
@@ -19,7 +19,7 @@
 						type="default"
 						@click="openUrl(btn.key)">{{ btn.label }}</el-button>
 					<el-dropdown trigger="click" @command="openUrl">
-						<el-button type="default" class="more_btn">更多 ▾</el-button>
+						<el-button type="default" class="more_btn">{{ t('home.more') }}</el-button>
 						<template #dropdown>
 							<el-dropdown-menu>
 								<el-dropdown-item
@@ -33,7 +33,7 @@
 			</div>
 			<div class="top_right">
 				<div class="notice_top">
-					<span>公告：</span>
+					<span>{{ t('notice.label') }}</span>
 				</div>
 				<div class="notice_list" v-loading="onLoading">
 					<span class="notice_item" v-for="(item, index) in noticeList" :key="index" @click="openDetail(item)">
@@ -53,10 +53,10 @@
 			</div>
 		</section>
 		<div class="wrapper_list" v-if="false">
-			<div class="artical_title">推荐文章：</div>
+			<div class="artical_title">{{ t('article.recommend') }}</div>
 			<div class="artical_list">
 				<div class="artical_item">
-					<span>{{ '文章一' }}</span>
+					<span>{{ t('article.firstArticle') }}</span>
 				</div>
 			</div>
 		</div>
@@ -65,6 +65,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { t } from '@/common/i18n';
 import { useRouter } from 'vue-router';
 import { getNotices } from '@/services/notice';
 import { ElMessage } from 'element-plus';
@@ -87,8 +88,8 @@ const urlOption = ref({
 
 // 主按钮(常驻展示)与更多下拉(后续新增入口往这里追加即可)
 const primaryBtns = [
-	{ key: 'Android', label: '安卓下载' },
-	{ key: 'IOS', label: '苹果下载' }
+	{ key: 'Android', label: t('home.android') },
+	{ key: 'IOS', label: t('home.ios') }
 ];
 const moreBtns = [
 	{ key: 'service', label: '客服投诉地址' },

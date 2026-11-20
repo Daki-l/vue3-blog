@@ -2,9 +2,9 @@
 	<div class="article-detail" v-loading="detailLoading">
 		<div class="detail_header">
 			<el-button link @click="goBack">
-				<span class="back_arrow">←</span> 返回
+				<span class="back_arrow">←</span> {{ t('common.back') }}
 			</el-button>
-			<span class="detail_title">{{ article.title || '详情' }}</span>
+			<span class="detail_title">{{ article.title || t('article.detail') }}</span>
 		</div>
 		<!-- 顶部封面图片(接口返回完整 URL) -->
 		<el-image
@@ -32,6 +32,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
+import { t } from '@/common/i18n';
 import { useRoute, useRouter } from 'vue-router';
 // import CommentSection from '@/components/CommentSection.vue';
 import { getArticleDetail } from '@/services/article';

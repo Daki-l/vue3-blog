@@ -20,6 +20,17 @@
 			</template>
 		</el-menu>
 		<div class="header-user">
+			<!-- 语言切换:zh/EN 两段小开关 -->
+			<div class="locale_switch" :title="t('common.language')">
+				<span
+					v-for="l in LOCALES"
+					:key="l.value"
+					class="locale_opt"
+					:class="{ active: l.value === locale }"
+					@click="setLocale(l.value)">
+					{{ l.label }}
+				</span>
+			</div>
 			<template v-if="userStore.isLogged">
 				<el-dropdown class="user_dropdown" trigger="click" @command="handleUserCommand">
 					<span class="user_trigger" :title="userStore.displayName">
@@ -28,13 +39,13 @@
 					</span>
 					<template #dropdown>
 						<el-dropdown-menu>
-							<el-dropdown-item command="profile">个人中心</el-dropdown-item>
-							<el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+							<el-dropdown-item command="profile">{{ t('common.profile') }}</el-dropdown-item>
+							<el-dropdown-item command="logout" divided>{{ t('common.logout') }}</el-dropdown-item>
 						</el-dropdown-menu>
 					</template>
 				</el-dropdown>
 			</template>
-			<el-button type="primary" v-else @click="gotoLogin">登录</el-button>
+			<el-button type="primary" v-else @click="gotoLogin">{{ t('common.login') }}</el-button>
 		</div>
 	</div>
 </template>
@@ -45,6 +56,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
 import { useNavStore } from '@/stores/nav';
+import { t, navName, LOCALES, locale, setLocale } from '@/common/i18n';
 
 const route = useRoute();
 const router = useRouter();
@@ -65,24 +77,29 @@ const menuIndex = (item) => item.path || `nav-${item.id}`;
 // 固定入口:个人中心(所有用户可见,未登录点击由路由守卫跳登录)
 const profileEntry = {
 	id: 'profile-entry',
-	name: '个人中心',
+	name: t('common.profile'),
 	path: '/profile',
 	children: []
 };
 
-// 导航数据驱动(两级树);尾部追加"个人中心",管理员再追加"管理"入口
+// 导航数据驱动(两级树);尾部追加"个人中心",管理员再追加"管理"入口;名称按语言映射
 const navOption = computed(() => {
+	const base = (navStore.tree || []).map((item) => ({
+		...item,
+		name: navName(item.name),
+		children: (item.children || []).map((c) => ({ ...c, name: navName(c.name) }))
+	}));
 	if (userStore.isAdmin) {
-		return (navStore.tree || []).concat([profileEntry], [
+		return base.concat([profileEntry], [
 			{
 				id: 'admin-entry',
-				name: '管理',
+				name: t('common.admin'),
 				path: '/admin',
 				children: []
 			}
 		]);
 	}
-	return (navStore.tree || []).concat([profileEntry]);
+	return base.concat([profileEntry]);
 });
 
 const handleUserCommand = (command) => {
@@ -92,7 +109,7 @@ const handleUserCommand = (command) => {
 	}
 	if (command === 'logout') {
 		userStore.logout();
-		ElMessage.success('已退出登录');
+		ElMessage.success(t('common.loggedOut'));
 		if (route.path.startsWith('/admin') || route.path.startsWith('/profile')) {
 			router.push('/home');
 		}
@@ -125,6 +142,30 @@ const gotoLogin = () => {
 		justify-content: flex-end;
 		gap: 8px;
 		border-bottom: 1px solid var(--el-menu-border-color);
+		// 语言切换:两段小开关
+		.locale_switch {
+			display: inline-flex;
+			align-items: center;
+			border: 1px solid var(--el-menu-border-color);
+			border-radius: 4px;
+			overflow: hidden;
+			flex-shrink: 0;
+			.locale_opt {
+				padding: 2px 8px;
+				font-size: 12px;
+				line-height: 18px;
+				color: #606266;
+				cursor: pointer;
+				user-select: none;
+				& + .locale_opt {
+					border-left: 1px solid var(--el-menu-border-color);
+				}
+				&.active {
+					background-color: var(--el-color-primary);
+					color: #fff;
+				}
+			}
+		}
 		.user_dropdown {
 			cursor: pointer;
 			outline: none;

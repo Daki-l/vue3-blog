@@ -1,39 +1,39 @@
 <template>
 	<div class="profile_wrapper">
-		<div class="page_title">个人中心</div>
+		<div class="page_title">{{ t('common.profile') }}</div>
 
 		<!-- 区块1 基本信息 -->
 		<el-card shadow="never" class="section_card" v-loading="baseLoading">
-			<template #header><span class="section_title">基本信息</span></template>
+			<template #header><span class="section_title">{{ t('profile.basic') }}</span></template>
 			<el-descriptions :column="isMobile ? 1 : 2" border>
-				<el-descriptions-item label="用户名">
+				<el-descriptions-item :label="t('common.username')">
 					{{ userStore.user?.username || '-' }}
 				</el-descriptions-item>
-				<el-descriptions-item label="角色">
+				<el-descriptions-item :label="t('common.role')">
 					<el-tag :type="userStore.isAdmin ? 'danger' : 'info'">
-						{{ userStore.isAdmin ? '管理员' : '普通用户' }}
+						{{ userStore.isAdmin ? t('common.adminRole') : t('common.userRole') }}
 					</el-tag>
 				</el-descriptions-item>
-				<el-descriptions-item label="注册时间">
+				<el-descriptions-item :label="t('profile.registerAt')">
 					{{ formatDateTime(userStore.user?.createdAt || userStore.user?.created_at) }}
 				</el-descriptions-item>
-				<el-descriptions-item label="昵称">
+				<el-descriptions-item :label="t('common.nickname')">
 					<div class="nickname_row">
 						<template v-if="!nicknameEditing">
 							<span>{{ userStore.displayName || '-' }}</span>
-							<el-button type="primary" link @click="startEditNickname">编辑</el-button>
+							<el-button type="primary" link @click="startEditNickname">{{ t('common.edit') }}</el-button>
 						</template>
 						<template v-else>
 							<el-input
 								v-model="nicknameForm"
 								maxlength="20"
-								placeholder="1-20 个字符"
+								:placeholder="t('profile.nicknameLen')"
 								class="nickname_input"
 								@keyup.enter="submitNickname" />
 							<el-button type="primary" :loading="nicknameSaving" @click="submitNickname">
-								保存
+														{{ t('common.save') }}
 							</el-button>
-							<el-button @click="cancelEditNickname">取消</el-button>
+							<el-button @click="cancelEditNickname">{{ t('common.cancel') }}</el-button>
 						</template>
 					</div>
 				</el-descriptions-item>
@@ -42,37 +42,37 @@
 
 		<!-- 区块2 修改密码 -->
 		<el-card shadow="never" class="section_card">
-			<template #header><span class="section_title">修改密码</span></template>
+			<template #header><span class="section_title">{{ t('profile.changePassword') }}</span></template>
 			<el-form
 				ref="passwordFormRef"
 				:model="passwordForm"
 				:rules="passwordRules"
 				label-width="100px"
 				class="password_form">
-				<el-form-item label="旧密码" prop="oldPassword">
+				<el-form-item :label="t('login.oldPassword')" prop="oldPassword">
 					<el-input
 						v-model="passwordForm.oldPassword"
 						type="password"
 						show-password
-						placeholder="请输入旧密码" />
+						:placeholder="t('login.inputOldPassword')" />
 				</el-form-item>
-				<el-form-item label="新密码" prop="newPassword">
+				<el-form-item :label="t('login.newPassword')" prop="newPassword">
 					<el-input
 						v-model="passwordForm.newPassword"
 						type="password"
 						show-password
-						placeholder="至少 8 位" />
+						:placeholder="t('login.newPasswordMin')" />
 				</el-form-item>
-				<el-form-item label="确认新密码" prop="confirmPassword">
+				<el-form-item :label="t('login.confirmNewPassword')" prop="confirmPassword">
 					<el-input
 						v-model="passwordForm.confirmPassword"
 						type="password"
 						show-password
-						placeholder="再次输入新密码" />
+						:placeholder="t('login.reinputPassword')" />
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" :loading="passwordSaving" @click="submitPassword">
-						修改密码
+										{{ t('profile.changePassword') }}
 					</el-button>
 				</el-form-item>
 			</el-form>
@@ -80,78 +80,78 @@
 
 		<!-- 区块3 我的 Hive 账号 -->
 		<el-card shadow="never" class="section_card">
-			<template #header><span class="section_title">我的 Hive 账号</span></template>
+			<template #header><span class="section_title">{{ t('hive.mine') }}</span></template>
 			<div class="hive_add_form">
 				<el-input
 					v-model="hiveForm.hiveId"
-					placeholder="Hive ID(3-32 位字母数字)"
+					:placeholder="t('coupon.hivePlaceholder')"
 					class="hive_input" />
-				<el-select v-model="hiveForm.server" placeholder="服务器" class="hive_select">
+				<el-select v-model="hiveForm.server" :placeholder="t('common.server')" class="hive_select">
 					<el-option
 						v-for="item in SERVER_OPTIONS"
 						:key="item.value"
 						:label="item.label"
 						:value="item.value" />
 				</el-select>
-				<el-input v-model="hiveForm.label" placeholder="备注(选填,≤20字)" class="hive_input" />
-				<el-button type="primary" :loading="hiveSaving" @click="submitAddHive">新增账号</el-button>
+				<el-input v-model="hiveForm.label" :placeholder="t('coupon.noteOptional')" class="hive_input" />
+				<el-button type="primary" :loading="hiveSaving" @click="submitAddHive">{{ t('hive.add') }}</el-button>
 			</div>
 			<el-table :data="hiveList" border v-loading="hiveLoading" style="width: 100%">
-				<el-table-column prop="hiveId" label="账号" min-width="140">
+				<el-table-column prop="hiveId" :label="t('common.account')" min-width="140">
 					<template #default="{ row }">{{ row.hiveId || row.hive_id || '-' }}</template>
 				</el-table-column>
-				<el-table-column prop="wizardName" label="召唤师" min-width="110">
+				<el-table-column prop="wizardName" :label="t('coupon.summoner')" min-width="110">
 					<template #default="{ row }">{{ row.wizardName || '-' }}</template>
 				</el-table-column>
-				<el-table-column prop="server" label="服务器" width="170">
+				<el-table-column prop="server" :label="t('common.server')" width="170">
 					<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 				</el-table-column>
-				<el-table-column prop="label" label="备注" min-width="120">
+				<el-table-column prop="label" :label="t('common.note')" min-width="120">
 					<template #default="{ row }">{{ row.label || '-' }}</template>
 				</el-table-column>
-				<el-table-column prop="createdAt" label="绑定时间" width="180">
+				<el-table-column prop="createdAt" :label="t('hive.bindTime')" width="180">
 					<template #default="{ row }">{{ formatDateTime(row.createdAt || row.created_at) }}</template>
 				</el-table-column>
-				<el-table-column label="操作" width="90" align="right">
+				<el-table-column :label="t('common.action')" width="90" align="right">
 					<template #default="{ row }">
-						<el-popconfirm title="确认删除该绑定账号？" @confirm="handleDeleteHive(row)">
+						<el-popconfirm :title="t('hive.confirmDelete')" @confirm="handleDeleteHive(row)">
 							<template #reference>
-								<el-button type="danger" link>删除</el-button>
+								<el-button type="danger" link>{{ t('common.delete') }}</el-button>
 							</template>
 						</el-popconfirm>
 					</template>
 				</el-table-column>
 				<template #empty>
-					<el-empty description="还没有绑定的 Hive 账号" :image-size="80" />
+					<el-empty :description="t('hive.empty')" :image-size="80" />
 				</template>
 			</el-table>
 		</el-card>
 
 		<!-- 区块4 我的兑换记录 -->
 		<el-card shadow="never" class="section_card">
-			<template #header><span class="section_title">我的兑换记录</span></template>
+			<template #header><span class="section_title">{{ t('redemption.mine') }}</span></template>
 			<el-table :data="redemptionList" border v-loading="redemptionLoading" style="width: 100%">
-				<el-table-column prop="created_at" label="时间" width="180">
+				<el-table-column prop="created_at" :label="t('common.time')" width="180">
 					<template #default="{ row }">{{ formatDateTime(row.created_at || row.createdAt) }}</template>
 				</el-table-column>
-				<el-table-column prop="server" label="服务器" width="170">
+				<el-table-column prop="server" :label="t('common.server')" width="170">
 					<template #default="{ row }">{{ getServerLabel(row.server) }}</template>
 				</el-table-column>
-				<el-table-column label="账号" min-width="120">
+				<el-table-column :label="t('common.account')" min-width="120">
 					<template #default="{ row }">{{ row.hive_id || row.hiveid || '-' }}</template>
 				</el-table-column>
-				<el-table-column label="兑换码" min-width="160">
+				<el-table-column :label="t('coupon.codes')" min-width="160">
 					<template #default="{ row }">{{ row.codes || row.code || row.coupon || '-' }}</template>
 				</el-table-column>
-				<el-table-column label="结果" min-width="140">
+				<el-table-column :label="t('common.result')" min-width="140">
 					<template #default="{ row }">
 						<span :class="{ success_text: isRedeemSuccess(row) }">
-							{{ row.retMsg || row.ret_msg || row.result || (isRedeemSuccess(row) ? '成功' : '-') }}
+							{{ row.retMsg || row.ret_msg || row.result || (isRedeemSuccess(row) ? t('coupon.success') : '-') }}
 						</span>
 					</template>
 				</el-table-column>
 				<template #empty>
-					<el-empty description="暂无兑换记录" :image-size="80" />
+					<el-empty :description="t('redemption.empty')" :image-size="80" />
 				</template>
 			</el-table>
 		</el-card>
@@ -159,6 +159,7 @@
 </template>
 
 <script setup>
+import { t } from '@/common/i18n';
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
@@ -197,13 +198,13 @@ const cancelEditNickname = () => {
 const submitNickname = async () => {
 	const nickname = nicknameForm.value.trim();
 	if (nickname.length < 1 || nickname.length > 20) {
-		ElMessage.warning('昵称为 1-20 个字符');
+		ElMessage.warning(t('profile.nicknameRule'));
 		return;
 	}
 	nicknameSaving.value = true;
 	try {
 		await userStore.updateMe({ nickname });
-		ElMessage.success('昵称已更新');
+		ElMessage.success(t('profile.nicknameOk'));
 		cancelEditNickname();
 	} catch (e) {
 		// 错误提示由 axios 拦截器统一处理
@@ -257,7 +258,7 @@ const submitPassword = () => {
 			if (res?.accessToken) {
 				userStore.setTokens(res.accessToken, res.refreshToken);
 			}
-			ElMessage.success('密码修改成功，请重新登录');
+			ElMessage.success(t('profile.passwordOk'));
 			userStore.clearAuth();
 			router.push('/login');
 		} catch (e) {
@@ -294,7 +295,7 @@ const submitAddHive = async () => {
 	const hiveId = hiveForm.hiveId.trim();
 	const label = hiveForm.label.trim();
 	if (!/^[A-Za-z0-9]{3,32}$/.test(hiveId)) {
-		ElMessage.warning('Hive ID 需为 3-32 位字母数字');
+		ElMessage.warning(t('coupon.hiveRule'));
 		return;
 	}
 	if (!hiveForm.server) {
@@ -302,7 +303,7 @@ const submitAddHive = async () => {
 		return;
 	}
 	if (label.length > 20) {
-		ElMessage.warning('备注不能超过 20 个字符');
+		ElMessage.warning(t('coupon.noteMax'));
 		return;
 	}
 	hiveSaving.value = true;
@@ -312,7 +313,7 @@ const submitAddHive = async () => {
 			server: hiveForm.server,
 			label: label || undefined
 		});
-		ElMessage.success('绑定成功');
+		ElMessage.success(t('hive.bindOk'));
 		hiveForm.hiveId = '';
 		hiveForm.label = '';
 		initHiveList();
@@ -326,7 +327,7 @@ const submitAddHive = async () => {
 const handleDeleteHive = async (row) => {
 	try {
 		await deleteHiveId(row.id);
-		ElMessage.success('已删除');
+		ElMessage.success(t('hive.deleted'));
 		initHiveList();
 	} catch (e) {
 		// 错误提示由 axios 拦截器统一处理

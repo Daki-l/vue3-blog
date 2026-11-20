@@ -2,9 +2,9 @@
 	<div class="notice_detail" v-loading="onLoading">
 		<div class="detail_header">
 			<el-button link @click="goBack">
-				<span class="back_arrow">←</span> 返回
+				<span class="back_arrow">←</span> {{ t('common.back') }}
 			</el-button>
-			<span class="detail_title">{{ noticeDetail?.title || '公告详情' }}</span>
+			<span class="detail_title">{{ noticeDetail?.title || t('notice.detail') }}</span>
 		</div>
 		<div class="notice_content" v-html="noticeDetail && noticeDetail.content"></div>
 	</div>
@@ -12,6 +12,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { t } from '@/common/i18n';
 import { useNoticeStore } from '@/stores/notice.js';
 import { useRoute, useRouter } from 'vue-router';
 import { getNoticeDetail } from '@/services/notice';

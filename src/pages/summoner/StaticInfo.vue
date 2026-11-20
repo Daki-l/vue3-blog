@@ -5,7 +5,7 @@
 			<li v-for="(file, index) in fileList" :key="index">
 				<div v-if="file.download">
 					<span>{{ file.text }}</span>
-					<button @click="downloadFile(file.text)">下载</button>
+					<button @click="downloadFile(file.text)">{{ t('common.download') }}</button>
 				</div>
 				<div v-else>
 					<a @click="openUrl(file)">
@@ -21,12 +21,13 @@
 
 		<!-- 下载文件的输入框 -->
 		<div v-if="isDownloading">
-			<p>正在下载...</p>
+			<p>{{ t('coupon.redeeming') }}</p>
 		</div>
 	</div>
 </template>
   
 <script setup>
+import { t } from '@/common/i18n';
 import { onMounted, ref } from 'vue';
 
 // 定义响应式变量

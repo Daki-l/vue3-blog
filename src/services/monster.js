@@ -57,29 +57,24 @@ export function fetchZhSkills() {
   return zhSkillsCache;
 }
 
-/** 元素/定位枚举(展示层中文,数据值英文;色值取自官方元素图标采样) */
+/** 元素/定位枚举(数据值英文;展示名经 i18n,色值取自官方元素图标采样) */
+import { t } from '@/common/i18n';
+
 export const ELEMENTS = [
-	{ value: 'Water', label: '水', color: '#1f6fb2' },
-	{ value: 'Fire', label: '火', color: '#e07b1e' },
-	{ value: 'Wind', label: '风', color: '#bd9725' },
-	{ value: 'Light', label: '光', color: '#dcc05a' },
-	{ value: 'Dark', label: '暗', color: '#7a2f8f' }
+	{ value: 'Water', color: '#1f6fb2' },
+	{ value: 'Fire', color: '#e07b1e' },
+	{ value: 'Wind', color: '#bd9725' },
+	{ value: 'Light', color: '#dcc05a' },
+	{ value: 'Dark', color: '#7a2f8f' }
 ];
 
-export const ARCHETYPES = [
-	{ value: 'Attack', label: '攻击' },
-	{ value: 'Defense', label: '防御' },
-	{ value: 'HP', label: '体力' },
-	{ value: 'Support', label: '辅助' },
-	{ value: 'Material', label: '材料' }
-];
+export const ARCHETYPES = ['Attack', 'Defense', 'HP', 'Support', 'Material'];
 
-export const elementMeta = (v) => ELEMENTS.find((e) => e.value === v) || { label: v, color: '#909399' };
-export const archetypeLabel = (v) => ARCHETYPES.find((a) => a.value === v)?.label || v;
+export const elementMeta = (v) => {
+	const hit = ELEMENTS.find((e) => e.value === v);
+	return hit ? { label: t('elem.' + v), color: hit.color } : { label: v, color: '#909399' };
+};
+export const archetypeLabel = (v) => t('arch.' + v);
 
 /** 属性中文名(详情页属性行) */
-export const STAT_LABELS = {
-	hp: '体力', atk: '攻击', def: '防御', spd: '速度',
-	cr: '暴击率', cd: '暴击伤害', res: '抵抗', acc: '命中',
-	skillups: '技能最高所需次数'
-};
+export const statLabel = (key) => t('stat.' + key);

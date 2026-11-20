@@ -1,6 +1,7 @@
+import { t } from '@/common/i18n';
 <template>
     <div class="about_wrapper">
-        <div class="about_text">关于页面</div>
+        <div class="about_text">{{ t('about.title') }}</div>
     </div>
 </template>
 

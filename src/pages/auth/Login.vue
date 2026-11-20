@@ -1,74 +1,74 @@
 <template>
 	<div class="login_wrapper">
 		<el-card class="login_card">
-			<div class="login_title">魔灵召唤 - 账号登录</div>
+			<div class="login_title">{{ t('login.title') }}</div>
 			<el-tabs v-model="activeTab" class="login_tabs" stretch>
-				<el-tab-pane label="登录" name="login">
+				<el-tab-pane :label="t('login.tabLogin')" name="login">
 					<el-form
 						ref="loginFormRef"
 						:model="loginForm"
 						:rules="rules"
 						label-position="top"
 						@keyup.enter="submitLogin">
-						<el-form-item label="用户名" prop="username">
-							<el-input v-model="loginForm.username" placeholder="请输入用户名" />
+						<el-form-item :label="t('common.username')" prop="username">
+							<el-input v-model="loginForm.username" :placeholder="t('login.inputUsername')" />
 						</el-form-item>
-						<el-form-item label="密码" prop="password">
+						<el-form-item :label="t('login.password')" prop="password">
 							<el-input
 								v-model="loginForm.password"
 								type="password"
 								show-password
-								placeholder="请输入密码" />
+								:placeholder="t('login.inputPassword')" />
 						</el-form-item>
 						<el-button
 							type="primary"
 							class="login_btn"
 							:loading="submitting"
 							@click="submitLogin">
-							登 录
+							{{ t('login.btnLogin') }}
 						</el-button>
 					</el-form>
 				</el-tab-pane>
-				<el-tab-pane label="注册" name="register">
+				<el-tab-pane :label="t('login.tabRegister')" name="register">
 					<el-form
 						ref="registerFormRef"
 						:model="registerForm"
 						:rules="registerRules"
 						label-position="top"
 						@keyup.enter="submitRegister">
-						<el-form-item label="用户名" prop="username">
-							<el-input v-model="registerForm.username" placeholder="请输入用户名" />
+						<el-form-item :label="t('common.username')" prop="username">
+							<el-input v-model="registerForm.username" :placeholder="t('login.inputUsername')" />
 						</el-form-item>
-						<el-form-item label="昵称(选填)" prop="nickname">
-							<el-input v-model="registerForm.nickname" placeholder="请输入昵称" />
+						<el-form-item :label="t('login.nicknameOptional')" prop="nickname">
+							<el-input v-model="registerForm.nickname" :placeholder="t('login.inputNickname')" />
 						</el-form-item>
-						<el-form-item label="密码" prop="password">
+						<el-form-item :label="t('login.inputPasswordLabel')" prop="password">
 							<el-input
 								v-model="registerForm.password"
 								type="password"
 								show-password
-								placeholder="请输入密码" />
+								:placeholder="t('login.inputPassword')" />
 						</el-form-item>
-						<el-form-item label="确认密码" prop="confirmPassword">
+						<el-form-item :label="t('login.confirmPassword')" prop="confirmPassword">
 							<el-input
 								v-model="registerForm.confirmPassword"
 								type="password"
 								show-password
-								placeholder="请再次输入密码" />
+								:placeholder="t('login.reinputPassword')" />
 						</el-form-item>
 						<el-button
 							type="primary"
 							class="login_btn"
 							:loading="submitting"
 							@click="submitRegister">
-							注 册
+							{{ t('login.btnRegister') }}
 						</el-button>
 					</el-form>
 				</el-tab-pane>
 			</el-tabs>
-			<div class="login_tip">游客可直接浏览与留言，登录后可使用兑换与查看个人记录</div>
+			<div class="login_tip">{{ t('login.tip') }}</div>
 			<div class="login_back">
-				<el-button link type="primary" @click="goBack">返回首页</el-button>
+				<el-button link type="primary" @click="goBack">{{ t('common.backHome') }}</el-button>
 			</div>
 		</el-card>
 	</div>
@@ -76,6 +76,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import { t } from '@/common/i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
@@ -103,22 +104,22 @@ const registerForm = reactive({
 });
 
 const rules = {
-	username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-	password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+	username: [{ required: true, message: t('login.inputUsername'), trigger: 'blur' }],
+	password: [{ required: true, message: t('login.inputPassword'), trigger: 'blur' }]
 };
 
 const registerRules = {
-	username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+	username: [{ required: true, message: t('login.inputUsername'), trigger: 'blur' }],
 	password: [
-		{ required: true, message: '请输入密码', trigger: 'blur' },
-		{ min: 6, message: '密码至少 6 位', trigger: 'blur' }
+		{ required: true, message: t('login.inputPassword'), trigger: 'blur' },
+		{ min: 6, message: t('login.passwordMin'), trigger: 'blur' }
 	],
 	confirmPassword: [
-		{ required: true, message: '请再次输入密码', trigger: 'blur' },
+		{ required: true, message: t('login.reinputPassword'), trigger: 'blur' },
 		{
 			validator: (rule, value, callback) => {
 				if (value !== registerForm.password) {
-					callback(new Error('两次输入的密码不一致'));
+					callback(new Error(t('login.passwordMismatch')));
 				} else {
 					callback();
 				}
