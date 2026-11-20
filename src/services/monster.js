@@ -61,5 +61,6 @@ export const archetypeLabel = (v) => ARCHETYPES.find((a) => a.value === v)?.labe
 /** 属性中文名(详情页属性行) */
 export const STAT_LABELS = {
 	hp: '体力', atk: '攻击', def: '防御', spd: '速度',
-	cr: '暴击率', cd: '暴击伤害', res: '抵抗', acc: '命中', skillups: '强化次数'
+	cr: '暴击率', cd: '暴击伤害', res: '抵抗', acc: '命中',
+	skillups: '技能最高所需次数'
 };

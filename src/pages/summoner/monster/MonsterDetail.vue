@@ -9,79 +9,78 @@
 
 		<template v-if="m && m.com2us_id">
 			<div class="detail_cols">
-				<!-- 左栏:形象/形态/元素切换/基础信息 -->
+				<!-- 左栏:单面板,分区以间距+细线控制(省空间) -->
 				<div class="left_col">
-					<div class="portrait_card" :style="{ borderTopColor: elementMeta(m.element).color }">
-						<img class="elem_mark" :src="elementIconUrl(m.element)" :alt="m.element" />
-						<img class="big_img" :src="monsterImg(m.image, true)" :alt="m.name" />
-						<div class="stars_row">{{ '★'.repeat(m.natural_stars) }}</div>
-						<div class="elem_line">
-							<img class="elem_icon" :src="elementIconUrl(m.element)" />
-							<span>{{ elementMeta(m.element).label }}属性 · {{ archetypeLabel(m.archetype) }}</span>
-						</div>
-					</div>
-
-					<!-- 觉醒形态图廊 -->
-					<div class="side_card" v-if="forms.length">
-						<div class="side_title">觉醒形态</div>
-						<div class="forms_row">
-							<div
-								v-for="(f, i) in forms"
-								:key="f.id"
-								class="form_item"
-								:class="{ current: f.id === m.com2us_id, off: !f.linked }"
-								:title="f.linked ? `${f.name || ''} (#${f.id})` : `#${f.id} 未收录`"
-								@click="f.linked && f.id !== m.com2us_id && goDetail(f.id)">
-								<img :src="monsterImg(f.image)" loading="lazy" />
-								<span class="stage_n">{{ i + 1 }}</span>
+					<div class="left_panel" :style="{ borderTopColor: elementMeta(m.element).color }">
+						<div class="panel_portrait">
+							<img class="elem_mark" :src="elementIconUrl(m.element)" :alt="m.element" />
+							<img class="big_img" :src="monsterImg(m.image, true)" :alt="m.name" />
+							<div class="stars_row">{{ '★'.repeat(m.natural_stars) }}</div>
+							<div class="elem_line">
+								<img class="elem_icon" :src="elementIconUrl(m.element)" />
+								<span>{{ elementMeta(m.element).label }}属性 · {{ archetypeLabel(m.archetype) }}</span>
 							</div>
 						</div>
-					</div>
 
-					<!-- 同族元素快切(方形瓦片 + 官方元素图标角标) -->
-					<div class="side_card" v-if="siblings.length">
-						<div class="side_title">同族切换</div>
-						<div class="sib_row">
-							<div
-								v-for="s in siblings"
-								:key="s.id"
-								class="sib_item"
-								:class="{ current: s.id === m.com2us_id }"
-								:title="`${s.name}(${elementMeta(s.element).label})`"
-								@click="s.id !== m.com2us_id && goDetail(s.id)">
-								<img :src="monsterImg(s.image)" loading="lazy" />
-								<img class="sib_elem" :src="elementIconUrl(s.element)" :alt="s.element" />
-							</div>
-						</div>
-					</div>
-
-					<!-- 基础属性(左栏紧凑三列) -->
-					<div class="side_card">
-						<div class="side_title">基础属性</div>
-						<div class="stat_mini_grid">
-							<div class="stat_mini" v-for="key in statKeys" :key="key" :title="`${STAT_LABELS[key]}: ${m.stats?.[key]?.min ?? '-'} ~ ${m.stats?.[key]?.max ?? '-'}${m.stats?.[key]?.isPercent ? '%' : ''}`">
-								<span class="sm_label">{{ STAT_LABELS[key] || key }}</span>
-								<span class="sm_value">{{ fmtStat(m.stats?.[key]) }}</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="side_card">
-						<div class="side_title">基础信息</div>
-						<div class="meta_row"><span>定位</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
-						<div class="meta_row"><span>家族</span><b>{{ m.family }}</b></div>
-						<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>未觉醒</span><b>{{ m.unawakened_name }}</b></div>
-						<div class="meta_row" v-if="m.collab"><span>联动</span><b>{{ m.collab }}</b></div>
-						<div class="bonus_box leader" v-if="m.leader_skill && m.leader_skill.text">
-							<div class="bonus_label">
+						<!-- 基础信息 -->
+						<div class="panel_sec">
+							<div class="sec_label">基础信息</div>
+							<div class="meta_row"><span>定位</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
+							<div class="meta_row"><span>家族</span><b>{{ m.family }}</b></div>
+							<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>未觉醒</span><b>{{ m.unawakened_name }}</b></div>
+							<div class="meta_row" v-if="m.collab"><span>联动</span><b>{{ m.collab }}</b></div>
+							<div class="bonus_line leader" v-if="m.leader_skill && m.leader_skill.text">
 								<img class="leader_icon" :src="leaderIconUrl(m.leader_skill.icon)" v-if="m.leader_skill.icon" />
-								队长技能
+								<span><b>队长技</b> {{ T(m.zh?.leader_skill, m.leader_skill.text) }}</span>
 							</div>
-							<p>{{ T(m.zh?.leader_skill, m.leader_skill.text) }}</p>
+							<div class="bonus_line" v-if="m.awaken_bonus"><span><b>觉醒加成</b> {{ T(m.zh?.awaken_bonus, m.awaken_bonus) }}</span></div>
 						</div>
-						<div class="bonus_box" v-if="m.awaken_bonus">
-							<div class="bonus_label">觉醒加成</div>
-							<p>{{ T(m.zh?.awaken_bonus, m.awaken_bonus) }}</p>
+
+						<!-- 基础属性:三列,min~max 可见 -->
+						<div class="panel_sec">
+							<div class="sec_label">基础属性</div>
+							<div class="stat_mini_grid">
+								<div class="stat_mini" v-for="key in statKeys" :key="key">
+									<span class="sm_label">{{ STAT_LABELS[key] || key }}</span>
+									<span class="sm_value">{{ fmtStat(m.stats?.[key]) }}</span>
+									<span class="sm_range" v-if="m.stats?.[key]">{{ m.stats[key].min }}~{{ m.stats[key].max }}{{ m.stats[key].isPercent ? '%' : '' }}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- 觉醒形态:带进阶箭头 -->
+						<div class="panel_sec" v-if="forms.length">
+							<div class="sec_label">觉醒形态</div>
+							<div class="forms_row">
+								<template v-for="(f, i) in forms" :key="f.id">
+									<div
+										class="form_item"
+										:class="{ current: f.id === m.com2us_id, off: !f.linked }"
+										:title="f.linked ? `${f.name || ''} (#${f.id})` : `#${f.id} 未收录`"
+										@click="f.linked && f.id !== m.com2us_id && goDetail(f.id)">
+										<img :src="monsterImg(f.image)" loading="lazy" />
+										<span class="stage_n">{{ i + 1 }}</span>
+									</div>
+									<span v-if="i < forms.length - 1" class="form_arrow">→</span>
+								</template>
+							</div>
+						</div>
+
+						<!-- 同族元素切换(方形瓦片 + 官方元素图标角标) -->
+						<div class="panel_sec" v-if="siblings.length">
+							<div class="sec_label">同族切换</div>
+							<div class="sib_row">
+								<div
+									v-for="s in siblings"
+									:key="s.id"
+									class="sib_item"
+									:class="{ current: s.id === m.com2us_id }"
+									:title="`${s.name}(${elementMeta(s.element).label})`"
+									@click="s.id !== m.com2us_id && goDetail(s.id)">
+									<img :src="monsterImg(s.image)" loading="lazy" />
+									<img class="sib_elem" :src="elementIconUrl(s.element)" :alt="s.element" />
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -259,30 +258,30 @@ watch(() => route.params.id, (id) => id && load(id));
 		align-items: start;
 	}
 
-	/* ===== 左栏 ===== */
+	/* ===== 左栏:单面板,分区用间距+细线 ===== */
 	.left_col {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
 		position: sticky;
 		top: 12px;
 	}
-	.portrait_card {
+	.left_panel {
 		position: relative;
 		background: #ffffff;
 		border-radius: 10px;
 		border-top: 4px solid #909399;
-		padding: 12px 12px 10px;
-		text-align: center;
+		padding: 12px 14px;
 		box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
-		.big_img { width: 132px; height: 132px; object-fit: contain; }
-		.stars_row { color: #d9a521; letter-spacing: 3px; margin-top: 2px; font-size: 13px; }
+	}
+	.panel_portrait {
+		text-align: center;
+		position: relative;
+		.big_img { width: 118px; height: 118px; object-fit: contain; }
+		.stars_row { color: #d9a521; letter-spacing: 3px; font-size: 13px; margin-top: 0; }
 		.elem_mark {
 			position: absolute;
-			top: 8px;
-			right: 8px;
-			width: 24px;
-			height: 24px;
+			top: -2px;
+			right: 0;
+			width: 22px;
+			height: 22px;
 			object-fit: contain;
 		}
 		.elem_line {
@@ -294,39 +293,75 @@ watch(() => route.params.id, (id) => id && load(id));
 			background: #f5f7fa;
 			border-radius: 12px;
 			padding: 3px 10px;
-			margin-top: 8px;
-			.elem_icon { width: 16px; height: 16px; object-fit: contain; }
+			margin-top: 6px;
+			.elem_icon { width: 15px; height: 15px; object-fit: contain; }
 		}
 	}
-	.side_card {
-		background: #ffffff;
-		border-radius: 10px;
-		padding: 10px 12px 12px;
-		box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
-		.side_title {
+	.panel_sec {
+		margin-top: 10px;
+		padding-top: 10px;
+		border-top: 1px solid #f0f2f5;
+		&:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+		.sec_label {
 			font-size: 12px;
 			font-weight: 600;
 			color: #909399;
-			margin-bottom: 8px;
-		}
-		.meta_row {
-			display: flex;
-			justify-content: space-between;
-			font-size: 13px;
-			padding: 3px 0;
-			span { color: #909399; }
-			b { color: #303133; font-weight: 600; }
+			margin-bottom: 7px;
 		}
 	}
-	/* 觉醒形态 */
+	.meta_row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 13px;
+		padding: 2px 0;
+		span { color: #909399; }
+		b { color: #303133; font-weight: 600; }
+	}
+	.bonus_line {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		font-size: 12px;
+		color: #606266;
+		line-height: 1.5;
+		margin-top: 6px;
+		background: #f8f9fb;
+		border-radius: 6px;
+		padding: 6px 8px;
+		&.leader { background: #fdf6ec; }
+		b { color: #303133; margin-right: 2px; white-space: nowrap; }
+		.leader_icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+	}
+
+	/* 左栏基础属性:三列紧凑,min~max 可见 */
+	.stat_mini_grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4px;
+		.stat_mini {
+			background: #f8f9fb;
+			border-radius: 6px;
+			padding: 4px 4px 5px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			cursor: default;
+			.sm_label { font-size: 11px; color: #909399; line-height: 1.3; text-align: center; }
+			.sm_value { font-size: 13px; font-weight: 700; color: #303133; line-height: 1.4; }
+			.sm_range { font-size: 10px; color: #c0c4cc; line-height: 1.2; }
+		}
+	}
+
+	/* 觉醒形态:带进阶箭头 */
 	.forms_row {
 		display: flex;
-		gap: 8px;
+		gap: 4px;
 		flex-wrap: wrap;
+		align-items: center;
 		.form_item {
 			position: relative;
-			width: 66px;
-			height: 66px;
+			width: 60px;
+			height: 60px;
 			border-radius: 8px;
 			border: 2px solid #ebeef5;
 			background: #f8f9fb;
@@ -334,11 +369,12 @@ watch(() => route.params.id, (id) => id && load(id));
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			img { width: 52px; height: 52px; object-fit: contain; }
+			flex-shrink: 0;
+			img { width: 46px; height: 46px; object-fit: contain; }
 			.stage_n {
 				position: absolute;
 				right: 3px;
-				bottom: 2px;
+				bottom: 1px;
 				font-size: 10px;
 				color: #c0c4cc;
 				font-weight: 700;
@@ -346,6 +382,11 @@ watch(() => route.params.id, (id) => id && load(id));
 			&:hover { border-color: #409eff; }
 			&.current { border-color: #409eff; background: #ecf5ff; }
 			&.off { cursor: default; opacity: 0.75; }
+		}
+		.form_arrow {
+			color: #c0c4cc;
+			font-size: 14px;
+			flex-shrink: 0;
 		}
 	}
 	/* 同族切换:方形瓦片 + 官方元素图标角标 */
@@ -355,8 +396,8 @@ watch(() => route.params.id, (id) => id && load(id));
 		flex-wrap: wrap;
 		.sib_item {
 			position: relative;
-			width: 54px;
-			height: 54px;
+			width: 52px;
+			height: 52px;
 			border-radius: 8px;
 			border: 2px solid #ebeef5;
 			background: #f8f9fb;
@@ -364,13 +405,13 @@ watch(() => route.params.id, (id) => id && load(id));
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			img { width: 42px; height: 42px; object-fit: contain; }
+			img { width: 40px; height: 40px; object-fit: contain; }
 			.sib_elem {
 				position: absolute;
 				right: -4px;
 				bottom: -4px;
-				width: 18px;
-				height: 18px;
+				width: 17px;
+				height: 17px;
 				object-fit: contain;
 				background: #ffffff;
 				border-radius: 4px;
@@ -381,44 +422,6 @@ watch(() => route.params.id, (id) => id && load(id));
 			&.current { border-color: #409eff; background: #ecf5ff; }
 		}
 	}
-	.bonus_box {
-		margin-top: 10px;
-		padding: 10px 12px;
-		background: #f8f9fb;
-		border-radius: 8px;
-		font-size: 13px;
-		color: #606266;
-		&.leader { background: #fdf6ec; }
-		.bonus_label {
-			display: flex;
-			align-items: center;
-			gap: 6px;
-			font-weight: 600;
-			color: #303133;
-			margin-bottom: 4px;
-			.leader_icon { width: 26px; height: 26px; object-fit: contain; }
-		}
-		p { margin: 0; line-height: 1.6; }
-	}
-
-	/* 左栏基础属性:三列紧凑(min~max 悬停查看) */
-	.stat_mini_grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 4px;
-		.stat_mini {
-			background: #f8f9fb;
-			border-radius: 6px;
-			padding: 5px 6px;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			cursor: default;
-			.sm_label { font-size: 11px; color: #909399; line-height: 1.2; }
-			.sm_value { font-size: 13px; font-weight: 700; color: #303133; line-height: 1.4; }
-		}
-	}
-
 	/* ===== 右栏(紧凑) ===== */
 	.section_card {
 		background: #ffffff;
