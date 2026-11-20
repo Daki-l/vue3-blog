@@ -15,6 +15,7 @@ export const monsterImg = (file, large = false) => `${SW_BASE}/${large ? 'monste
 export const skillIconUrl = (file) => `${SW_BASE}/skills/${file}`;
 // 上游仅引用 36px 队长/效果图标(无全尺寸目录),沿用小图
 export const leaderIconUrl = (file) => `${SW_BASE}/leader_skills36/${file}`;
+export const effectIconUrl = (file) => `${SW_BASE}/skill_effects36/${file}`;
 
 /** zh||en 字段合并(中文化预留,当前数据无 zh 自然回退英文) */
 export const pick = (zh, en) => (zh && String(zh).trim() ? zh : en);
