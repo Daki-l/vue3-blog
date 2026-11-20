@@ -74,9 +74,11 @@
 				<div v-for="(h, i) in hotList" :key="h.k" class="hot_item" @click="goDefense(h.k)">
 					<span class="hot_rank" :class="'r' + Math.min(i + 1, 3)">{{ i + 1 }}</span>
 					<div class="hot_avatars">
-						<img v-for="m in hotAvatars(h.k)" :key="m.id" :src="monsterImg(m.image)" :title="m.name" />
+						<template v-for="m in hotAvatars(h.k)" :key="m.id">
+							<img v-if="m.image" :src="monsterImg(m.image)" :title="m.name" />
+							<span v-else class="hot_fallback" :title="m.name">{{ m.name || '#' + m.id }}</span>
+						</template>
 					</div>
-					<span class="hot_names">{{ hotZh(h.n) }}</span>
 					<el-tag size="small" type="warning" effect="plain">{{ t('pvp.counterCount', h.c) }}</el-tag>
 				</div>
 			</div>
@@ -145,21 +147,12 @@ async function onSearch() {
 
 const hotList = computed(() => (manifest.value?.top ?? []).slice(0, 12));
 
-/** 防守 key(排序三ID) -> 魔灵头像数组(经本地列表解析,含 zh 覆盖后的名字) */
+/** 防守 key(排序三ID) -> 魔灵头像数组(经本地列表解析,含 zh 覆盖后的名字;缺图时 name 作文字回退) */
 const hotAvatars = (key) =>
   String(key || '').split('-').filter(Boolean).map((id) => {
     const m = monsters.value.find((x) => x.id === Number(id));
     return m ? { id: m.id, image: m.image, name: m.name } : { id: Number(id), image: '', name: '' };
   });
-
-/** 热门榜英文名 -> 中文(经 name_en 反查;覆盖后 name 已是中文) */
-const hotZh = (names) => {
-  if (!isZh()) return names;
-  return String(names || '').split(/\s+/).map((n) => {
-    const m = monsters.value.find((x) => x.name_en === n || x.name === n);
-    return m?.name ?? n;
-  }).join(' ');
-};
 
 onMounted(async () => {
   onLoading.value = true;
@@ -333,19 +326,20 @@ onMounted(async () => {
 				display: flex;
 				gap: 2px;
 				flex: none;
+				align-items: center;
 				img {
-					width: 26px;
-					height: 26px;
+					width: 28px;
+					height: 28px;
 					object-fit: contain;
 				}
-			}
-			.hot_names {
-				flex: 1;
-				font-size: 13px;
-				color: #303133;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
+				.hot_fallback {
+					font-size: 11px;
+					color: #909399;
+					max-width: 64px;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
 			}
 		}
 	}
