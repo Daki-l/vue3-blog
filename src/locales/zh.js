@@ -241,6 +241,7 @@ export default {
 	'pvp.noCounters': '这支防守还没有已收录的克制',
 	'pvp.notFound': '防守不存在或已下线',
 	'pvp.backSearch': '返回查询',
+	'pvp.backList': '返回结果列表',
 	'pvp.fav': '收藏',
 	'pvp.favOn': '已收藏',
 	'pvp.favOff': '已取消收藏',

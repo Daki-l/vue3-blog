@@ -241,6 +241,7 @@ export default {
 	'pvp.noCounters': 'No counters collected for this defense yet',
 	'pvp.notFound': 'Defense not found or removed',
 	'pvp.backSearch': 'Back to search',
+	'pvp.backList': 'Back to results',
 	'pvp.fav': 'Favorite',
 	'pvp.favOn': 'Added to favorites',
 	'pvp.favOff': 'Removed from favorites',
