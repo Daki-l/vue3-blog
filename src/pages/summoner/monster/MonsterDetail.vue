@@ -55,6 +55,17 @@
 						</div>
 					</div>
 
+					<!-- 基础属性(左栏紧凑三列) -->
+					<div class="side_card">
+						<div class="side_title">基础属性</div>
+						<div class="stat_mini_grid">
+							<div class="stat_mini" v-for="key in statKeys" :key="key" :title="`${STAT_LABELS[key]}: ${m.stats?.[key]?.min ?? '-'} ~ ${m.stats?.[key]?.max ?? '-'}${m.stats?.[key]?.isPercent ? '%' : ''}`">
+								<span class="sm_label">{{ STAT_LABELS[key] || key }}</span>
+								<span class="sm_value">{{ fmtStat(m.stats?.[key]) }}</span>
+							</div>
+						</div>
+					</div>
+
 					<div class="side_card">
 						<div class="side_title">基础信息</div>
 						<div class="meta_row"><span>定位</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
@@ -75,19 +86,8 @@
 					</div>
 				</div>
 
-				<!-- 右栏:属性 + 技能 + 平衡补丁 -->
+				<!-- 右栏:技能 + 平衡补丁(属性已移左栏) -->
 				<div class="right_col">
-					<div class="section_card">
-						<div class="section_title">基础属性</div>
-						<div class="stat_grid">
-							<div class="stat_cell" v-for="key in statKeys" :key="key">
-								<span class="stat_label">{{ STAT_LABELS[key] || key }}</span>
-								<span class="stat_value">{{ fmtStat(m.stats?.[key]) }}</span>
-								<span class="stat_range" v-if="m.stats?.[key]">{{ m.stats[key].min }} ~ {{ m.stats[key].max }}{{ m.stats[key].isPercent ? '%' : '' }}</span>
-							</div>
-						</div>
-					</div>
-
 					<div class="section_card" v-for="(s, i) in m.skills || []" :key="s.slot">
 						<div class="skill_head">
 							<img class="skill_icon" :src="skillIconUrl(s.icon)" v-if="s.icon" />
@@ -401,6 +401,24 @@ watch(() => route.params.id, (id) => id && load(id));
 		p { margin: 0; line-height: 1.6; }
 	}
 
+	/* 左栏基础属性:三列紧凑(min~max 悬停查看) */
+	.stat_mini_grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4px;
+		.stat_mini {
+			background: #f8f9fb;
+			border-radius: 6px;
+			padding: 5px 6px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			cursor: default;
+			.sm_label { font-size: 11px; color: #909399; line-height: 1.2; }
+			.sm_value { font-size: 13px; font-weight: 700; color: #303133; line-height: 1.4; }
+		}
+	}
+
 	/* ===== 右栏(紧凑) ===== */
 	.section_card {
 		background: #ffffff;
@@ -425,23 +443,6 @@ watch(() => route.params.id, (id) => id && load(id));
 			}
 		}
 	}
-	.stat_grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-		gap: 8px;
-		.stat_cell {
-			background: #f8f9fb;
-			border-radius: 8px;
-			padding: 7px 10px;
-			display: flex;
-			flex-direction: column;
-			gap: 1px;
-			.stat_label { font-size: 12px; color: #909399; }
-			.stat_value { font-size: 16px; font-weight: 700; color: #303133; }
-			.stat_range { font-size: 11px; color: #c0c4cc; }
-		}
-	}
-
 	.skill_head {
 		display: flex;
 		gap: 10px;
