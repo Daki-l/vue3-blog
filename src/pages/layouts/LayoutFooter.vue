@@ -1,4 +1,3 @@
-import { t } from '@/common/i18n';
 <template>
     <div class="layout-footer-wrapper">
         <div class="copyright-info">{{ t('footer.copyright') }}</div>
@@ -6,7 +5,7 @@ import { t } from '@/common/i18n';
 </template>
 
 <script setup>
-
+import { t } from '@/common/i18n';
 </script>
 
 <style scoped lang="less">

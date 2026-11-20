@@ -84,7 +84,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { fetchMonsterList, fetchZhNames, monsterImg, elementIconUrl } from '@/services/monster';
+import { fetchMonsterList, fetchZhNames, monsterImg, elementIconUrl, pick } from '@/services/monster';
 import { fetch3mdcManifest, fetchDefense, fetchMonster3mdc, defenseKeyOf } from '@/services/3mdc';
 import { t, isZh } from '@/common/i18n';
 
