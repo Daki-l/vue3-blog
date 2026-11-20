@@ -4,7 +4,7 @@
 // 同时把源码打包镜像到目录外,保证源码+数据都可恢复
 import { execSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, cpSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, cpSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { db, now, setMeta } from './db.js';
 import { DATA_DIR, BACKUP_DIR, MIRROR_BACKUP_DIR, ROOT, BACKUP_KEEP } from './config.js';
@@ -32,10 +32,21 @@ export function stageBackup() {
     try { unlinkSync(rawSnap); } catch { /* 忽略 */ }
   }
 
-  // 2. 清理旧备份,保留最近 BACKUP_KEEP 份
+  // 2. 清理旧备份,保留最近 BACKUP_KEEP 份;顺带清理 30 天前的日志
   const files = readdirSync(BACKUP_DIR).filter((f) => /^swgt-.*\.db\.gz$/.test(f)).sort();
   for (const f of files.slice(0, Math.max(0, files.length - BACKUP_KEEP))) {
     try { unlinkSync(path.join(BACKUP_DIR, f)); } catch { /* 忽略 */ }
+  }
+  const LOG_DIR = path.join(DATA_DIR, 'logs');
+  if (existsSync(LOG_DIR)) {
+    const cutoff = Date.now() - 30 * 86400_000;
+    for (const f of readdirSync(LOG_DIR)) {
+      try {
+        if (f.endsWith('.log') && statSync(path.join(LOG_DIR, f)).mtimeMs < cutoff) {
+          unlinkSync(path.join(LOG_DIR, f));
+        }
+      } catch { /* 忽略 */ }
+    }
   }
 
   // 3. 源码镜像到目录外(含 README/package.json/.gitignore/src)

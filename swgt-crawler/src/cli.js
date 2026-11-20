@@ -1,5 +1,7 @@
 // CLI 入口:node src/cli.js <stage> [options]
-// stage: catalog|monsters|defenses|pages|images|rediscover|update|backup|restore|stats|export|exportd1|all
+// stage: catalog|monsters|defenses|pages|images|rediscover|update|backup|restore|stats|export|exportd1|all|notify
+import { writeFileSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
 import {
   stageCatalog, stageMonsters, stageDefenses, stagePages, stageStats, stageRediscover,
 } from './crawl.js';
@@ -8,6 +10,8 @@ import { runExport } from './exportJson.js';
 import { runExportD1 } from './exportD1.js';
 import { stageBackup } from './backup.js';
 import { stageRestore } from './restoreFromD1.js';
+import { notify } from './notify.js';
+import { DATA_DIR } from './config.js';
 
 const args = process.argv.slice(2);
 const stage = args[0] ?? 'help';
@@ -72,17 +76,39 @@ async function main() {
       await stageRediscover();
       break;
     case 'update': {
-      await stageCatalog({ fresh: true });
-      await stageMonsters({ refresh: true, limit: opts.limit });
-      await stageDefenses(opts);
-      await stagePages(opts);
-      await stageImages(opts);
-      stageBackup();
-      runExport();
-      console.log('增量更新完成。当前统计:');
-      console.table(stageStats());
+      const t0 = Date.now();
+      const steps = [];
+      const step = async (name, fn) => {
+        const s = Date.now();
+        const r = await fn();
+        steps.push(`${name} ${((Date.now() - s) / 1000 / 60).toFixed(1)}min`);
+        return r;
+      };
+      const m = await step('catalog', () => stageCatalog({ fresh: true }));
+      const mr = await step('monsters', () => stageMonsters({ refresh: true, limit: opts.limit }));
+      const dr = await step('defenses', () => stageDefenses(opts));
+      await step('pages', () => stagePages(opts));
+      await step('images', () => stageImages(opts));
+      step('backup', () => stageBackup());
+      step('export', () => { runExport(); });
+
+      const stats = stageStats();
+      const durationMin = ((Date.now() - t0) / 1000 / 60).toFixed(1);
+      const summary = [
+        `耗时 ${durationMin}min | ${steps.join(' | ')}`,
+        `魔灵 ${stats.monsters}(${mr?.ok ?? 0} 刷新, 错误 ${mr?.err ?? 0})`,
+        `防守变化重排 ${mr?.requeued ?? 0}, 重抓 ${dr?.ok ?? 0}, 错误 ${dr?.err ?? 0}`,
+        `库存: 防守 ${stats.defenses} / 克制 ${stats.counters} / 攻略 ${stats.strategies}`,
+      ].join('\n');
+      writeStatus({ last_run: new Date().toISOString(), ok: true, duration_min: +durationMin, steps, stats });
+      await notify('swgt 数据更新完成', summary);
+      console.log('增量更新完成:');
+      console.log(summary);
       break;
     }
+    case 'notify':
+      await notify('swgt 通知测试', process.argv.slice(2).slice(1).join(' ') || '如果你看到这条,通知通道已配置成功');
+      break;
     case 'backup':
       stageBackup();
       break;
@@ -116,7 +142,16 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+function writeStatus(obj) {
+  mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(path.join(DATA_DIR, 'status.json'), JSON.stringify(obj, null, 2));
+}
+
+main().catch(async (e) => {
   console.error('FATAL:', e);
+  try {
+    writeStatus({ last_run: new Date().toISOString(), ok: false, error: String(e).slice(0, 500) });
+    await notify('swgt 爬取失败(需检查)', String(e?.stack ?? e).slice(0, 1000));
+  } catch { /* 通知失败不再抛 */ }
   process.exit(1);
 });
