@@ -14,7 +14,7 @@
 					<div class="left_panel" :style="{ borderTopColor: elementMeta(m.element).color }">
 						<div class="panel_portrait">
 							<img class="elem_mark" :src="elementIconUrl(m.element)" :alt="m.element" />
-							<img class="big_img" :src="monsterImg(m.image, true)" :alt="m.name" />
+							<img class="big_img" :src="monsterImg(m.image, true)" :alt="m.name" @error="imgFallback" />
 							<div class="stars_row">{{ '★'.repeat(m.natural_stars) }}</div>
 							<div class="elem_line">
 								<img class="elem_icon" :src="elementIconUrl(m.element)" />
@@ -57,7 +57,7 @@
 										:class="{ current: f.id === m.com2us_id, off: !f.linked }"
 										:title="f.linked ? t('monster.formTitle', f.name, f.id) : t('monster.notLinked', f.id)"
 										@click="f.linked && f.id !== m.com2us_id && goDetail(f.id)">
-										<img :src="monsterImg(f.image)" loading="lazy" />
+										<img :src="monsterImg(f.image)" loading="lazy" @error="imgFallback" />
 										<span class="stage_n">{{ i + 1 }}</span>
 									</div>
 									<span v-if="i < forms.length - 1" class="form_arrow">→</span>
@@ -88,7 +88,7 @@
 				<div class="right_col">
 					<div class="section_card" v-for="(s, i) in m.skills || []" :key="s.slot">
 						<div class="skill_head">
-							<img class="skill_icon" :src="skillIconUrl(s.icon)" v-if="s.icon" />
+							<img class="skill_icon" :src="skillIconUrl(s.icon)" v-if="s.icon" @error="imgFallback" />
 							<div class="skill_head_texts">
 								<div class="skill_name_row">
 									<span class="skill_slot">{{ t('monster.skill', s.slot) }}</span>
@@ -192,7 +192,8 @@ const forms = computed(() => {
 	return raw.map((f) => {
 		const local = formsDb.value?.[f.id];
 		const name = idx[f.id]?.name || (isZh() ? local?.zh_name || local?.name : local?.name) || '';
-		return { ...f, image: f.image || local?.image || '', linked: !!(idx[f.id] || local), name };
+		// 图源优先级: 上游 forms 自带 > 形态库(swarfarm 文件名) > 列表(链尾最终形态)
+		return { ...f, image: f.image || local?.image || idx[f.id]?.image || '', linked: !!(idx[f.id] || local), name };
 	});
 });
 
@@ -226,6 +227,18 @@ const goBack = () => {
 	else router.push('/monster');
 };
 const goDetail = (id) => router.push(`/monster/${id}`);
+
+/** 图源回退: 本站静态库缺少部分形态皮肤图/形态技能图标, 失败时换 swarfarm 同名图 */
+const imgFallback = (e) => {
+	const img = e.target;
+	if (img.dataset.fb) return;
+	img.dataset.fb = '1';
+	const file = (img.src || '').split('/').pop();
+	if (!file) return;
+	img.src = img.src.includes('/skills/')
+		? `https://swarfarm.com/static/herders/images/skills/${file}`
+		: `https://swarfarm.com/static/herders/images/monsters/${file}`;
+};
 
 const load = async (id) => {
 	onLoading.value = true;
