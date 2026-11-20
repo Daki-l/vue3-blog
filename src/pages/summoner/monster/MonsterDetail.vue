@@ -161,7 +161,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
+	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, fetchForms, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
 	elementIconUrl, elementMeta, archetypeLabel, pick, statLabel
 } from '@/services/monster';
 import { t, isZh } from '@/common/i18n';
@@ -171,6 +171,7 @@ const router = useRouter();
 
 const m = ref({});
 const minList = ref([]);
+const formsDb = ref(null);
 const onLoading = ref(false);
 const showAllBalance = ref(false);
 const T = pick;
@@ -181,12 +182,18 @@ const fmtStat = (s) => (s ? s.value + (s.isPercent ? '%' : '') : '-');
 /** 原站口径:仅最低~最高 */
 const fmtRange = (s) => (s ? `${s.min}~${s.max}${s.isPercent ? '%' : ''}` : '-');
 
-/** 觉醒形态:来自增强数据 forms,叠加 min 列表名称/可跳转标记 */
+/** 觉醒形态:上游 forms 或本地形态库 awakening_chain; 可点 = min 列表或形态库存在 */
 const forms = computed(() => {
-	const list = m.value.forms || [];
+	const raw = (m.value.forms || []).length
+		? m.value.forms
+		: (m.value.awakening_chain || []).map((id) => ({ id }));
 	const idx = {};
 	for (const it of minList.value) idx[it.id] = it;
-	return list.map((f) => ({ ...f, linked: !!idx[f.id], name: idx[f.id]?.name || '' }));
+	return raw.map((f) => {
+		const local = formsDb.value?.[f.id];
+		const name = idx[f.id]?.name || (isZh() ? local?.zh_name || local?.name : local?.name) || '';
+		return { ...f, image: f.image || local?.image || '', linked: !!(idx[f.id] || local), name };
+	});
 });
 
 /** 同族元素快切:同 family 各元素取一个(优先本只) */
@@ -224,15 +231,20 @@ const load = async (id) => {
 	onLoading.value = true;
 	m.value = {};
 	try {
-		const [detail, list, zhAll, zhNames] = await Promise.all([
+		const [detail, list, zhAll, zhNames, formsMap] = await Promise.all([
 			fetchMonster(id),
 			fetchMonsterList().catch(() => []),
 			fetchZhSkills().catch(() => null),
-			fetchZhNames().catch(() => null)
+			fetchZhNames().catch(() => null),
+			fetchForms().catch(() => null)
 		]);
 		m.value = detail || {};
-		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文); 英文语言不叠加
-		if (zhAll && isZh()) m.value.zh = zhAll[detail?.com2us_id] || null;
+		formsDb.value = formsMap;
+		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文); 英文语言不叠加。
+		// 本地形态库条目自带 zh_name/zh_family(未觉醒=族名, 觉醒=最终形态名)
+		if (isZh()) {
+			m.value.zh = zhAll?.[detail?.com2us_id] || (detail?.zh_name ? { name: detail.zh_name, family: detail.zh_family } : null);
+		}
 		// min 列表名同步中文化(觉醒形态/同族切换提示)
 		if (zhNames && isZh()) {
 			for (const it of list) {

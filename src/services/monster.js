@@ -33,9 +33,24 @@ export function fetchMonsterList() {
 	return getJson(`${SW_DATA}/monsters_min.json`);
 }
 
-/** 单只魔灵详情 */
-export function fetchMonster(id) {
-  return getJson(`${SW_DATA}/monster/${id}.json`);
+/** 单只魔灵详情; 上游仅收录最终形态, 未觉醒/一觉形态(404)回退本地形态库(swarfarm 数据) */
+export async function fetchMonster(id) {
+	try {
+		return await getJson(`${SW_DATA}/monster/${id}.json`);
+	} catch (e) {
+		const forms = await fetchForms();
+		const f = forms[id];
+		if (!f) throw e;
+		// family 用英文族名与列表(minList)一致, 中文族名走 zh 覆盖层(zh_family)
+		return { ...f, family: f.unawakened_name, _localForm: true };
+	}
+}
+
+/** 本地形态库: 上游 945 之外的觉醒链形态(未觉醒/一觉), .swdata/build_forms.cjs 生成 */
+let formsCache = null;
+export function fetchForms() {
+	formsCache = formsCache || getJson(`${ZH_BASE}/forms.json`);
+	return formsCache;
 }
 
 /**
