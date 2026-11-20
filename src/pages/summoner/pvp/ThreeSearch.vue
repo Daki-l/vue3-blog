@@ -344,28 +344,33 @@ onMounted(async () => {
 		}
 	}
 
-	.opt_row {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		.opt_icon {
-			width: 20px;
-			height: 20px;
-			object-fit: contain;
-		}
-		.opt_elem {
-			width: 14px;
-			height: 14px;
-			margin-left: auto;
-			object-fit: contain;
-		}
-	}
-
 	@media (max-width: 768px) {
 		padding: 12px 12px 24px;
 		.pick_slot {
 			min-width: 130px;
 		}
+	}
+}
+
+// el-select 弹层挂在 body 下,不在 .pvp_search 内,须用全局选择器约束选项行尺寸
+.el-select-dropdown__item .opt_row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+
+	.opt_icon {
+		width: 20px;
+		height: 20px;
+		object-fit: contain;
+		flex-shrink: 0;
+	}
+
+	.opt_elem {
+		width: 14px;
+		height: 14px;
+		margin-left: auto;
+		object-fit: contain;
+		flex-shrink: 0;
 	}
 }
 </style>
