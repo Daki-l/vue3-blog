@@ -223,7 +223,7 @@ export default {
 	'pvp.stats': (d, c) => `${d} 支防守 · ${c} 条克制`,
 	'pvp.slotN': (n) => '魔灵 ' + n,
 	'pvp.search': '查询',
-	'pvp.pickHint': '选择 2-3 只魔灵查询克制;只关注单只魔灵可前往魔灵图鉴,详情页底部有 3v3 参战记录',
+	'pvp.pickHint': '选择 1-3 只魔灵查询克制;只选 1 只时列出该魔灵出场的所有防守',
 	'pvp.matchTitle': '精确命中',
 	'pvp.candidateTitle': (n) => `候选防守 ${n} 支(点击查看)`,
 	'pvp.counterCount': (n) => `${n} 条克制`,

@@ -223,7 +223,7 @@ export default {
 	'pvp.stats': (d, c) => `${d} defenses · ${c} counters`,
 	'pvp.slotN': (n) => 'Monster ' + n,
 	'pvp.search': 'Search',
-	'pvp.pickHint': 'Pick 2-3 monsters to find counters; for a single monster open its codex detail page',
+	'pvp.pickHint': 'Pick 1-3 monsters to find counters; a single pick lists every defense it appears in',
 	'pvp.matchTitle': 'Exact match',
 	'pvp.candidateTitle': (n) => `${n} candidate defenses (click to open)`,
 	'pvp.counterCount': (n) => `${n} counters`,

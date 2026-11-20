@@ -17,7 +17,7 @@
 								:placeholder="t('pvp.slotN', slot)"
 								@change="onSearch" />
 						</div>
-						<el-button type="primary" :disabled="selCount < 2" @click="onSearch">{{ t('pvp.search') }}</el-button>
+						<el-button type="primary" :disabled="selCount < 1" @click="onSearch">{{ t('pvp.search') }}</el-button>
 					</div>
 					<div class="pick_hint">{{ t('pvp.pickHint') }}</div>
 				</div>
@@ -122,7 +122,7 @@ const openDefense = (key) => {
 async function onSearch() {
 	const ids = picked.value.filter(Boolean);
 	activeKey.value = null;
-	if (ids.length < 2) return;
+	if (!ids.length) return;
 	onLoading.value = true;
 	exact.value = null;
 	candidates.value = [];
@@ -135,7 +135,7 @@ async function onSearch() {
 				return;
 			}
 		}
-		// 2 只(或 3 只未命中):索引求交
+		// 1-2 只(或 3 只未命中):索引求交(单只=该魔灵出场的全部防守)
 		const idx = await Promise.all(ids.map((id) => fetchMonster3mdc(id)));
 		if (idx.some((x) => !x)) return;
 		let keys = new Set(idx[0].defenses);
