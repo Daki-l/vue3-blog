@@ -222,6 +222,9 @@ onMounted(async () => {
 	}
 
 	.pick_card {
+		position: sticky;
+		top: 10px;
+		z-index: 100;
 		background: #ffffff;
 		border-radius: 10px;
 		padding: 16px;
