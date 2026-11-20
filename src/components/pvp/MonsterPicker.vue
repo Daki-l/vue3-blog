@@ -11,7 +11,7 @@
 			<span class="mp_arrow" :class="{ up: open }">▾</span>
 		</div>
 
-		<div v-show="open" class="mp_panel">
+		<div v-show="open" class="mp_panel" ref="panelRef">
 			<div class="mp_filters">
 				<div class="mp_elem_row">
 					<button class="mp_ebtn" :class="{ on: !element }" @click="element = ''">{{ t('common.all') }}</button>
@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { monsterImg, elementIconUrl, ELEMENTS, ARCHETYPES } from '@/services/monster';
 import { t } from '@/common/i18n';
 
@@ -64,6 +64,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'change']);
 
 const root = ref(null);
+const panelRef = ref(null);
 const open = ref(false);
 const element = ref('');
 const archetype = ref('');
@@ -91,7 +92,26 @@ const filtered = computed(() => {
 // 上限保护:全量 945 只不至于卡,但仍截断首屏渲染量
 const shown = computed(() => filtered.value.slice(0, 200));
 
-const toggle = () => { open.value = !open.value; };
+/** 面板默认以槽位居中,窄视口下可能算出负坐标被屏幕裁掉,这里钳回可视区内 */
+const clampPanel = () => {
+	const el = panelRef.value;
+	if (!el) return;
+	el.style.transform = 'translateX(-50%)';
+	const r = el.getBoundingClientRect();
+	const vw = window.innerWidth;
+	let shift = 0;
+	if (r.left < 8) shift = 8 - r.left;
+	else if (r.right > vw - 8) shift = vw - 8 - r.right;
+	if (shift) el.style.transform = `translateX(calc(-50% + ${shift}px))`;
+};
+
+const toggle = async () => {
+	open.value = !open.value;
+	if (open.value) {
+		await nextTick();
+		clampPanel();
+	}
+};
 
 const choose = (m) => {
 	emit('update:modelValue', m.id);
@@ -108,8 +128,15 @@ const clear = () => {
 const onDocDown = (e) => {
 	if (root.value && !root.value.contains(e.target)) open.value = false;
 };
-onMounted(() => document.addEventListener('mousedown', onDocDown));
-onBeforeUnmount(() => document.removeEventListener('mousedown', onDocDown));
+const onResize = () => { if (open.value) clampPanel(); };
+onMounted(() => {
+	document.addEventListener('mousedown', onDocDown);
+	window.addEventListener('resize', onResize);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener('mousedown', onDocDown);
+	window.removeEventListener('resize', onResize);
+});
 </script>
 
 <style lang="less">
