@@ -73,7 +73,10 @@
 			<div class="hot_grid">
 				<div v-for="(h, i) in hotList" :key="h.k" class="hot_item" @click="goDefense(h.k)">
 					<span class="hot_rank" :class="'r' + Math.min(i + 1, 3)">{{ i + 1 }}</span>
-					<span class="hot_names">{{ pick(h.zh, h.n) }}</span>
+					<div class="hot_avatars">
+						<img v-for="m in hotAvatars(h.k)" :key="m.id" :src="monsterImg(m.image)" :title="m.name" />
+					</div>
+					<span class="hot_names">{{ hotZh(h.n) }}</span>
 					<el-tag size="small" type="warning" effect="plain">{{ t('pvp.counterCount', h.c) }}</el-tag>
 				</div>
 			</div>
@@ -140,14 +143,21 @@ async function onSearch() {
   }
 }
 
-const hotList = computed(() =>
-  (manifest.value?.top ?? []).slice(0, 12).map((h) => ({ ...h, zh: hotZh(h.n) })));
+const hotList = computed(() => (manifest.value?.top ?? []).slice(0, 12));
 
+/** 防守 key(排序三ID) -> 魔灵头像数组(经本地列表解析,含 zh 覆盖后的名字) */
+const hotAvatars = (key) =>
+  String(key || '').split('-').filter(Boolean).map((id) => {
+    const m = monsters.value.find((x) => x.id === Number(id));
+    return m ? { id: m.id, image: m.image, name: m.name } : { id: Number(id), image: '', name: '' };
+  });
+
+/** 热门榜英文名 -> 中文(经 name_en 反查;覆盖后 name 已是中文) */
 const hotZh = (names) => {
   if (!isZh()) return names;
   return String(names || '').split(/\s+/).map((n) => {
-    const m = monsters.value.find((x) => x.name === n);
-    return m?.name ?? n; // monsters 已做 zh 覆盖,英文名反查
+    const m = monsters.value.find((x) => x.name_en === n || x.name === n);
+    return m?.name ?? n;
   }).join(' ');
 };
 
@@ -162,7 +172,10 @@ onMounted(async () => {
     if (zh && isZh()) {
       for (const m of list) {
         const z = zh[m.id];
-        if (z?.n) m.name = z.n;
+        if (z?.n) {
+          m.name_en = m.name; // 保留英文原名(数据联接/反查用)
+          m.name = z.n;
+        }
       }
     }
     monsters.value = list;
@@ -315,6 +328,16 @@ onMounted(async () => {
 				&.r1 { background: #e6a23c; }
 				&.r2 { background: #909399; }
 				&.r3 { background: #b87400; }
+			}
+			.hot_avatars {
+				display: flex;
+				gap: 2px;
+				flex: none;
+				img {
+					width: 26px;
+					height: 26px;
+					object-fit: contain;
+				}
 			}
 			.hot_names {
 				flex: 1;
