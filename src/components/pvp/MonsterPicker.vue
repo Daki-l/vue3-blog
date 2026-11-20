@@ -11,43 +11,45 @@
 			<span class="mp_arrow" :class="{ up: open }">▾</span>
 		</div>
 
-		<div v-show="open" class="mp_panel" ref="panelRef">
-			<div class="mp_filters">
-				<div class="mp_elem_row">
-					<button class="mp_ebtn" :class="{ on: !element }" @click="element = ''">{{ t('common.all') }}</button>
-					<button
-						v-for="e in ELEMENTS" :key="e.value"
-						class="mp_ebtn ico" :class="{ on: element === e.value }"
-						:style="element === e.value ? { borderColor: e.color, boxShadow: `0 0 0 1px ${e.color}` } : {}"
-						@click="element = e.value">
-						<img :src="elementIconUrl(e.value)" :alt="e.value" />
-					</button>
+		<Teleport to="body">
+			<div v-show="open" class="mp_panel" ref="panelRef">
+				<div class="mp_filters">
+					<div class="mp_elem_row">
+						<button class="mp_ebtn" :class="{ on: !element }" @click="element = ''">{{ t('common.all') }}</button>
+						<button
+							v-for="e in ELEMENTS" :key="e.value"
+							class="mp_ebtn ico" :class="{ on: element === e.value }"
+							:style="element === e.value ? { borderColor: e.color, boxShadow: `0 0 0 1px ${e.color}` } : {}"
+							@click="element = e.value">
+							<img :src="elementIconUrl(e.value)" :alt="e.value" />
+						</button>
+					</div>
+					<div class="mp_sel_row">
+						<el-select v-model="archetype" size="small" clearable :teleported="false" :placeholder="t('monster.archetype')" class="mp_arch">
+							<el-option v-for="a in ARCHETYPES" :key="a" :label="t('arch.' + a)" :value="a" />
+						</el-select>
+						<el-select v-model="stars" size="small" clearable :teleported="false" :placeholder="t('monster.stars')" class="mp_stars">
+							<el-option v-for="s in 5" :key="s" :label="s + ' ' + t('monster.starsUnit')" :value="s" />
+						</el-select>
+						<el-input v-model="kw" size="small" clearable :placeholder="t('monster.searchPlaceholder')" class="mp_kw" />
+					</div>
 				</div>
-				<div class="mp_sel_row">
-					<el-select v-model="archetype" size="small" clearable :teleported="false" :placeholder="t('monster.archetype')" class="mp_arch">
-						<el-option v-for="a in ARCHETYPES" :key="a" :label="t('arch.' + a)" :value="a" />
-					</el-select>
-					<el-select v-model="stars" size="small" clearable :teleported="false" :placeholder="t('monster.stars')" class="mp_stars">
-						<el-option v-for="s in 5" :key="s" :label="s + ' ' + t('monster.starsUnit')" :value="s" />
-					</el-select>
-					<el-input v-model="kw" size="small" clearable :placeholder="t('monster.searchPlaceholder')" class="mp_kw" />
-				</div>
-			</div>
 
-			<div class="mp_list">
-				<div
-					v-for="m in shown" :key="m.id"
-					class="mp_item" :class="{ sel: m.id === modelValue }"
-					@click="choose(m)">
-					<img class="mp_iavatar" :src="monsterImg(m.image)" loading="lazy" :alt="m.name" />
-					<span class="mp_iname">{{ m.name }}</span>
-					<span class="mp_istars">{{ '★'.repeat(m.stars || 0) }}</span>
-					<img class="mp_ielem" :src="elementIconUrl(m.element)" />
+				<div class="mp_list">
+					<div
+						v-for="m in shown" :key="m.id"
+						class="mp_item" :class="{ sel: m.id === modelValue }"
+						@click="choose(m)">
+						<img class="mp_iavatar" :src="monsterImg(m.image)" loading="lazy" :alt="m.name" />
+						<span class="mp_iname">{{ m.name }}</span>
+						<span class="mp_istars">{{ '★'.repeat(m.stars || 0) }}</span>
+						<img class="mp_ielem" :src="elementIconUrl(m.element)" />
+					</div>
+					<div v-if="!filtered.length" class="mp_empty">{{ t('monster.empty') }}</div>
 				</div>
-				<div v-if="!filtered.length" class="mp_empty">{{ t('monster.empty') }}</div>
+				<div class="mp_foot">{{ t('monster.count', filtered.length) }}</div>
 			</div>
-			<div class="mp_foot">{{ t('monster.count', filtered.length) }}</div>
-		</div>
+		</Teleport>
 	</div>
 </template>
 
@@ -92,24 +94,36 @@ const filtered = computed(() => {
 // 上限保护:全量 945 只不至于卡,但仍截断首屏渲染量
 const shown = computed(() => filtered.value.slice(0, 200));
 
-/** 面板默认以槽位居中,窄视口下可能算出负坐标被屏幕裁掉,这里钳回可视区内 */
-const clampPanel = () => {
-	const el = panelRef.value;
-	if (!el) return;
-	el.style.transform = 'translateX(-50%)';
-	const r = el.getBoundingClientRect();
+/**
+ * 面板 teleport 到 body + fixed 定位:
+ * 页面容器(.layout-content)带 overflow:auto,普通 absolute 会被祖先裁切,
+ * 挂 body 下按触发器位置计算,并对视口钳制(左右留 8px,下方放不下翻上方)。
+ */
+const placePanel = () => {
+	const rootEl = root.value;
+	const panel = panelRef.value;
+	if (!rootEl || !panel) return;
+	const trig = rootEl.querySelector('.mp_trigger');
+	if (!trig) return;
+	const tr = trig.getBoundingClientRect();
 	const vw = window.innerWidth;
-	let shift = 0;
-	if (r.left < 8) shift = 8 - r.left;
-	else if (r.right > vw - 8) shift = vw - 8 - r.right;
-	if (shift) el.style.transform = `translateX(calc(-50% + ${shift}px))`;
+	const vh = window.innerHeight;
+	const w = Math.min(400, vw - 16);
+	let left = tr.left + tr.width / 2 - w / 2;
+	left = Math.max(8, Math.min(left, vw - 8 - w));
+	const estH = Math.min(460, vh - 16);
+	let top = tr.bottom + 6;
+	if (top + estH > vh - 8) top = Math.max(8, tr.top - estH - 6);
+	panel.style.width = w + 'px';
+	panel.style.left = Math.round(left) + 'px';
+	panel.style.top = Math.round(top) + 'px';
 };
 
 const toggle = async () => {
 	open.value = !open.value;
 	if (open.value) {
 		await nextTick();
-		clampPanel();
+		placePanel();
 	}
 };
 
@@ -126,23 +140,27 @@ const clear = () => {
 };
 
 const onDocDown = (e) => {
-	if (root.value && !root.value.contains(e.target)) open.value = false;
+	// 面板已 teleport 到 body,触发器与面板之外的点击都视为关闭
+	if (root.value?.contains(e.target)) return;
+	if (panelRef.value?.contains(e.target)) return;
+	open.value = false;
 };
-const onResize = () => { if (open.value) clampPanel(); };
+const onReposition = () => { if (open.value) placePanel(); };
 onMounted(() => {
 	document.addEventListener('mousedown', onDocDown);
-	window.addEventListener('resize', onResize);
+	window.addEventListener('resize', onReposition);
+	// capture 捕获内层滚动容器(.layout-content)的滚动,fixed 面板随触发器重算位置
+	document.addEventListener('scroll', onReposition, true);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('mousedown', onDocDown);
-	window.removeEventListener('resize', onResize);
+	window.removeEventListener('resize', onReposition);
+	document.removeEventListener('scroll', onReposition, true);
 });
 </script>
 
 <style lang="less">
 .mp_picker {
-	position: relative;
-
 	.mp_trigger {
 		display: flex;
 		align-items: center;
@@ -207,131 +225,129 @@ onBeforeUnmount(() => {
 			}
 		}
 	}
+}
 
-	.mp_panel {
-		position: absolute;
-		top: calc(100% + 6px);
-		left: 50%;
-		transform: translateX(-50%);
-		width: min(400px, calc(100vw - 40px));
-		background: #fff;
-		border: 1px solid #e4e7ed;
-		border-radius: 8px;
-		box-shadow: 0 8px 24px rgba(31, 45, 61, 0.16);
-		z-index: 3000;
-		padding: 8px;
+// teleport 到 body 的弹层:fixed 定位,位置由 placePanel() 按触发器计算
+.mp_panel {
+	position: fixed;
+	width: 400px;
+	background: #fff;
+	border: 1px solid #e4e7ed;
+	border-radius: 8px;
+	box-shadow: 0 8px 24px rgba(31, 45, 61, 0.16);
+	z-index: 3000;
+	padding: 8px;
 
-		.mp_filters {
-			border-bottom: 1px solid #ebeef5;
-			padding-bottom: 8px;
-		}
-		.mp_elem_row {
-			display: flex;
-			gap: 6px;
-			margin-bottom: 8px;
-			.mp_ebtn {
-				height: 26px;
-				min-width: 44px;
-				padding: 0 8px;
-				border: 1px solid #dcdfe6;
-				border-radius: 5px;
-				background: #fff;
-				color: #606266;
-				font-size: 12px;
-				cursor: pointer;
-				&.ico {
-					min-width: 0;
-					padding: 0 5px;
-					display: flex;
-					align-items: center;
-					img {
-						width: 16px;
-						height: 16px;
-						object-fit: contain;
-					}
-				}
-				&.on {
-					border-color: #409eff;
-					color: #409eff;
-				}
-			}
-		}
-		.mp_sel_row {
-			display: flex;
-			gap: 6px;
-			position: relative;
-			.mp_arch {
-				width: 110px;
-				flex-shrink: 0;
-			}
-			.mp_stars {
-				width: 92px;
-				flex-shrink: 0;
-			}
-			.mp_kw {
-				flex: 1;
-				min-width: 80px;
-			}
-		}
-
-		.mp_list {
-			max-height: 300px;
-			overflow-y: auto;
-			.mp_item {
+	.mp_filters {
+		border-bottom: 1px solid #ebeef5;
+		padding-bottom: 8px;
+	}
+	.mp_elem_row {
+		display: flex;
+		gap: 6px;
+		margin-bottom: 8px;
+		.mp_ebtn {
+			height: 26px;
+			min-width: 44px;
+			padding: 0 8px;
+			border: 1px solid #dcdfe6;
+			border-radius: 5px;
+			background: #fff;
+			color: #606266;
+			font-size: 12px;
+			cursor: pointer;
+			&.ico {
+				min-width: 0;
+				padding: 0 5px;
 				display: flex;
 				align-items: center;
-				gap: 8px;
-				padding: 5px 8px;
-				border-radius: 6px;
-				cursor: pointer;
-				&:hover {
-					background: #f5f7fa;
-				}
-				&.sel {
-					background: #ecf5ff;
-				}
-				.mp_iavatar {
-					width: 26px;
-					height: 26px;
+				img {
+					width: 16px;
+					height: 16px;
 					object-fit: contain;
-					flex-shrink: 0;
-				}
-				.mp_iname {
-					flex: 1;
-					font-size: 13px;
-					color: #303133;
-					overflow: hidden;
-					text-overflow: ellipsis;
-					white-space: nowrap;
-				}
-				.mp_istars {
-					font-size: 10px;
-					color: #e6a23c;
-					flex-shrink: 0;
-				}
-				.mp_ielem {
-					width: 14px;
-					height: 14px;
-					object-fit: contain;
-					flex-shrink: 0;
 				}
 			}
-			.mp_empty {
-				padding: 24px 0;
-				text-align: center;
-				font-size: 12px;
-				color: #909399;
+			&.on {
+				border-color: #409eff;
+				color: #409eff;
 			}
 		}
+	}
+	.mp_sel_row {
+		display: flex;
+		gap: 6px;
+		position: relative;
+		.mp_arch {
+			width: 110px;
+			flex-shrink: 0;
+		}
+		.mp_stars {
+			width: 92px;
+			flex-shrink: 0;
+		}
+		.mp_kw {
+			flex: 1;
+			min-width: 80px;
+		}
+	}
 
-		.mp_foot {
-			border-top: 1px solid #ebeef5;
-			padding-top: 6px;
-			margin-top: 6px;
-			font-size: 11px;
-			color: #c0c4cc;
-			text-align: right;
+	.mp_list {
+		max-height: 300px;
+		overflow-y: auto;
+		.mp_item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 5px 8px;
+			border-radius: 6px;
+			cursor: pointer;
+			&:hover {
+				background: #f5f7fa;
+			}
+			&.sel {
+				background: #ecf5ff;
+			}
+			.mp_iavatar {
+				width: 26px;
+				height: 26px;
+				object-fit: contain;
+				flex-shrink: 0;
+			}
+			.mp_iname {
+				flex: 1;
+				font-size: 13px;
+				color: #303133;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.mp_istars {
+				font-size: 10px;
+				color: #e6a23c;
+				flex-shrink: 0;
+			}
+			.mp_ielem {
+				width: 14px;
+				height: 14px;
+				object-fit: contain;
+				flex-shrink: 0;
+			}
 		}
+		.mp_empty {
+			padding: 24px 0;
+			text-align: center;
+			font-size: 12px;
+			color: #909399;
+		}
+	}
+
+	.mp_foot {
+		border-top: 1px solid #ebeef5;
+		padding-top: 6px;
+		margin-top: 6px;
+		font-size: 11px;
+		color: #c0c4cc;
+		text-align: right;
 	}
 }
 </style>
