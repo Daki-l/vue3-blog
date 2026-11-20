@@ -139,13 +139,38 @@
 				</div>
 			</div>
 
-			<!-- 底部 3v3 展示区(占位,阶段二接入:登录后查看该魔灵相关防守/克制) -->
+			<!-- 底部 3v3 参战区(静态索引:参与的防守 + 作为克制出现) -->
 			<div class="section_card pvp3_section">
 				<div class="section_title">
 					{{ t('monster.pvp3Title') }}
 					<span class="section_count">{{ t('monster.pvp3Desc') }}</span>
 				</div>
-				<div class="pvp3_placeholder">
+				<template v-if="pvp3">
+					<div class="pvp3_block" v-if="pvp3.defenses.length">
+						<div class="pvp3_sub">{{ t('pvp.inDefense') }} · {{ pvp3.defenses.length }}</div>
+						<div class="pvp3_teams">
+							<div v-for="k in pvp3.defenseRows.slice(0, pvp3ShowAllD ? 100 : 6)" :key="k.k" class="pvp3_team" @click="router.push(`/3v3/${k.k}`)">
+								<img v-for="mm in k.monsters" :key="mm.id" :src="monsterImg(mm.image)" :title="pick(monsterZh(mm.id), mm.name)" />
+							</div>
+							<div class="pvp3_more" v-if="pvp3.defenses.length > 6" @click="pvp3ShowAllD = !pvp3ShowAllD">
+								{{ pvp3ShowAllD ? '−' : '+' + (pvp3.defenses.length - 6) }}
+							</div>
+						</div>
+					</div>
+					<div class="pvp3_block" v-if="pvp3.counters.length">
+						<div class="pvp3_sub">{{ t('pvp.asCounter') }} · {{ pvp3.counters.length }}</div>
+						<div class="pvp3_teams">
+							<div v-for="(c, i) in pvp3.counters.slice(0, pvp3ShowAllC ? 100 : 6)" :key="i" class="pvp3_team" @click="router.push(`/3v3/${c.k}`)">
+								<img v-for="id in c.m" :key="id" :src="pvp3Icon(id)" :title="pick(monsterZh(id), monsterName(id))" :class="{ me: id === m.com2us_id }" />
+							</div>
+							<div class="pvp3_more" v-if="pvp3.counters.length > 6" @click="pvp3ShowAllC = !pvp3ShowAllC">
+								{{ pvp3ShowAllC ? '−' : '+' + (pvp3.counters.length - 6) }}
+							</div>
+						</div>
+					</div>
+					<div class="pvp3_empty" v-if="!pvp3.defenses.length && !pvp3.counters.length">{{ t('pvp.no3mdc') }}</div>
+				</template>
+				<div class="pvp3_placeholder" v-else>
 					<div class="ph_team" v-for="n in 3" :key="n">
 						<span class="ph_slot" v-for="k in 3" :key="k"></span>
 					</div>
@@ -165,6 +190,7 @@ import {
 	elementIconUrl, elementMeta, archetypeLabel, pick, statLabel
 } from '@/services/monster';
 import { t, isZh } from '@/common/i18n';
+import { fetchMonster3mdc, fetchDefense } from '@/services/3mdc';
 
 const route = useRoute();
 const router = useRouter();
@@ -175,6 +201,38 @@ const formsDb = ref(null);
 const onLoading = ref(false);
 const showAllBalance = ref(false);
 const T = pick;
+
+// ---- 3v3 参战(静态索引) ----
+const pvp3 = ref(null);
+const pvp3ShowAllD = ref(false);
+const pvp3ShowAllC = ref(false);
+const monsterName = (id) => minList.value.find((x) => x.id === id)?.name ?? '';
+const monsterZh = (id) => (isZh() ? monsterName(id) : '');
+const pvp3Icon = (id) => {
+	const it = minList.value.find((x) => x.id === id);
+	return it ? monsterImg(it.image) : '';
+};
+async function loadPvp3(id) {
+	pvp3.value = null;
+	pvp3ShowAllD.value = false;
+	pvp3ShowAllC.value = false;
+	try {
+		const idx = await fetchMonster3mdc(id);
+		if (!idx) { pvp3.value = { defenses: [], counters: [], defenseRows: [] }; return; }
+		// 防守 key -> 首屏需要魔灵图标:取前若干条详情(其余点进详情页看)
+		const rows = await Promise.all(idx.defenses.slice(0, 100).map(async (k) => {
+			const d = await fetchDefense(k);
+			return d ? { k, monsters: d.monsters } : null;
+		}));
+		pvp3.value = {
+			defenses: idx.defenses,
+			defenseRows: rows.filter(Boolean),
+			counters: idx.counters
+		};
+	} catch {
+		pvp3.value = { defenses: [], counters: [], defenseRows: [] };
+	}
+}
 
 const statKeys = ['hp', 'atk', 'def', 'spd', 'cr', 'cd', 'res', 'acc', 'skillups'];
 
@@ -275,6 +333,7 @@ const load = async (id) => {
 
 onMounted(() => load(route.params.id));
 watch(() => route.params.id, (id) => id && load(id));
+watch(() => m.value.com2us_id, (id) => id && loadPvp3(id), { immediate: true });
 </script>
 
 <style lang="less">
@@ -602,6 +661,49 @@ watch(() => route.params.id, (id) => id && load(id));
 
 	/* 底部 3v3 预留区(左|右 之下,跨全宽) */
 	.pvp3_section { margin-top: 2px; }
+	.pvp3_block {
+		margin-bottom: 12px;
+		&:last-child { margin-bottom: 0; }
+		.pvp3_sub {
+			font-size: 13px;
+			font-weight: 600;
+			color: #606266;
+			margin-bottom: 8px;
+		}
+		.pvp3_teams {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+		.pvp3_team {
+			display: flex;
+			gap: 3px;
+			padding: 4px 6px;
+			background: #f5f7fa;
+			border-radius: 6px;
+			cursor: pointer;
+			&:hover { background: #ecf5ff; }
+			img {
+				width: 28px;
+				height: 28px;
+				object-fit: contain;
+				&.me { outline: 2px solid #e6a23c; border-radius: 4px; }
+			}
+		}
+		.pvp3_more {
+			align-self: center;
+			font-size: 12px;
+			color: #409eff;
+			cursor: pointer;
+			padding: 2px 8px;
+		}
+		.pvp3_empty {
+			color: #c0c4cc;
+			font-size: 12px;
+			text-align: center;
+			padding: 8px 0;
+		}
+	}
 	.pvp3_placeholder {
 		display: flex;
 		align-items: center;

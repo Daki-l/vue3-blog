@@ -12,6 +12,8 @@ import NotFound from '../pages/NotFound.vue';
 import NoticeList from '../pages/summoner/notice/NoticeList.vue';
 import NoticeDetail from '../pages/summoner/notice/NoticeDetail.vue';
 import MonsterList from '../pages/summoner/monster/MonsterList.vue';
+import ThreeSearch from '../pages/summoner/pvp/ThreeSearch.vue';
+import DefenseDetail from '../pages/summoner/pvp/DefenseDetail.vue';
 import MonsterDetail from '../pages/summoner/monster/MonsterDetail.vue';
 import AdminLayout from '../pages/admin/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
@@ -74,6 +76,16 @@ const routes = [
                 path: '/monster/:id',
                 name: 'monsterDetail',
                 component: MonsterDetail
+            },
+            {
+                path: '/3v3',
+                name: 'threeSearch',
+                component: ThreeSearch
+            },
+            {
+                path: '/3v3/:key',
+                name: 'defenseDetail',
+                component: DefenseDetail
             },
             {
                 // 旧静态下载页保留(不在导航中展示)

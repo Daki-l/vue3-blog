@@ -127,6 +127,38 @@
 			</el-table>
 		</el-card>
 
+		<!-- 区块3.5 我的收藏(3v3 防守/克制) -->
+		<el-card shadow="never" class="section_card">
+			<template #header><span class="section_title">{{ t('pvp.myFavorites') }}</span></template>
+			<el-table :data="favRows" border v-loading="favLoading" style="width: 100%">
+				<el-table-column :label="t('pvp.favTarget')" width="90">
+					<template #default="{ row }">{{ row.target_type === 'defense' ? t('pvp.defenseTitle') : t('pvp.counterCol') }}</template>
+				</el-table-column>
+				<el-table-column :label="t('pvp.favContent')" min-width="200">
+					<template #default="{ row }">
+						<span v-if="row.label">{{ row.label }}</span>
+						<span v-else class="fav_raw">#{{ row.target_id }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column prop="created_at" :label="t('common.time')" width="160">
+					<template #default="{ row }">{{ (row.created_at || '').slice(0, 16).replace('T', ' ') }}</template>
+				</el-table-column>
+				<el-table-column :label="t('common.action')" width="120" align="right">
+					<template #default="{ row }">
+						<el-button v-if="row.key" type="primary" link @click="router.push(`/3v3/${row.key}`)">{{ t('pvp.viewDefense') }}</el-button>
+						<el-popconfirm :title="t('pvp.favOffConfirm')" @confirm="removeFav(row)">
+							<template #reference>
+								<el-button type="danger" link>{{ t('common.delete') }}</el-button>
+							</template>
+						</el-popconfirm>
+					</template>
+				</el-table-column>
+				<template #empty>
+					<el-empty :description="t('pvp.favEmpty')" :image-size="80" />
+				</template>
+			</el-table>
+		</el-card>
+
 		<!-- 区块4 我的兑换记录 -->
 		<el-card shadow="never" class="section_card">
 			<template #header><span class="section_title">{{ t('redemption.mine') }}</span></template>
@@ -166,6 +198,9 @@ import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
 import { getHiveIds, addHiveId, deleteHiveId, changePassword } from '@/services/auth';
 import { getMyRedemptions } from '@/services/redemption';
+import { getFavorites, toggleFavorite } from '@/services/interact3mdc';
+import { fetchDefense, fetch3mdcManifest } from '@/services/3mdc';
+import { fetchMonsterList } from '@/services/monster';
 import { SERVER_OPTIONS, getServerLabel } from '@/common/constant';
 import { formatDateTime } from '@/utils/format';
 
@@ -354,6 +389,47 @@ const isRedeemSuccess = (row) => {
 	return row.retCode == 100 || row.ret_code == 100 || row.result === 'success';
 };
 
+// ---- 我的收藏(3v3) ----
+const favRows = ref([]);
+const favLoading = ref(false);
+async function loadFavorites() {
+	if (!useUserStore().isLogged) return;
+	favLoading.value = true;
+	try {
+		const r = await getFavorites();
+		// idmap: defense_id -> key(约300KB,一次性);克制的 key 需在其所属防守内反查,展示降级为编号
+		let idmap = {};
+		try {
+			const API = import.meta.env.VITE_API_BASE || 'https://api.linow.us.kg';
+			const res = await fetch(`${API.replace(/\/+$/, '')}/sw/data/3mdc/idmap.json`);
+			if (res.ok) idmap = await res.json();
+		} catch { /* idmap 缺失时降级 */ }
+		const rows = [];
+		for (const f of r.list ?? []) {
+			if (f.target_type === 'defense') {
+				const key = idmap[f.target_id] ?? '';
+				rows.push({ ...f, key, label: key || `#${f.target_id}` });
+			} else {
+				rows.push({ ...f, key: '', label: t('pvp.counterId', f.target_id) });
+			}
+		}
+		favRows.value = rows;
+	} catch {
+		favRows.value = [];
+	} finally {
+		favLoading.value = false;
+	}
+}
+async function removeFav(row) {
+	try {
+		await toggleFavorite(row.target_type, row.target_id);
+		favRows.value = favRows.value.filter((x) => !(x.target_type === row.target_type && x.target_id === row.target_id));
+		ElMessage.success(t('pvp.favOff'));
+	} catch (e) {
+		ElMessage.error(e.message);
+	}
+}
+
 onMounted(async () => {
 	if (typeof window.matchMedia === 'function') {
 		mobileMediaQuery = window.matchMedia('(max-width: 768px)');
@@ -371,6 +447,7 @@ onMounted(async () => {
 	}
 	initHiveList();
 	initRedemptionList();
+	loadFavorites();
 });
 
 onBeforeUnmount(() => {

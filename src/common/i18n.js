@@ -44,7 +44,9 @@ const NAV_EN = {
 	'惩罚者地下城': 'Punisher\'s Crypt',
 	'公告': 'Notices',
 	'兑换码直兑': 'Redeem Codes',
-	'留言板': 'Message Board'
+	'留言板': 'Message Board',
+	'魔灵图鉴': 'Monster Codex',
+	'3v3 克制查询': '3v3 Counters'
 };
 export const navName = (name) => (locale === 'en' ? NAV_EN[name] || name : name);
 
