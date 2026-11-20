@@ -1,0 +1,415 @@
+# 魔灵中文缺失清单
+
+> 生成时间：2026-11-20　共 945 只最终形态 + 1058 个觉醒链形态
+
+## A. 缺觉醒中文名（45 只，当前显示英文名）
+
+> 补充方式：`public/sw/zh_names.json` 加 `"id": {"n":"中文名"}`，同时 `zh_skills.json` 同 id 加 name
+
+- `30711` **Solvark**（德拉坎战士 / 水）
+- `30712` **Deragron**（德拉坎战士 / 火）
+- `30713` **Ereshion**（德拉坎战士 / 风）
+- `30714` **Fridrion**（德拉坎战士 / 光）
+- `30715` **Drakar**（德拉坎战士 / 暗）
+- `31311` **Lamiella**（死灵公主 / 水）
+- `31312` **Theodora**（死灵公主 / 火）
+- `31313` **Orphina**（死灵公主 / 风）
+- `31314` **Mortera**（死灵公主 / 光）
+- `31315` **Velaska**（死灵公主 / 暗）
+- `31411` **Mork**（守墓人 / 水）
+- `31412` **Rex**（守墓人 / 火）
+- `31413` **Gronn**（守墓人 / 风）
+- `31414` **Ramon**（守墓人 / 光）
+- `31415` **Volg**（守墓人 / 暗）
+- `32311` **Gideon**（甲虫守护者 / 水）
+- `32312` **Tityus**（甲虫守护者 / 火）
+- `32313` **Elephas**（甲虫守护者 / 风）
+- `32314` **Hyllus**（甲虫守护者 / 光）
+- `32315` **Actaeon**（甲虫守护者 / 暗）
+- `34011` **Cecilia**（魔导兵器 / 水）
+- `34012` **Cynthia**（魔导兵器 / 火）
+- `34013` **Daisy**（魔导兵器 / 风）
+- `34014` **Christine**（魔导兵器 / 光）
+- `34015` **Elise**（魔导兵器 / 暗）
+- `34111` **Rhoetus**（半人马骑士 / 水）
+- `34112` **Agrius**（半人马骑士 / 火）
+- `34113` **Pholus**（半人马骑士 / 风）
+- `34114` **Chiron**（半人马骑士 / 光）
+- `34115` **Asbolus**（半人马骑士 / 暗）
+- `34211` **Neriope**（正义 / 水）
+- `34212` **Agrenia**（正义 / 火）
+- `34213` **Driana**（正义 / 风）
+- `34214` **Arella**（正义 / 光）
+- `34215` **Theonia**（正义 / 暗）
+- `35511` **Dr. Felix**（普拉兹玛博士 / 水）
+- `35512` **Dr. Matteo**（普拉兹玛博士 / 火）
+- `35513` **Dr. Christoph**（普拉兹玛博士 / 风）
+- `35514` **Dr. Albert**（普拉兹玛博士 / 光）
+- `35515` **Dr. Richard**（普拉兹玛博士 / 暗）
+- `36711` **Maris**（宇宙蠕虫 / 水）
+- `36712` **Volcaris**（宇宙蠕虫 / 火）
+- `36713` **Auraris**（宇宙蠕虫 / 风）
+- `36714` **Luminaris**（宇宙蠕虫 / 光）
+- `36715` **Noctaris**（宇宙蠕虫 / 暗）
+
+## B. 缺技能中文（164 只，技能名/描述显示英文）
+
+> 补充方式：`public/sw/zh_skills.json` 对应 id 补 `skills` 数组（按 slot 顺序：name/description/skillups）
+
+- `12814` **瓦里斯**（下级元素 / 光）
+- `12815` **哈瓦那**（下级元素 / 暗）
+- `14211` **蓝色天使怪**（天使怪 / 水）
+- `14212` **红色天使怪**（天使怪 / 火）
+- `14213` **金色天使怪**（天使怪 / 风）
+- `14214` **白色天使怪**（天使怪 / 光）
+- `14215` **暗黑天使怪**（天使怪 / 暗）
+- `14314` **彩虹怪**（彩虹怪 / 光）
+- `15105` **魔鬼怪**（魔鬼怪 / 暗）
+- `18211` **蓝色国王天使怪**（国王天使怪 / 水）
+- `18212` **红色国王天使怪**（国王天使怪 / 火）
+- `18213` **金色国王天使怪**（国王天使怪 / 风）
+- `18214` **白色国王天使怪**（国王天使怪 / 光）
+- `18215` **暗黑国王天使怪**（国王天使怪 / 暗）
+- `19211` **西奥火星**（伊夫里特 / 水）
+- `19212` **泰莎丽恩**（伊夫里特 / 火）
+- `19213` **阿卡阿弥日**（伊夫里特 / 风）
+- `19214` **艾莎莉恩**（伊夫里特 / 光）
+- `19215` **贝拉穆斯**（伊夫里特 / 暗）
+- `21714` **超级天使怪**（超级天使怪 / 光）
+- `22413` **诗嘉古尔**（狂战士 / 风）
+- `22415` **特拉萨**（狂战士 / 暗）
+- `22712` **卡尔卡诺**（斯奈夫MK.I / 火）
+- `22713` **卡宾**（斯奈夫MK.I / 风）
+- `22715` **德拉古诺夫**（斯奈夫MK.I / 暗）
+- `23511` **芭芭拉**（野兽骑士 / 水）
+- `23512` **玛莎**（野兽骑士 / 火）
+- `23513` **萨婉娜**（野兽骑士 / 风）
+- `23514` **娜瑞莎**（野兽骑士 / 光）
+- `23515` **夏纳**（野兽骑士 / 暗）
+- `30711` **Solvark**（德拉坎战士 / 水）
+- `30712` **Deragron**（德拉坎战士 / 火）
+- `30713` **Ereshion**（德拉坎战士 / 风）
+- `30714` **Fridrion**（德拉坎战士 / 光）
+- `30715` **Drakar**（德拉坎战士 / 暗）
+- `31311` **Lamiella**（死灵公主 / 水）
+- `31312` **Theodora**（死灵公主 / 火）
+- `31313` **Orphina**（死灵公主 / 风）
+- `31314` **Mortera**（死灵公主 / 光）
+- `31315` **Velaska**（死灵公主 / 暗）
+- `31411` **Mork**（守墓人 / 水）
+- `31412` **Rex**（守墓人 / 火）
+- `31413` **Gronn**（守墓人 / 风）
+- `31414` **Ramon**（守墓人 / 光）
+- `31415` **Volg**（守墓人 / 暗）
+- `32311` **Gideon**（甲虫守护者 / 水）
+- `32312` **Tityus**（甲虫守护者 / 火）
+- `32313` **Elephas**（甲虫守护者 / 风）
+- `32314` **Hyllus**（甲虫守护者 / 光）
+- `32315` **Actaeon**（甲虫守护者 / 暗）
+- `32413` **悲鸣屿行冥**（Black Tortoise Champion / 风）
+- `32511` **灶门炭治郎**（Azure Dragon Swordsman / 水）
+- `32512` **灶门炭治郎**（Azure Dragon Swordsman / 火）
+- `32513` **灶门炭治郎**（Azure Dragon Swordsman / 风）
+- `32514` **灶门炭治郎**（Azure Dragon Swordsman / 光）
+- `32515` **灶门炭治郎**（Azure Dragon Swordsman / 暗）
+- `32611` **灶门祢豆子**（Vermilion Bird Dancer / 水）
+- `32612` **灶门祢豆子**（Vermilion Bird Dancer / 火）
+- `32613` **灶门祢豆子**（Vermilion Bird Dancer / 风）
+- `32614` **灶门祢豆子**（Vermilion Bird Dancer / 光）
+- `32615` **灶门祢豆子**（Vermilion Bird Dancer / 暗）
+- `32811` **嘴平伊之助**（White Tiger Blade Master / 水）
+- `32812` **嘴平伊之助**（White Tiger Blade Master / 火）
+- `32813` **嘴平伊之助**（White Tiger Blade Master / 风）
+- `32814` **嘴平伊之助**（White Tiger Blade Master / 光）
+- `32815` **嘴平伊之助**（White Tiger Blade Master / 暗）
+- `32911` **我妻善逸**（Qilin Slasher / 水）
+- `32912` **我妻善逸**（Qilin Slasher / 火）
+- `32913` **我妻善逸**（Qilin Slasher / 风）
+- `32914` **我妻善逸**（Qilin Slasher / 光）
+- `32915` **我妻善逸**（Qilin Slasher / 暗）
+- `33512` **三岛平八**（Daimon / 火）
+- `33611` **风间仁**（Kai / 水）
+- `33612` **风间仁**（Kai / 火）
+- `33613` **风间仁**（Kai / 风）
+- `33614` **风间仁**（Kai / 光）
+- `33615` **风间仁**（Kai / 暗）
+- `33711` **花郎**（Taebaek / 水）
+- `33712` **花郎**（Taebaek / 火）
+- `33713` **花郎**（Taebaek / 风）
+- `33714` **花郎**（Taebaek / 光）
+- `33715` **花郎**（Taebaek / 暗）
+- `33811` **保罗·菲尼克斯**（Duke / 水）
+- `33812` **保罗·菲尼克斯**（Duke / 火）
+- `33813` **保罗·菲尼克斯**（Duke / 风）
+- `33814` **保罗·菲尼克斯**（Duke / 光）
+- `33815` **保罗·菲尼克斯**（Duke / 暗）
+- `33911` **妮娜·威廉姆斯**（Shasha / 水）
+- `33912` **妮娜·威廉姆斯**（Shasha / 火）
+- `33913` **妮娜·威廉姆斯**（Shasha / 风）
+- `33914` **妮娜·威廉姆斯**（Shasha / 光）
+- `33915` **妮娜·威廉姆斯**（Shasha / 暗）
+- `34011` **Cecilia**（魔导兵器 / 水）
+- `34012` **Cynthia**（魔导兵器 / 火）
+- `34013` **Daisy**（魔导兵器 / 风）
+- `34014` **Christine**（魔导兵器 / 光）
+- `34015` **Elise**（魔导兵器 / 暗）
+- `34111` **Rhoetus**（半人马骑士 / 水）
+- `34112` **Agrius**（半人马骑士 / 火）
+- `34113` **Pholus**（半人马骑士 / 风）
+- `34114` **Chiron**（半人马骑士 / 光）
+- `34115` **Asbolus**（半人马骑士 / 暗）
+- `34211` **Neriope**（正义 / 水）
+- `34212` **Agrenia**（正义 / 火）
+- `34213` **Driana**（正义 / 风）
+- `34214` **Arella**（正义 / 光）
+- `34215` **Theonia**（正义 / 暗）
+- `34911` **弗罗多**（Silver Tail / 水）
+- `35011` **甘道夫**（Old Wood / 水）
+- `35012` **甘道夫**（Old Wood / 火）
+- `35013` **甘道夫**（Old Wood / 风）
+- `35014` **甘道夫**（Old Wood / 光）
+- `35015` **甘道夫**（Old Wood / 暗）
+- `35211` **阿拉贡**（Night Fang / 水）
+- `35212` **阿拉贡**（Night Fang / 火）
+- `35213` **阿拉贡**（Night Fang / 风）
+- `35214` **阿拉贡**（Night Fang / 光）
+- `35215` **阿拉贡**（Night Fang / 暗）
+- `35311` **莱戈拉斯**（Elder Horn / 水）
+- `35312` **莱戈拉斯**（Elder Horn / 火）
+- `35313` **莱戈拉斯**（Elder Horn / 风）
+- `35314` **莱戈拉斯**（Elder Horn / 光）
+- `35315` **莱戈拉斯**（Elder Horn / 暗）
+- `35411` **咕噜**（Lob Ear / 水）
+- `35412` **咕噜**（Lob Ear / 火）
+- `35413` **咕噜**（Lob Ear / 风）
+- `35414` **咕噜**（Lob Ear / 光）
+- `35415` **咕噜**（Lob Ear / 暗）
+- `35511` **Dr. Felix**（普拉兹玛博士 / 水）
+- `35512` **Dr. Matteo**（普拉兹玛博士 / 火）
+- `35513` **Dr. Christoph**（普拉兹玛博士 / 风）
+- `35514` **Dr. Albert**（普拉兹玛博士 / 光）
+- `35515` **Dr. Richard**（普拉兹玛博士 / 暗）
+- `36211` **辛美尔**（Kiel / 水）
+- `36311` **芙莉莲**（Freu / 水）
+- `36312` **芙莉莲**（Freu / 火）
+- `36313` **芙莉莲**（Freu / 风）
+- `36314` **芙莉莲**（Freu / 光）
+- `36315` **芙莉莲**（Freu / 暗）
+- `36411` **菲伦**（Luen / 水）
+- `36412` **菲伦**（Luen / 火）
+- `36413` **菲伦**（Luen / 风）
+- `36414` **菲伦**（Luen / 光）
+- `36415` **菲伦**（Luen / 暗）
+- `36511` **修塔尔克**（Schporte / 水）
+- `36512` **修塔尔克**（Schporte / 火）
+- `36513` **修塔尔克**（Schporte / 风）
+- `36514` **修塔尔克**（Schporte / 光）
+- `36515` **修塔尔克**（Schporte / 暗）
+- `36611` **乌贝尔**（Wieb / 水）
+- `36612` **乌贝尔**（Wieb / 火）
+- `36613` **乌贝尔**（Wieb / 风）
+- `36614` **乌贝尔**（Wieb / 光）
+- `36615` **乌贝尔**（Wieb / 暗）
+- `36711` **Maris**（宇宙蠕虫 / 水）
+- `36712` **Volcaris**（宇宙蠕虫 / 火）
+- `36713` **Auraris**（宇宙蠕虫 / 风）
+- `36714` **Luminaris**（宇宙蠕虫 / 光）
+- `36715` **Noctaris**（宇宙蠕虫 / 暗）
+- `1000111` **霍尔蒙克斯(攻击型)**（霍尔蒙克斯(攻击型) / 水）
+- `1000112` **霍尔蒙克斯(攻击型)**（霍尔蒙克斯(攻击型) / 火）
+- `1000113` **霍尔蒙克斯(攻击型)**（霍尔蒙克斯(攻击型) / 风）
+- `1000214` **霍尔蒙克斯(辅助型)**（霍尔蒙克斯(辅助型) / 光）
+- `1000215` **霍尔蒙克斯(辅助型)**（霍尔蒙克斯(辅助型) / 暗）
+
+## C. 觉醒链形态缺中文名（188 个，多为联动怪形态）
+
+> 补充方式：重跑 `.swdata/build_forms.cjs` 前修改 `.swdata/zh_db_final.json`，或直接改 `public/sw/forms.json` 的 zh_name
+
+- `24011` **RYU**（RYU / 水 / aw=1）
+- `24012` **RYU**（RYU / 火 / aw=1）
+- `24013` **RYU**（RYU / 风 / aw=1）
+- `24014` **RYU**（RYU / 光 / aw=1）
+- `24015` **RYU**（RYU / 暗 / aw=1）
+- `24112` **KEN**（KEN / 火 / aw=1）
+- `24211` **M. BISON**（M. BISON / 水 / aw=1）
+- `24212` **M. BISON**（M. BISON / 火 / aw=1）
+- `24213` **M. BISON**（M. BISON / 风 / aw=1）
+- `24214` **M. BISON**（M. BISON / 光 / aw=1）
+- `24215` **M. BISON**（M. BISON / 暗 / aw=1）
+- `24311` **DHALSIM**（DHALSIM / 水 / aw=1）
+- `24312` **DHALSIM**（DHALSIM / 火 / aw=1）
+- `24313` **DHALSIM**（DHALSIM / 风 / aw=1）
+- `24314` **DHALSIM**（DHALSIM / 光 / aw=1）
+- `24315` **DHALSIM**（DHALSIM / 暗 / aw=1）
+- `24411` **CHUN-LI**（CHUN-LI / 水 / aw=1）
+- `24412` **CHUN-LI**（CHUN-LI / 火 / aw=1）
+- `24413` **CHUN-LI**（CHUN-LI / 风 / aw=1）
+- `24414` **CHUN-LI**（CHUN-LI / 光 / aw=1）
+- `24415` **CHUN-LI**（CHUN-LI / 暗 / aw=1）
+- `26213` **GingerBrave**（GingerBrave / 风 / aw=1）
+- `26311` **Pure Vanilla Cookie**（Pure Vanilla Cookie / 水 / aw=1）
+- `26312` **Pure Vanilla Cookie**（Pure Vanilla Cookie / 火 / aw=1）
+- `26313` **Pure Vanilla Cookie**（Pure Vanilla Cookie / 风 / aw=1）
+- `26314` **Pure Vanilla Cookie**（Pure Vanilla Cookie / 光 / aw=1）
+- `26315` **Pure Vanilla Cookie**（Pure Vanilla Cookie / 暗 / aw=1）
+- `26411` **Hollyberry Cookie**（Hollyberry Cookie / 水 / aw=1）
+- `26412` **Hollyberry Cookie**（Hollyberry Cookie / 火 / aw=1）
+- `26413` **Hollyberry Cookie**（Hollyberry Cookie / 风 / aw=1）
+- `26414` **Hollyberry Cookie**（Hollyberry Cookie / 光 / aw=1）
+- `26415` **Hollyberry Cookie**（Hollyberry Cookie / 暗 / aw=1）
+- `26511` **Espresso Cookie**（Espresso Cookie / 水 / aw=1）
+- `26512` **Espresso Cookie**（Espresso Cookie / 火 / aw=1）
+- `26513` **Espresso Cookie**（Espresso Cookie / 风 / aw=1）
+- `26514` **Espresso Cookie**（Espresso Cookie / 光 / aw=1）
+- `26515` **Espresso Cookie**（Espresso Cookie / 暗 / aw=1）
+- `26611` **Madeleine Cookie**（Madeleine Cookie / 水 / aw=1）
+- `26612` **Madeleine Cookie**（Madeleine Cookie / 火 / aw=1）
+- `26613` **Madeleine Cookie**（Madeleine Cookie / 风 / aw=1）
+- `26614` **Madeleine Cookie**（Madeleine Cookie / 光 / aw=1）
+- `26615` **Madeleine Cookie**（Madeleine Cookie / 暗 / aw=1）
+- `27314` **Altaïr**（Altaïr / 光 / aw=1）
+- `27411` **Ezio**（Ezio / 水 / aw=1）
+- `27412` **Ezio**（Ezio / 火 / aw=1）
+- `27413` **Ezio**（Ezio / 风 / aw=1）
+- `27414` **Ezio**（Ezio / 光 / aw=1）
+- `27415` **Ezio**（Ezio / 暗 / aw=1）
+- `27511` **Bayek**（Bayek / 水 / aw=1）
+- `27512` **Bayek**（Bayek / 火 / aw=1）
+- `27513` **Bayek**（Bayek / 风 / aw=1）
+- `27514` **Bayek**（Bayek / 光 / aw=1）
+- `27515` **Bayek**（Bayek / 暗 / aw=1）
+- `27611` **Kassandra**（Kassandra / 水 / aw=1）
+- `27612` **Kassandra**（Kassandra / 火 / aw=1）
+- `27613` **Kassandra**（Kassandra / 风 / aw=1）
+- `27614` **Kassandra**（Kassandra / 光 / aw=1）
+- `27615` **Kassandra**（Kassandra / 暗 / aw=1）
+- `27711` **Eivor**（Eivor / 水 / aw=1）
+- `27712` **Eivor**（Eivor / 火 / aw=1）
+- `27713` **Eivor**（Eivor / 风 / aw=1）
+- `27714` **Eivor**（Eivor / 光 / aw=1）
+- `27715` **Eivor**（Eivor / 暗 / aw=1）
+- `29211` **Geralt**（Geralt / 水 / aw=1）
+- `29212` **Geralt**（Geralt / 火 / aw=1）
+- `29213` **Geralt**（Geralt / 风 / aw=1）
+- `29214` **Geralt**（Geralt / 光 / aw=1）
+- `29215` **Geralt**（Geralt / 暗 / aw=1）
+- `29311` **Ciri**（Ciri / 水 / aw=1）
+- `29312` **Ciri**（Ciri / 火 / aw=1）
+- `29313` **Ciri**（Ciri / 风 / aw=1）
+- `29314` **Ciri**（Ciri / 光 / aw=1）
+- `29315` **Ciri**（Ciri / 暗 / aw=1）
+- `29411` **Yennefer**（Yennefer / 水 / aw=1）
+- `29412` **Yennefer**（Yennefer / 火 / aw=1）
+- `29413` **Yennefer**（Yennefer / 风 / aw=1）
+- `29414` **Yennefer**（Yennefer / 光 / aw=1）
+- `29415` **Yennefer**（Yennefer / 暗 / aw=1）
+- `29511` **Triss**（Triss / 水 / aw=1）
+- `29512` **Triss**（Triss / 火 / aw=1）
+- `29513` **Triss**（Triss / 风 / aw=1）
+- `29514` **Triss**（Triss / 光 / aw=1）
+- `29515` **Triss**（Triss / 暗 / aw=1）
+- `30215` **Ryomen Sukuna**（Ryomen Sukuna / 暗 / aw=1）
+- `30311` **Satoru Gojo**（Satoru Gojo / 水 / aw=1）
+- `30312` **Satoru Gojo**（Satoru Gojo / 火 / aw=1）
+- `30313` **Satoru Gojo**（Satoru Gojo / 风 / aw=1）
+- `30314` **Satoru Gojo**（Satoru Gojo / 光 / aw=1）
+- `30315` **Satoru Gojo**（Satoru Gojo / 暗 / aw=1）
+- `30411` **Yuji Itadori**（Yuji Itadori / 水 / aw=1）
+- `30412` **Yuji Itadori**（Yuji Itadori / 火 / aw=1）
+- `30413` **Yuji Itadori**（Yuji Itadori / 风 / aw=1）
+- `30414` **Yuji Itadori**（Yuji Itadori / 光 / aw=1）
+- `30415` **Yuji Itadori**（Yuji Itadori / 暗 / aw=1）
+- `30511` **Megumi Fushiguro**（Megumi Fushiguro / 水 / aw=1）
+- `30512` **Megumi Fushiguro**（Megumi Fushiguro / 火 / aw=1）
+- `30513` **Megumi Fushiguro**（Megumi Fushiguro / 风 / aw=1）
+- `30514` **Megumi Fushiguro**（Megumi Fushiguro / 光 / aw=1）
+- `30515` **Megumi Fushiguro**（Megumi Fushiguro / 暗 / aw=1）
+- `30611` **Nobara Kugisaki**（Nobara Kugisaki / 水 / aw=1）
+- `30612` **Nobara Kugisaki**（Nobara Kugisaki / 火 / aw=1）
+- `30613` **Nobara Kugisaki**（Nobara Kugisaki / 风 / aw=1）
+- `30614` **Nobara Kugisaki**（Nobara Kugisaki / 光 / aw=1）
+- `30615` **Nobara Kugisaki**（Nobara Kugisaki / 暗 / aw=1）
+- `31713` **Gyomei Himejima**（Gyomei Himejima / 风 / aw=1）
+- `31811` **Tanjiro Kamado**（Tanjiro Kamado / 水 / aw=1）
+- `31812` **Tanjiro Kamado**（Tanjiro Kamado / 火 / aw=1）
+- `31813` **Tanjiro Kamado**（Tanjiro Kamado / 风 / aw=1）
+- `31814` **Tanjiro Kamado**（Tanjiro Kamado / 光 / aw=1）
+- `31815` **Tanjiro Kamado**（Tanjiro Kamado / 暗 / aw=1）
+- `31911` **Nezuko Kamado**（Nezuko Kamado / 水 / aw=1）
+- `31912` **Nezuko Kamado**（Nezuko Kamado / 火 / aw=1）
+- `31913` **Nezuko Kamado**（Nezuko Kamado / 风 / aw=1）
+- `31914` **Nezuko Kamado**（Nezuko Kamado / 光 / aw=1）
+- `31915` **Nezuko Kamado**（Nezuko Kamado / 暗 / aw=1）
+- `32111` **Inosuke Hashibira**（Inosuke Hashibira / 水 / aw=1）
+- `32112` **Inosuke Hashibira**（Inosuke Hashibira / 火 / aw=1）
+- `32113` **Inosuke Hashibira**（Inosuke Hashibira / 风 / aw=1）
+- `32114` **Inosuke Hashibira**（Inosuke Hashibira / 光 / aw=1）
+- `32115` **Inosuke Hashibira**（Inosuke Hashibira / 暗 / aw=1）
+- `32211` **Zenitsu Agatsuma**（Zenitsu Agatsuma / 水 / aw=1）
+- `32212` **Zenitsu Agatsuma**（Zenitsu Agatsuma / 火 / aw=1）
+- `32213` **Zenitsu Agatsuma**（Zenitsu Agatsuma / 风 / aw=1）
+- `32214` **Zenitsu Agatsuma**（Zenitsu Agatsuma / 光 / aw=1）
+- `32215` **Zenitsu Agatsuma**（Zenitsu Agatsuma / 暗 / aw=1）
+- `33012` **Heihachi Mishima**（Heihachi Mishima / 火 / aw=1）
+- `33111` **Jin Kazama**（Jin Kazama / 水 / aw=1）
+- `33112` **Jin Kazama**（Jin Kazama / 火 / aw=1）
+- `33113` **Jin Kazama**（Jin Kazama / 风 / aw=1）
+- `33114` **Jin Kazama**（Jin Kazama / 光 / aw=1）
+- `33115` **Jin Kazama**（Jin Kazama / 暗 / aw=1）
+- `33211` **Hwoarang**（Hwoarang / 水 / aw=1）
+- `33212` **Hwoarang**（Hwoarang / 火 / aw=1）
+- `33213` **Hwoarang**（Hwoarang / 风 / aw=1）
+- `33214` **Hwoarang**（Hwoarang / 光 / aw=1）
+- `33215` **Hwoarang**（Hwoarang / 暗 / aw=1）
+- `33311` **Paul Phoenix**（Paul Phoenix / 水 / aw=1）
+- `33312` **Paul Phoenix**（Paul Phoenix / 火 / aw=1）
+- `33313` **Paul Phoenix**（Paul Phoenix / 风 / aw=1）
+- `33314` **Paul Phoenix**（Paul Phoenix / 光 / aw=1）
+- `33315` **Paul Phoenix**（Paul Phoenix / 暗 / aw=1）
+- `33411` **Nina Williams**（Nina Williams / 水 / aw=1）
+- `33412` **Nina Williams**（Nina Williams / 火 / aw=1）
+- `33413` **Nina Williams**（Nina Williams / 风 / aw=1）
+- `33414` **Nina Williams**（Nina Williams / 光 / aw=1）
+- `33415` **Nina Williams**（Nina Williams / 暗 / aw=1）
+- `34311` **Frodo**（Frodo / 水 / aw=1）
+- `34411` **Gandalf**（Gandalf / 水 / aw=1）
+- `34412` **Gandalf**（Gandalf / 火 / aw=1）
+- `34413` **Gandalf**（Gandalf / 风 / aw=1）
+- `34414` **Gandalf**（Gandalf / 光 / aw=1）
+- `34415` **Gandalf**（Gandalf / 暗 / aw=1）
+- `34611` **Aragorn**（Aragorn / 水 / aw=1）
+- `34612` **Aragorn**（Aragorn / 火 / aw=1）
+- `34613` **Aragorn**（Aragorn / 风 / aw=1）
+- `34614` **Aragorn**（Aragorn / 光 / aw=1）
+- `34615` **Aragorn**（Aragorn / 暗 / aw=1）
+- `34711` **Legolas**（Legolas / 水 / aw=1）
+- `34712` **Legolas**（Legolas / 火 / aw=1）
+- `34713` **Legolas**（Legolas / 风 / aw=1）
+- `34714` **Legolas**（Legolas / 光 / aw=1）
+- `34715` **Legolas**（Legolas / 暗 / aw=1）
+- `34811` **Gollum**（Gollum / 水 / aw=1）
+- `34812` **Gollum**（Gollum / 火 / aw=1）
+- `34813` **Gollum**（Gollum / 风 / aw=1）
+- `34814` **Gollum**（Gollum / 光 / aw=1）
+- `34815` **Gollum**（Gollum / 暗 / aw=1）
+- `35611` **Himmel**（Himmel / 水 / aw=1）
+- `35711` **Frieren**（Frieren / 水 / aw=1）
+- `35712` **Frieren**（Frieren / 火 / aw=1）
+- `35713` **Frieren**（Frieren / 风 / aw=1）
+- `35714` **Frieren**（Frieren / 光 / aw=1）
+- `35715` **Frieren**（Frieren / 暗 / aw=1）
+- `35811` **Fern**（Fern / 水 / aw=1）
+- `35812` **Fern**（Fern / 火 / aw=1）
+- `35813` **Fern**（Fern / 风 / aw=1）
+- `35814` **Fern**（Fern / 光 / aw=1）
+- `35815` **Fern**（Fern / 暗 / aw=1）
+- `35911` **Stark**（Stark / 水 / aw=1）
+- `35912` **Stark**（Stark / 火 / aw=1）
+- `35913` **Stark**（Stark / 风 / aw=1）
+- `35914` **Stark**（Stark / 光 / aw=1）
+- `35915` **Stark**（Stark / 暗 / aw=1）
+- `36011` **Übel**（Übel / 水 / aw=1）
+- `36012` **Übel**（Übel / 火 / aw=1）
+- `36013` **Übel**（Übel / 风 / aw=1）
+- `36014` **Übel**（Übel / 光 / aw=1）
+- `36015` **Übel**（Übel / 暗 / aw=1）
