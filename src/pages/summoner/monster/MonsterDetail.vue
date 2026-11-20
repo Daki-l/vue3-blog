@@ -26,8 +26,8 @@
 						<div class="panel_sec">
 							<div class="sec_label">基础信息</div>
 							<div class="meta_row"><span>定位</span><b>{{ archetypeLabel(m.archetype) }}</b></div>
-							<div class="meta_row"><span>家族</span><b>{{ m.family }}</b></div>
-							<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>未觉醒</span><b>{{ m.unawakened_name }}</b></div>
+							<div class="meta_row"><span>家族</span><b>{{ T(m.zh?.family, m.family) }}</b></div>
+							<div class="meta_row" v-if="m.unawakened_name && m.unawakened_name !== m.name"><span>未觉醒</span><b>{{ T(m.zh?.family, m.unawakened_name) }}</b></div>
 							<div class="meta_row" v-if="m.collab"><span>联动</span><b>{{ m.collab }}</b></div>
 							<div class="bonus_line leader" v-if="m.leader_skill && m.leader_skill.text">
 								<img class="leader_icon" :src="leaderIconUrl(m.leader_skill.icon)" v-if="m.leader_skill.icon" />
@@ -161,7 +161,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-	fetchMonster, fetchMonsterList, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
+	fetchMonster, fetchMonsterList, fetchZhNames, fetchZhSkills, monsterImg, skillIconUrl, leaderIconUrl, effectIconUrl,
 	elementIconUrl, elementMeta, archetypeLabel, pick, STAT_LABELS
 } from '@/services/monster';
 
@@ -223,8 +223,22 @@ const load = async (id) => {
 	onLoading.value = true;
 	m.value = {};
 	try {
-		const [detail, list] = await Promise.all([fetchMonster(id), fetchMonsterList().catch(() => [])]);
+		const [detail, list, zhAll, zhNames] = await Promise.all([
+			fetchMonster(id),
+			fetchMonsterList().catch(() => []),
+			fetchZhSkills().catch(() => null),
+			fetchZhNames().catch(() => null)
+		]);
 		m.value = detail || {};
+		// 简中覆盖层(本地库, 缺省字段经模板 pick 回退英文)
+		if (zhAll) m.value.zh = zhAll[detail?.com2us_id] || null;
+		// min 列表名同步中文化(觉醒形态/同族切换提示)
+		if (zhNames) {
+			for (const it of list) {
+				const z = zhNames[it.id];
+				if (z?.n) it.name = z.n;
+			}
+		}
 		minList.value = list;
 	} catch (e) {
 		console.error('获取魔灵详情失败', e);

@@ -28,3 +28,6 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# SW 爬虫/数据工具链(本地)
+.swdata/

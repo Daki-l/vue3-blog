@@ -9,7 +9,7 @@
 const STATIC = import.meta.env.VITE_STATIC_BASE || 'https://static.linow.us.kg';
 const API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 export const SW_BASE = `${STATIC}/sw`;
-const SW_DATA = `${API}/sw/data`;
+const SW_DATA = `${API.replace(/\/+$/, '')}/sw/data`;
 
 export const monsterImg = (file, large = false) => `${SW_BASE}/${large ? 'monsters' : 'monsters36'}/${file}`;
 export const skillIconUrl = (file) => `${SW_BASE}/skills/${file}`;
@@ -35,7 +35,26 @@ export function fetchMonsterList() {
 
 /** 单只魔灵详情 */
 export function fetchMonster(id) {
-	return getJson(`${SW_DATA}/monster/${id}.json`);
+  return getJson(`${SW_DATA}/monster/${id}.json`);
+}
+
+/**
+ * 本地简中数据库(public/sw/,离线随包分发):
+ * zh_names 列表轻量名(945), zh_skills 详情覆盖层(技能/队长技/觉醒加成)。
+ * 来源 fishmaple 爬取 + swarfarm ID 桥接 + 手写补丁, 详见 .swdata/build 工具链。
+ */
+const ZH_BASE = `${import.meta.env.BASE_URL}sw`;
+let zhNamesCache = null;
+let zhSkillsCache = null;
+
+export function fetchZhNames() {
+  zhNamesCache = zhNamesCache || getJson(`${ZH_BASE}/zh_names.json`);
+  return zhNamesCache;
+}
+
+export function fetchZhSkills() {
+  zhSkillsCache = zhSkillsCache || getJson(`${ZH_BASE}/zh_skills.json`);
+  return zhSkillsCache;
 }
 
 /** 元素/定位枚举(展示层中文,数据值英文;色值取自官方元素图标采样) */

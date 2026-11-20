@@ -65,7 +65,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Search } from '@element-plus/icons-vue';
-import { fetchMonsterList, monsterImg, elementMeta, elementIconUrl, ELEMENTS, ARCHETYPES } from '@/services/monster';
+import { fetchMonsterList, fetchZhNames, monsterImg, elementMeta, elementIconUrl, ELEMENTS, ARCHETYPES } from '@/services/monster';
 
 const router = useRouter();
 
@@ -97,7 +97,20 @@ const goDetail = (id) => {
 onMounted(async () => {
 	onLoading.value = true;
 	try {
-		all.value = await fetchMonsterList();
+		const [list, zh] = await Promise.all([
+			fetchMonsterList(),
+			fetchZhNames().catch(() => null)
+		]);
+		// 简中覆盖(name/family 缺省回退英文, 搜索随之支持中文)
+		if (zh) {
+			for (const m of list) {
+				const z = zh[m.id];
+				if (!z) continue;
+				if (z.n) m.name = z.n;
+				if (z.f) m.family = z.f;
+			}
+		}
+		all.value = list;
 	} catch (e) {
 		console.error('获取魔灵列表失败', e);
 	} finally {
