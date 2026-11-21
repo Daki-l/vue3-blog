@@ -129,7 +129,7 @@
 						<div class="bal_item" v-for="(b, i) in shownBalance" :key="i">
 							<span class="bal_date">{{ b.date }}</span>
 							<span class="bal_badge" :class="balClass(b.changeType)">{{ balTypeLabel(b.changeType) }}</span>
-							<span class="bal_skill" v-if="b.skillName">{{ b.slot }} {{ balSkillName(b) }}</span>
+							<span class="bal_skill" v-if="b.skillName && b.slot">{{ b.slot }} {{ balSkillName(b) }}</span>
 							<span class="bal_text">{{ b.text }}</span>
 						</div>
 						<div class="bal_more" v-if="balanceList.length > 5" @click="showAllBalance = !showAllBalance">
