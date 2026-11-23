@@ -15,6 +15,7 @@ import MonsterList from '../pages/summoner/monster/MonsterList.vue';
 import ThreeSearch from '../pages/summoner/pvp/ThreeSearch.vue';
 import DefenseDetail from '../pages/summoner/pvp/DefenseDetail.vue';
 import MonsterDetail from '../pages/summoner/monster/MonsterDetail.vue';
+import RuneWorkbench from '../pages/summoner/rune/RuneWorkbench.vue';
 import AdminLayout from '../pages/admin/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
 import AdminCoupons from '../pages/admin/Coupons.vue';
@@ -76,6 +77,12 @@ const routes = [
                 path: '/monster/:id',
                 name: 'monsterDetail',
                 component: MonsterDetail
+            },
+            {
+                // 符文工作台(SWEX导入+评分, 本地IndexedDB存档)
+                path: '/rune',
+                name: 'runeWorkbench',
+                component: RuneWorkbench
             },
             {
                 path: '/3v3',

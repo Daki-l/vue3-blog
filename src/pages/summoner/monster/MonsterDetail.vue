@@ -4,6 +4,9 @@
 			<el-button link @click="goBack">
 				<span class="back_arrow">←</span> {{ t('common.back') }}
 			</el-button>
+			<el-button v-if="hasRuneProfile" link type="primary" @click="goRuneWorkbench">
+				{{ t('rune.openInWorkbench') }}
+			</el-button>
 			<span class="detail_title">{{ T(m.zh?.name, m.name) || t('monster.detail') }}</span>
 		</div>
 
@@ -191,6 +194,7 @@ import {
 } from '@/services/monster';
 import { t, isZh } from '@/common/i18n';
 import { fetchMonster3mdc, fetchDefense } from '@/services/3mdc';
+import { getActive as getRuneProfile } from '@/services/rune/store';
 
 const route = useRoute();
 const router = useRouter();
@@ -291,6 +295,18 @@ const balSkillName = (b) => {
 	const i = (m.value.skills || []).findIndex((s) => s.name === b.skillName);
 	return (i >= 0 ? m.value.zh?.skills?.[i]?.name : '') || b.skillName;
 };
+
+// 符文工作台联动: 本地存档含该魔灵时显示入口(轻量探测, 失败静默)
+const hasRuneProfile = ref(false);
+watch(() => m.value.com2us_id, async (id) => {
+	hasRuneProfile.value = false;
+	if (!id) return;
+	try {
+		const prof = await getRuneProfile();
+		hasRuneProfile.value = !!prof?.monsters?.some((u) => String(u.masterId) === String(id));
+	} catch {}
+}, { immediate: true });
+const goRuneWorkbench = () => router.push(`/rune?unit=${m.value.com2us_id}`);
 
 const goBack = () => {
 	if (window.history.state && window.history.state.back) router.back();
