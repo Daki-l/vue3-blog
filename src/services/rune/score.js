@@ -3,7 +3,8 @@
  * 与 swex.js / meta.js 解耦——meta 由调用方传入)。
  *
  * 判定体系逆向自 swlens Rune Lens 同账号 2844 条实判(verdicts + RL分 + 理由文本),
- * 权重表由逐符文回归拟合(组内排序相关 0.77~0.85), 同账号整体一致率 83.1%:
+ * 权重表由逐符文回归拟合(组内排序相关 0.77~0.85), 同账号判定一致率: 自动线全量 83% /
+ * 手动线 230 抽样 79%。线性模型的上限大致在此, 余下分歧集中在近线区的 keep/gem/sell 边界:
  *   1. rlScore   角色权重分: 副属性 roll 质量((value+grind)/满roll) × 属性权重求和,
  *                六角色取最优。量级即参考站观测量级(典型满级符文 100~500)。
  *                拟合揭示: 参考站对速度/暴击/爆伤近乎全角色通用地给最高权重(≈50/满roll),
@@ -13,7 +14,7 @@
  *   3. verdict   (顺序优先)
  *                a. 已上锁 → keep
  *                b. 5★以下 → sell(low-stars)
- *                c. 偶数槽平值主/6号位抵抗主: 速度载体(单条速度≥22)豁免, 否则 sell(flat-main/res-main)
+ *                c. 偶数槽平值主/6号位抵抗主 → sell(flat-main/res-main), 不设速度豁免
  *                d. 未满级: 满级投影 RL + 28×剩余roll数 ≥ 线-50 → powerup, 否则 sell(not-worth)
  *                e. 速度载体(单条速度≥22)不过线也 keep(speed)
  *                f. rl ≥ line → keep
@@ -176,8 +177,9 @@ export function sellAdvice(rune, meta, rules) {
 
 	if (rune.locked) return { verdict: 'keep', why: 'locked', line, rl, role: fit.role };
 	if (rune.stars < 5) return { verdict: 'sell', why: 'low-stars', line, rl, role: fit.role };
+	// 弱主属性一律出售, 不设速度豁免(参考站同账号弱主属性满级符文 13/13 出售, 含 5 条速度≥22)
 	const weak = weakMain(rune);
-	if (weak && spd < SPEED_KEEP) return { verdict: 'sell', why: weak, line, rl, role: fit.role };
+	if (weak) return { verdict: 'sell', why: weak, line, rl, role: fit.role };
 	if ((rune.level || 0) < powerupLevel) {
 		// 满级投影: 剩余每roll按期望 +PROJ_PER_ROLL, 距线 PROJ_MARGIN 内即值得先强化
 		const remain = Math.ceil((powerupLevel - (rune.level || 0)) / 3);
