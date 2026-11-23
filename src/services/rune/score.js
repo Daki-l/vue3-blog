@@ -23,7 +23,8 @@
  *                已装备符文不设硬保留——参考站对已装备符文照常给出 sell/gem(校准数据中
  *                已装备被建议出售 262 / 改造 201), UI 单独展示佩戴状态。
  *
- * 效率口径(v1 保留): 单条 = (value+grind)/满roll × 100, 4 条满roll = 400。
+ * 效率(百分数, 与参考站逐颗一致, 见 efficiency()): (基数 + Σ成长当量) ÷ 14 × 100;
+ * 成长当量以 6★ 满成长值为基准, 平值类减半, 含磨砺与固有属性。
  */
 
 /** 取某星级档位某属性的满roll上限; 查不到返回 null */
@@ -200,35 +201,50 @@ export function sellAdvice(rune, meta, rules) {
 }
 
 /**
- * 效率评分(v1 保留, 详情抽屉的 roll 质量条仍在用)
- * @returns {{subsEff:number, totalEff:number, rolls:Array, issues:Array}}
+ * 各星级主属性 +15 满值(效率基数用)。5★/6★ 为实测值; 3★/4★ 中有样本的取自参考站实判反推
+ * (3★: 攻/防 93、体 1380、攻% 38; 4★: 防 113、体 1704), 其余按星级线性内插——
+ * 这类符文一律判出售, 效率仅作展示。
+ */
+const MAIN_MAX = {
+	6: { hp_flat: 2448, atk_flat: 160, def_flat: 160, hp_pct: 63, atk_pct: 63, def_pct: 63, spd: 42, cr: 58, cd: 80, res: 64, acc: 64 },
+	5: { hp_flat: 2088, atk_flat: 135, def_flat: 135, hp_pct: 51, atk_pct: 51, def_pct: 51, spd: 39, cr: 47, cd: 65, res: 51, acc: 51 },
+	4: { hp_flat: 1704, atk_flat: 113, def_flat: 113, hp_pct: 45, atk_pct: 45, def_pct: 45, spd: 36, cr: 41, cd: 57, res: 45, acc: 45 },
+	3: { hp_flat: 1380, atk_flat: 93, def_flat: 93, hp_pct: 38, atk_pct: 38, def_pct: 38, spd: 33, cr: 36, cd: 52, res: 38, acc: 38 }
+};
+const FLAT_STATS = new Set(['hp_flat', 'atk_flat', 'def_flat']);
+/** 效率: (基数 + 成长当量之和) ÷ 14 × 100 */
+const EFF_SCALE = 100 / 14;
+
+/**
+ * 效率(百分数)。与参考站同账号 2844 颗符文逐颗比对: 6★ 2757/2757 精确一致, 全库 99.8%。
+ *   效率% = (基数 + Σ成长当量) ÷ 14 × 100
+ *   成长当量 = 实际值(含磨砺) ÷ 6★ 满成长值, 平值类(体力/攻击/防御固定值)减半;
+ *              副属性与固有属性同口径, 任何星级都以 6★ 为基准(低星符文天然偏低)
+ *   基数     = 5 × 本星级主属性 +15 满值 ÷ 6★ 满值(6★ 恒为 5; 与等级、副属性条数无关)
+ * @returns {{totalEff:number, baseEff:number, subsEff:number, innateEff:number, rolls:Array}}
+ *   rolls: 各副属性原始成长当量(pct = 不含磨砺的值 ÷ 6★ 满成长值, 单条上限 5),
+ *          isMax = 达到 4 次及以上(四条满成长), 供详情抽屉的成长当量条使用
  */
 export function efficiency(rune, meta) {
-	const issues = [];
+	const max6 = meta?.maxRolls?.['6'] || {};
+	const eq = (stat, value) => {
+		const max = max6[stat];
+		return max ? (FLAT_STATS.has(stat) ? 0.5 : 1) * value / max : 0;
+	};
 	const rolls = [];
-	let subsEff = 0;
+	let sum = 0;
 	for (const sub of rune.subs || []) {
-		const max = maxRollFor(meta, rune.stars, sub.stat);
-		if (!max) {
-			issues.push({ scope: 'sub', stat: sub.stat, stars: rune.stars, value: sub.value });
-			rolls.push({ stat: sub.stat, pct: 0, isMax: false });
-			continue;
-		}
-		subsEff += ((sub.value || 0) + (sub.grind || 0)) / max * 100;
-		const pct = (sub.value || 0) / max;
-		rolls.push({ stat: sub.stat, pct, isMax: pct >= 1 });
+		const value = sub.value || 0;
+		sum += eq(sub.stat, value + (sub.grind || 0));
+		const pct = max6[sub.stat] ? value / max6[sub.stat] : 0;
+		rolls.push({ stat: sub.stat, pct, isMax: pct >= 4 });
 	}
-	let totalEff = subsEff;
-	const innate = rune.innate;
-	if (innate && innate.stat) {
-		const max = maxRollFor(meta, rune.stars, innate.stat);
-		if (!max) {
-			issues.push({ scope: 'innate', stat: innate.stat, stars: rune.stars, value: innate.value });
-		} else {
-			totalEff += (innate.value || 0) / max * 100;
-		}
-	}
-	return { subsEff, totalEff, rolls, issues };
+	const mainStat = rune.main?.stat;
+	const ownMax = MAIN_MAX[String(rune.stars)]?.[mainStat];
+	const baseEff = ownMax && MAIN_MAX['6'][mainStat] ? (5 * ownMax) / MAIN_MAX['6'][mainStat] * EFF_SCALE : 0;
+	const innateEff = rune.innate?.stat ? eq(rune.innate.stat, rune.innate.value || 0) * EFF_SCALE : 0;
+	const subsEff = sum * EFF_SCALE;
+	return { totalEff: baseEff + subsEff + innateEff, baseEff, subsEff, innateEff, rolls };
 }
 
 /**

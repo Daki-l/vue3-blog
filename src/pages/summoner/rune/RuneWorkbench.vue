@@ -93,7 +93,7 @@
 							</el-select>
 							<div class="eff_filter">
 								<span>{{ t('rune.filterEff') }}</span>
-								<el-input-number v-model="f.minEff" :min="0" :max="2000" :step="25" controls-position="right" class="w_eff" />
+								<el-input-number v-model="f.minEff" :min="0" :max="200" :step="5" controls-position="right" class="w_eff" />
 							</div>
 							<div class="excl_group">
 								<button type="button" class="pill" :class="{ on: f.exclEquipped }" @click="f.exclEquipped = !f.exclEquipped">
@@ -189,7 +189,7 @@
 											<i v-if="s.gem" class="gem">◆</i>
 										</div>
 									</div>
-									<div class="rc_eff">EFF {{ effOf(r).toFixed(0) }}</div>
+									<div class="rc_eff">{{ t('rune.colEff') }} {{ effOf(r).toFixed(1) }}%</div>
 								</div>
 								<div v-for="i in 6 - buildRunes.length" :key="'e' + i" class="rune_card empty_slot">{{ i + buildRunes.length }}</div>
 							</div>
@@ -211,24 +211,30 @@
 					<el-tag v-if="detail.equipped" size="small">{{ t('rune.equippedTag') }}: {{ unitNameById(detail.equipped) }}</el-tag>
 					<el-tag v-if="detail.locked" size="small" type="warning">{{ t('rune.lockedTag') }}</el-tag>
 					<el-tag size="small" :type="adviceType(detail)">{{ t('rune.advice' + cap(detail._adv?.verdict || adviceOf(detail).verdict)) }}</el-tag>
-				<div v-if="whyText(detail)" class="dt_why">{{ whyText(detail) }}</div>
-				</div>
-				<div class="dt_row main">
-					<span>{{ statName(detail.main.stat) }}</span>
-					<b>{{ fmtVal(detail.main.stat, detail.main.value) }}</b>
-				</div>
-				<div v-if="detail.innate" class="dt_row innate">
-					<span>{{ statName(detail.innate.stat) }}</span>
-					<b>+{{ fmtVal(detail.innate.stat, detail.innate.value) }}</b>
-				</div>
-				<div class="dt_section">{{ t('rune.rollQuality') }}</div>
-				<div v-for="(s, i) in effDetail?.rolls || []" :key="i" class="dt_roll">
-					<span class="dr_name">{{ statName(s.stat) }}</span>
-					<div class="dr_bar">
-						<div class="dr_fill" :class="{ max: s.isMax }" :style="{ width: Math.min(100, s.pct * 100) + '%' }" />
+						<div v-if="whyText(detail)" class="dt_why">{{ whyText(detail) }}</div>
 					</div>
-					<span class="dr_pct">{{ (s.pct * 100).toFixed(0) }}%</span>
-				</div>
+					<div class="dt_row main">
+						<span>{{ statName(detail.main.stat) }}</span>
+						<b>{{ fmtVal(detail.main.stat, detail.main.value) }}</b>
+					</div>
+					<div v-if="detail.innate" class="dt_row innate">
+						<span>{{ statName(detail.innate.stat) }}</span>
+						<b>+{{ fmtVal(detail.innate.stat, detail.innate.value) }}</b>
+					</div>
+					<!-- 效率及其构成: 基数 + 副属性 + 固有 -->
+					<div class="dt_row eff">
+						<span>{{ t('rune.colEff') }}</span>
+						<b>{{ effDetail?.totalEff.toFixed(1) }}%</b>
+					</div>
+					<div class="dt_formula dt_breakdown">{{ t('rune.effBreak', effDetail?.baseEff.toFixed(1), effDetail?.subsEff.toFixed(1), effDetail?.innateEff.toFixed(1)) }}</div>
+					<div class="dt_section">{{ t('rune.rollQuality') }}</div>
+					<div v-for="(s, i) in effDetail?.rolls || []" :key="i" class="dt_roll">
+						<span class="dr_name">{{ statName(s.stat) }}</span>
+						<div class="dr_bar">
+							<div class="dr_fill" :class="{ max: s.isMax }" :style="{ width: Math.min(100, (s.pct / MAX_ROLLS) * 100) + '%' }" />
+						</div>
+						<span class="dr_pct">×{{ +s.pct.toFixed(2) }}</span>
+					</div>
 				<div class="dt_formula">{{ t('rune.effFormula') }}</div>
 			</template>
 		</el-drawer>
@@ -373,6 +379,8 @@ const setDist = computed(() => {
 		.map(([id, n]) => ({ id: Number(id), n, name: setInfo(id)?.name || '#' + id }));
 });
 const effOf = (r) => efficiency(r, meta.value).totalEff;
+/** 单条副属性的成长次数上限(1 次初始 + 4 次强化), 抽屉成长当量条的满格刻度 */
+const MAX_ROLLS = 5;
 const effDetail = computed(() => (detail.value ? efficiency(detail.value, meta.value) : null));
 const adviceType = (r) => ({ keep: 'success', sell: 'danger', gem: 'warning', powerup: 'info' }[adviceOf(r).verdict] || 'info');
 
@@ -512,7 +520,7 @@ const columns = [
 	{ key: 'main', dataKey: 'main', title: t('rune.colMain'), width: 120, cellRenderer: ({ cellData: m }) => h('span', {}, `${statName(m.stat)} ${fmtVal(m.stat, m.value)}`) },
 	{ key: 'subs', dataKey: 'subs', title: t('rune.colSubs'), width: 360, cellRenderer: subsCell },
 	{ key: 'rl', dataKey: '_rl', title: t('rune.colRl'), width: 80, cellRenderer: ({ cellData: v }) => h('b', { class: 'eff_num' }, String(v)) },
-	{ key: 'eff', dataKey: '_eff', title: t('rune.colEff'), width: 90, cellRenderer: ({ cellData: v }) => h('span', { class: 'eff_txt' }, v.toFixed(0)) },
+	{ key: 'eff', dataKey: '_eff', title: t('rune.colEff'), width: 90, cellRenderer: ({ cellData: v }) => h('span', { class: 'eff_txt' }, v.toFixed(1) + '%') },
 	{ key: 'advice', dataKey: '_advice', title: t('rune.colAdvice'), width: 90, cellRenderer: ({ cellData: v }) => adviceTag(v) }
 ];
 const rowClass = ({ rowIndex }) => (rowIndex % 2 ? 'odd_row' : '');
@@ -846,10 +854,15 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 
 	.dt_head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 15px; }
 	.dt_tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+	.dt_why { flex-basis: 100%; margin-top: 4px; font-size: 12px; color: #606266; line-height: 1.6; }
 	.dt_row {
 		display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px;
 		&.main b { color: #409eff; }
 		&.innate b { color: #e6a23c; }
+		&.eff {
+			margin-top: 6px; padding-top: 8px; border-top: 1px dashed #ebeef5;
+			b { color: #303133; font-size: 15px; }
+		}
 	}
 	.dt_section { font-size: 12px; color: #909399; margin: 10px 0 6px; font-weight: 600; }
 	.dt_roll {
@@ -858,7 +871,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 			.dr_fill { height: 100%; background: #a0cfff; border-radius: 4px; &.max { background: #67c23a; } } }
 		.dr_pct { text-align: right; color: #606266; }
 	}
-	.dt_formula { margin-top: 12px; font-size: 12px; color: #c0c4cc; }
+	.dt_formula { margin-top: 12px; font-size: 12px; color: #909399; line-height: 1.6; }
+	.dt_formula.dt_breakdown { margin-top: 2px; }
 }
 
 :deep(.adv_tag) {
