@@ -11,6 +11,7 @@
 					<el-menu-item index="/admin/nav">导航管理</el-menu-item>
 					<el-menu-item index="/admin/notices">公告管理</el-menu-item>
 					<el-menu-item index="/admin/redemptions">兑换记录</el-menu-item>
+					<el-menu-item index="/admin/auto-redeem">自动兑换</el-menu-item>
 					<el-menu-item index="/admin/messages">留言管理</el-menu-item>
 				</el-menu>
 			</el-aside>

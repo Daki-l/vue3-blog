@@ -257,6 +257,71 @@ async function getSummonerRecords(params) {
     return http.get('/admin/summoner-records', params);
 }
 
+// ===== 自动兑换 =====
+
+/**
+ * 概览 -> {enabled, setAt, allowlist, accounts, pending, today:{calls,success,used}, lastRun}
+ */
+async function getAutoRedeemOverview() {
+    return http.get('/admin/auto-redeem/overview');
+}
+
+/**
+ * 总开关 {enabled} -> {enabled, setAt}
+ */
+async function setAutoRedeemConfig(enabled) {
+    return http.patch('/admin/auto-redeem/config', { enabled });
+}
+
+/**
+ * 白名单 -> {list:[{userId, username, nickname, role, status, note, createdAt, autoAccounts}]}
+ */
+async function getAutoRedeemAllowlist() {
+    return http.get('/admin/auto-redeem/allowlist');
+}
+
+/**
+ * 加入白名单 {userId, note?} -> {item}
+ */
+async function addAutoRedeemAllowlist(userId, note) {
+    return http.post('/admin/auto-redeem/allowlist', { userId, note });
+}
+
+/**
+ * 移出白名单 -> {success:true}
+ */
+async function removeAutoRedeemAllowlist(userId) {
+    return http.delete(`/admin/auto-redeem/allowlist/${userId}`);
+}
+
+/**
+ * 已开启自动兑换的账号 -> {list}
+ */
+async function getAutoRedeemAccounts() {
+    return http.get('/admin/auto-redeem/accounts');
+}
+
+/**
+ * 运行记录 {page, pageSize} -> {list, total}
+ */
+async function getAutoRedeemRuns(params = {}) {
+    return http.get('/admin/auto-redeem/runs', params);
+}
+
+/**
+ * 立即执行一个切片 -> {run}
+ */
+async function runAutoRedeemNow() {
+    return http.post('/admin/auto-redeem/run');
+}
+
+/**
+ * 账本 {page, pageSize, status?, keyword?} -> {list, total}
+ */
+async function getAutoRedeemLedger(params = {}) {
+    return http.get('/admin/auto-redeem/ledger', params);
+}
+
 export {
     getAdminCoupons,
     getSummonerRecords,
@@ -264,6 +329,15 @@ export {
     getDegradeStatus,
     setDegradeEnabled,
     replayDegradeBuffer,
+    getAutoRedeemOverview,
+    setAutoRedeemConfig,
+    getAutoRedeemAllowlist,
+    addAutoRedeemAllowlist,
+    removeAutoRedeemAllowlist,
+    getAutoRedeemAccounts,
+    getAutoRedeemRuns,
+    runAutoRedeemNow,
+    getAutoRedeemLedger,
     getVisitStats,
     getAdminSummoners,
     getAdminArticles,

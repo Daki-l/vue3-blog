@@ -33,10 +33,16 @@
 					<template v-if="row.username">
 						{{ row.username }}<el-tag v-if="Number(row.attributed) === 1" size="small" type="info" style="margin-left: 4px">绑定</el-tag>
 					</template>
-					<span v-else>-</span>
-				</template>
-			</el-table-column>
-			<el-table-column label="召唤师" min-width="140">
+						<span v-else>-</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="来源" width="80" align="center">
+					<template #default="{ row }">
+						<el-tag v-if="row.source === 'auto'" size="small" type="warning">自动</el-tag>
+						<span v-else>手动</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="召唤师" min-width="140">
 				<template #default="{ row }">{{ row.wizard_name || '-' }}</template>
 			</el-table-column>
 			<el-table-column label="服务器" width="150">

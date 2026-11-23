@@ -112,6 +112,15 @@
 				<el-table-column prop="createdAt" :label="t('hive.bindTime')" width="180">
 					<template #default="{ row }">{{ formatDateTime(row.createdAt || row.created_at) }}</template>
 				</el-table-column>
+				<!-- 自动兑换开关:仅白名单用户与管理员可见(接口返回 allowed=true) -->
+				<el-table-column v-if="autoRedeem.allowed" :label="t('autoRedeem.col')" width="100" align="center">
+					<template #default="{ row }">
+						<el-switch
+							:model-value="autoRedeemMap[row.id] === 1"
+							:disabled="!!arSwitching[row.id]"
+							@change="(val) => toggleAutoRedeem(row, val)" />
+					</template>
+				</el-table-column>
 				<el-table-column :label="t('common.action')" width="90" align="right">
 					<template #default="{ row }">
 						<el-popconfirm :title="t('hive.confirmDelete')" @confirm="handleDeleteHive(row)">
@@ -125,6 +134,45 @@
 					<el-empty :description="t('hive.empty')" :image-size="80" />
 				</template>
 			</el-table>
+		</el-card>
+
+		<!-- 区块3.4 兑换码使用情况(自动兑换;行 = 我的账号,列 = 最近 20 个兑换码;仅白名单用户与管理员可见) -->
+		<el-card shadow="never" class="section_card" v-if="autoRedeem.allowed">
+			<template #header><span class="section_title">{{ t('autoRedeem.title') }}</span></template>
+			<el-alert
+				v-if="!autoRedeem.enabled"
+				:title="t('autoRedeem.paused')"
+				type="info"
+				show-icon
+				:closable="false"
+				class="ar_alert" />
+			<div class="ar_tip">{{ t('autoRedeem.tip') }}</div>
+			<el-table :data="autoRedeem.rows" border v-loading="arLoading" size="small" v-if="autoRedeem.codes.length > 0">
+				<el-table-column :label="t('common.account')" min-width="180" fixed>
+					<template #default="{ row }">{{ row.name }}</template>
+				</el-table-column>
+				<el-table-column v-for="code in autoRedeem.codes" :key="code.code" min-width="118" align="center">
+					<template #header>
+						<el-tooltip v-if="code.content" :content="code.content" placement="top">
+							<div class="ar_code">{{ (code.code || '').toUpperCase() }}</div>
+						</el-tooltip>
+						<div v-else class="ar_code">{{ (code.code || '').toUpperCase() }}</div>
+						<div class="ar_code_meta">
+							<el-tag v-if="code.status !== 'verified'" size="small" type="info">{{ t('autoRedeem.expired') }}</el-tag>
+						</div>
+					</template>
+					<template #default="{ row }">
+						<el-tooltip v-if="row.cells[code.code]" :content="cellTooltip(row.cells[code.code])" placement="top">
+							<span :class="['ar_cell', 'ar_' + cellKind(row.cells[code.code])]">{{ cellText(row.cells[code.code]) }}</span>
+						</el-tooltip>
+						<span v-else class="ar_none">-</span>
+					</template>
+				</el-table-column>
+				<template #empty>
+					<el-empty :description="t('hive.empty')" :image-size="60" />
+				</template>
+			</el-table>
+			<el-empty v-else :description="t('autoRedeem.empty')" :image-size="60" />
 		</el-card>
 
 		<!-- 区块3.5 我的收藏(3v3 防守/克制) -->
@@ -198,6 +246,7 @@ import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
 import { getHiveIds, addHiveId, deleteHiveId, changePassword } from '@/services/auth';
 import { getMyRedemptions } from '@/services/redemption';
+import { getMyAutoRedeem, setAutoRedeem } from '@/services/autoRedeem';
 import { getFavorites, toggleFavorite } from '@/services/interact3mdc';
 import { fetchDefense, fetch3mdcManifest } from '@/services/3mdc';
 import { fetchMonsterList } from '@/services/monster';
@@ -352,6 +401,8 @@ const submitAddHive = async () => {
 		hiveForm.hiveId = '';
 		hiveForm.label = '';
 		initHiveList();
+		// 新账号要立刻出现在开关列与状态矩阵里
+		initAutoRedeem();
 	} catch (e) {
 		// 错误提示由 axios 拦截器统一处理
 	} finally {
@@ -364,9 +415,103 @@ const handleDeleteHive = async (row) => {
 		await deleteHiveId(row.id);
 		ElMessage.success(t('hive.deleted'));
 		initHiveList();
+		// 被删账号要从开关列与状态矩阵里移除
+		initAutoRedeem();
 	} catch (e) {
 		// 错误提示由 axios 拦截器统一处理
 	}
+};
+
+// ===== 区块3.4 兑换码使用情况(自动兑换) =====
+// 仅白名单用户与管理员拿到 allowed=true;其余用户接口返回 {allowed:false},开关列与本卡片都不显示
+const INVALID_MAX_ATTEMPTS = 3; // 码无效的总尝试上限,与后端 lib/auto-redeem.ts 的 MAX_ATTEMPTS.invalid 一致
+const emptyAutoRedeem = () => ({ allowed: false, enabled: false, codes: [], rows: [] });
+const autoRedeem = ref(emptyAutoRedeem());
+const autoRedeemMap = ref({}); // 绑定 id -> 是否开启自动兑换(1/0)
+const arLoading = ref(false);
+const arSwitching = ref({});
+
+const initAutoRedeem = async () => {
+	arLoading.value = true;
+	try {
+		const res = await getMyAutoRedeem();
+		if (!res?.allowed) {
+			autoRedeem.value = emptyAutoRedeem();
+			return;
+		}
+		const cells = res.cells || {};
+		const map = {};
+		autoRedeem.value = {
+			allowed: true,
+			enabled: !!res.enabled,
+			codes: res.codes || [],
+			// 单元格 key 为 `绑定id|code`,这里按行拆开
+			rows: (res.accounts || []).map((item) => {
+				map[item.id] = item.autoRedeem;
+				const prefix = `${item.id}|`;
+				const rowCells = {};
+				Object.keys(cells).forEach((key) => {
+					if (key.startsWith(prefix)) {
+						rowCells[key.slice(prefix.length)] = cells[key];
+					}
+				});
+				const name = item.wizardName ? `${item.wizardName}(${item.hiveId})` : item.hiveId;
+				return { id: item.id, name: `${name}（${getServerLabel(item.server)}）`, cells: rowCells };
+			})
+		};
+		autoRedeemMap.value = map;
+	} catch (e) {
+		// 接口不可用(如后端尚未部署)时静默,不展示自动兑换相关区块
+		autoRedeem.value = emptyAutoRedeem();
+	} finally {
+		arLoading.value = false;
+	}
+};
+
+const toggleAutoRedeem = async (row, val) => {
+	arSwitching.value = { ...arSwitching.value, [row.id]: true };
+	try {
+		await setAutoRedeem(row.id, !!val);
+		ElMessage.success(val ? t('autoRedeem.onOk') : t('autoRedeem.offOk'));
+		await initAutoRedeem();
+	} catch (e) {
+		// 错误提示由 axios 拦截器统一处理
+	} finally {
+		arSwitching.value = { ...arSwitching.value, [row.id]: false };
+	}
+};
+
+// 账本单元格 -> 展示类别
+const cellKind = (cell) => {
+	if (cell.status === 'success') return cell.origin === 'auto' ? 'success_auto' : 'success';
+	if (cell.status === 'invalid') return cell.attempts >= INVALID_MAX_ATTEMPTS ? 'invalid' : 'retry';
+	if (cell.status === 'used' || cell.status === 'acct_invalid') return cell.status;
+	return 'retry'; // pending / transient:之后还会重试
+};
+
+const cellText = (cell) => {
+	const kind = cellKind(cell);
+	if (kind === 'retry') {
+		if (cell.status === 'invalid') return t('autoRedeem.stInvalidRetry');
+		return cell.status === 'pending' ? t('autoRedeem.stPending') : t('autoRedeem.stTransient');
+	}
+	return {
+		success_auto: t('autoRedeem.stSuccessAuto'),
+		success: t('autoRedeem.stSuccess'),
+		used: t('autoRedeem.stUsed'),
+		invalid: t('autoRedeem.stInvalid'),
+		acct_invalid: t('autoRedeem.stAcctInvalid')
+	}[kind];
+};
+
+const cellTooltip = (cell) => {
+	const parts = [];
+	const kind = cellKind(cell);
+	if (kind === 'retry' || kind === 'invalid') parts.push(t('autoRedeem.attempts', cell.attempts || 0));
+	const msg = String(cell.ret_msg || '').replace(/<br\s*\/?>/gi, ' ').trim();
+	if (msg && msg !== 'code_cooldown') parts.push(msg);
+	if (cell.status === 'acct_invalid') parts.push(t('autoRedeem.acctInvalidTip'));
+	return parts.join('；');
 };
 
 // ===== 区块4 我的兑换记录 =====
@@ -446,6 +591,7 @@ onMounted(async () => {
 		baseLoading.value = false;
 	}
 	initHiveList();
+	initAutoRedeem();
 	initRedemptionList();
 	loadFavorites();
 });
@@ -497,6 +643,45 @@ onBeforeUnmount(() => {
 	}
 	.success_text {
 		color: #67c23a;
+	}
+	// 兑换码使用情况矩阵
+	.ar_alert {
+		margin-bottom: 10px;
+	}
+	.ar_tip {
+		font-size: 12px;
+		color: #909399;
+		margin-bottom: 10px;
+	}
+	.ar_code {
+		font-weight: 600;
+		letter-spacing: 0.3px;
+	}
+	.ar_code_meta {
+		height: 20px;
+		margin-top: 2px;
+	}
+	.ar_cell {
+		font-size: 12px;
+		white-space: nowrap;
+		&.ar_success,
+		&.ar_success_auto {
+			color: #67c23a;
+		}
+		&.ar_used {
+			color: #67c23a;
+			opacity: 0.7;
+		}
+		&.ar_retry {
+			color: #e6a23c;
+		}
+		&.ar_invalid,
+		&.ar_acct_invalid {
+			color: #f56c6c;
+		}
+	}
+	.ar_none {
+		color: #c0c4cc;
 	}
 	// 手机 web:内边距压缩,表单项占满全宽(表格由 el-table 自带横向滚动)
 	@media (max-width: 768px) {

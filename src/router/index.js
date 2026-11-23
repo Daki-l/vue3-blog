@@ -163,6 +163,12 @@ const routes = [
                         meta: { auth: true, admin: true }
                     },
                     {
+                        path: 'auto-redeem',
+                        name: 'adminAutoRedeem',
+                        component: () => import('@/pages/admin/AutoRedeem.vue'),
+                        meta: { auth: true, admin: true }
+                    },
+                    {
                         path: 'messages',
                         name: 'adminMessages',
                         component: AdminMessages,
