@@ -71,14 +71,21 @@
 						<el-select v-model="f.main" clearable size="small" :placeholder="t('rune.filterMain')" style="width: 110px">
 							<el-option v-for="(nm, st) in STAT_OPTS" :key="st" :label="nm" :value="st" />
 						</el-select>
-						<el-select v-model="f.advice" clearable size="small" :placeholder="t('rune.filterAdvice')" style="width: 90px">
+						<el-select v-model="f.advice" clearable size="small" :placeholder="t('rune.filterAdvice')" style="width: 100px">
 							<el-option :label="t('rune.adviceKeep')" value="keep" />
 							<el-option :label="t('rune.adviceSell')" value="sell" />
-							<el-option :label="t('rune.adviceConsider')" value="consider" />
+							<el-option :label="t('rune.adviceGem')" value="gem" />
+							<el-option :label="t('rune.advicePowerup')" value="powerup" />
 						</el-select>
 						<div class="eff_filter">
 							<span>{{ t('rune.filterEff') }}</span>
 							<el-input-number v-model="f.minEff" :min="0" :max="2000" :step="25" size="small" controls-position="right" style="width: 100px" />
+						</div>
+						<div class="line_ctl">
+							<span>{{ t('rune.line') }}</span>
+							<el-switch v-model="lineManual" size="small" />
+							<el-slider v-if="lineManual" v-model="manualLineV" :min="0" :max="500" :step="5" style="width: 120px" />
+							<b v-else>{{ t('rune.lineAuto', autoLineV) }}</b>
 						</div>
 					</div>
 
@@ -163,7 +170,8 @@
 				<div class="dt_tags">
 					<el-tag v-if="detail.equipped" size="small">{{ t('rune.equippedTag') }}: {{ unitNameById(detail.equipped) }}</el-tag>
 					<el-tag v-if="detail.locked" size="small" type="warning">{{ t('rune.lockedTag') }}</el-tag>
-					<el-tag size="small" :type="adviceType(detail)">{{ t('rune.advice' + cap(sellAdvice(detail, meta, rules))) }}</el-tag>
+					<el-tag size="small" :type="adviceType(detail)">{{ t('rune.advice' + cap(detail._adv?.verdict || adviceOf(detail).verdict)) }}</el-tag>
+				<div v-if="whyText(detail)" class="dt_why">{{ whyText(detail) }}</div>
 				</div>
 				<div class="dt_row main">
 					<span>{{ statName(detail.main.stat) }}</span>
@@ -193,7 +201,7 @@ import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { parseProfile } from '@/services/rune/swex';
 import { saveProfile, listProfiles, getProfile, deleteProfile, setActive, getActive, isAvailable } from '@/services/rune/store';
-import { efficiency, sellAdvice, loadRules } from '@/services/rune/score';
+import { efficiency, sellAdvice, loadRules, autoLine } from '@/services/rune/score';
 import { fetchRuneMeta } from '@/services/rune/meta';
 import { fetchZhNames, fetchMonsterList, monsterImg } from '@/services/monster';
 import { t } from '@/common/i18n';
@@ -215,6 +223,8 @@ const selUnit = ref(null);
 const detailShow = ref(false);
 const detail = ref(null);
 const f = reactive({ setId: null, slot: null, stars: null, ancient: 'all', main: null, advice: null, minEff: 0 });
+const manualLine = ref(null); // null=自动; 数字=手动线(持久化)
+try { const v = Number(localStorage.getItem('sw_rune_line')); if (v > 0) manualLine.value = v; } catch {}
 const tableBox = ref(null);
 const tableW = ref(1000);
 
@@ -235,6 +245,25 @@ const setInfo = (id) => meta.value?.sets?.[String(id)];
 const SET_COLORS = ['#8a9ba8', '#7a6ff0', '#4bb3ff', '#e05a5a', '#f08c2e', '#59c15c', '#c9a13b', '#a06fd6', '#2ec4b6', '#d6598f', '#8b6f47', '#6f87d6'];
 const setColor = (id) => SET_COLORS[(id - 1) % SET_COLORS.length];
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const lineManual = computed({ get: () => manualLine.value != null, set: (v) => { manualLine.value = v ? (autoLineV.value || 180) : null; try { v ? localStorage.setItem('sw_rune_line', String(manualLine.value)) : localStorage.removeItem('sw_rune_line'); } catch {} } });
+const manualLineV = computed({ get: () => manualLine.value ?? autoLineV.value, set: (v) => { manualLine.value = v; try { localStorage.setItem('sw_rune_line', String(v)); } catch {} } });
+const WHY_KEYS = { equipped: 'rune.whyEquipped', locked: 'rune.whyLocked', unfinished: 'rune.whyUnfinished', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth' };
+const whyText = (r) => {
+	const a = r?._adv || (r ? adviceOf(r) : null);
+	if (!a) return '';
+	const key = WHY_KEYS[a.why];
+	const base = key ? t(key, a.rl, a.line, a.potential ?? a.rl) : a.why;
+	if (a.plan && (a.verdict === 'gem' || a.verdict === 'sell')) {
+		return base + ' · ' + t('rune.planText', statName(a.plan.from), statName(a.plan.to), a.potential);
+	}
+	return base;
+};
+
+// ---- 出售判定 v2: RL分 + 分界线(自动=库存40分位/手动) ----
+const autoLineV = computed(() => autoLine(active.value?.runes || [], meta.value));
+const lineV = computed(() => (manualLine.value != null ? manualLine.value : autoLineV.value));
+const lineRules = computed(() => ({ line: lineV.value, fallbackLine: autoLineV.value }));
+const adviceOf = (r) => sellAdvice(r, meta.value, lineRules.value);
 
 // ---- 数据推导 ----
 const equippedCount = computed(() => active.value?.runes.filter((r) => r.equipped).length || 0);
@@ -247,11 +276,11 @@ const setDist = computed(() => {
 		.map(([id, n]) => ({ id: Number(id), n, name: setInfo(id)?.name || '#' + id }));
 });
 const sellableCount = computed(
-	() => active.value?.runes.filter((r) => sellAdvice(r, meta.value, rules.value) === 'sell').length || 0
+	() => active.value?.runes.filter((r) => adviceOf(r).verdict === 'sell').length || 0
 );
 const effOf = (r) => efficiency(r, meta.value).totalEff;
 const effDetail = computed(() => (detail.value ? efficiency(detail.value, meta.value) : null));
-const adviceType = (r) => ({ keep: 'success', sell: 'danger', consider: 'info' }[sellAdvice(r, meta.value, rules.value)] || 'info');
+const adviceType = (r) => ({ keep: 'success', sell: 'danger', gem: 'warning', powerup: 'info' }[adviceOf(r).verdict] || 'info');
 
 const filteredRunes = computed(() => {
 	const rows = [];
@@ -262,10 +291,11 @@ const filteredRunes = computed(() => {
 		if (f.ancient === 'only' && !r.ancient) continue;
 		if (f.ancient === 'no' && r.ancient) continue;
 		if (f.main && r.main.stat !== f.main) continue;
-		if (f.advice && sellAdvice(r, meta.value, rules.value) !== f.advice) continue;
+		const a = adviceOf(r);
+		if (f.advice && a.verdict !== f.advice) continue;
 		const eff = efficiency(r, meta.value).totalEff;
 		if (eff < f.minEff) continue;
-		rows.push({ ...r, _eff: eff, _advice: sellAdvice(r, meta.value, rules.value) });
+		rows.push({ ...r, _eff: eff, _rl: a.rl, _advice: a.verdict, _adv: a });
 	}
 	return rows.sort((a, b) => b._eff - a._eff);
 });
@@ -371,7 +401,8 @@ const columns = [
 	{ key: 'stars', dataKey: 'stars', title: t('rune.colStars'), width: 110, cellRenderer: ({ rowData: r }) => h('span', {}, `${r.ancient ? t('rune.ancientTag') + ' ' : ''}${r.stars}★+${r.level}`) },
 	{ key: 'main', dataKey: 'main', title: t('rune.colMain'), width: 120, cellRenderer: ({ cellData: m }) => h('span', {}, `${statName(m.stat)} ${fmtVal(m.stat, m.value)}`) },
 	{ key: 'subs', dataKey: 'subs', title: t('rune.colSubs'), width: 360, cellRenderer: subsCell },
-	{ key: 'eff', dataKey: '_eff', title: t('rune.colEff'), width: 90, cellRenderer: ({ cellData: v }) => h('b', { class: 'eff_num' }, v.toFixed(0)) },
+	{ key: 'rl', dataKey: '_rl', title: t('rune.colRl'), width: 80, cellRenderer: ({ cellData: v }) => h('b', { class: 'eff_num' }, String(v)) },
+	{ key: 'eff', dataKey: '_eff', title: t('rune.colEff'), width: 90, cellRenderer: ({ cellData: v }) => h('span', { class: 'eff_txt' }, v.toFixed(0)) },
 	{ key: 'advice', dataKey: '_advice', title: t('rune.colAdvice'), width: 90, cellRenderer: ({ cellData: v }) => adviceTag(v) }
 ];
 const rowClass = ({ rowIndex }) => (rowIndex % 2 ? 'odd_row' : '');
@@ -597,6 +628,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 	&.keep { background: #f0f9eb; color: #67c23a; }
 	&.sell { background: #fef0f0; color: #f56c6c; }
 	&.consider { background: #f4f4f5; color: #909399; }
+	&.gem { background: #fdf6ec; color: #e6a23c; }
+	&.powerup { background: #ecf5ff; color: #409eff; }
 }
 :deep(.set_cell) {
 	display: inline-flex;
