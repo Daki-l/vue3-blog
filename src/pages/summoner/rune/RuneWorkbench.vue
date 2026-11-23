@@ -25,97 +25,108 @@
 			<!-- 存储降级提示 -->
 			<div v-if="!storeOk" class="storage_warn">{{ t('rune.storageDown') }}</div>
 
-			<!-- 统计卡 -->
-			<div class="stat_row">
-				<div class="stat_card">
-					<div class="stat_num">{{ active.runes.length }}</div>
-					<div class="stat_label">{{ t('rune.total', active.runes.length) }}</div>
-				</div>
-				<div class="stat_card">
-					<div class="stat_num">{{ equippedCount }}</div>
-					<div class="stat_label">{{ t('rune.equippedCount', equippedCount) }}</div>
-				</div>
-				<div class="stat_card verdict_card">
-					<div class="stat_label">{{ t('rune.verdictDist') }}</div>
-					<div class="set_bar">
-						<span v-for="v in verdictDist" :key="v.k" class="set_chip adv_chip" :class="v.k">
-							<i />{{ v.label }} ×{{ v.n }}
-						</span>
-					</div>
-				</div>
-				<div class="stat_card set_card">
-					<div class="stat_label">{{ t('rune.setDist') }}</div>
-					<div class="set_bar">
-						<span v-for="s in setDist" :key="s.id" class="set_chip">
-							<i :style="{ background: setColor(s.id) }" />{{ s.name }} ×{{ s.n }}
-						</span>
-					</div>
-				</div>
-			</div>
-
 			<!-- Tab 切换 -->
 			<el-tabs v-model="tab" class="wb_tabs">
 				<el-tab-pane :label="t('rune.tabRunes')" name="runes">
-					<!-- 筛选栏 -->
-					<div class="filter_bar">
-						<el-select v-model="f.sets" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterSet')" style="width: 140px">
-							<el-option v-for="(s, id) in meta?.sets || {}" :key="id" :label="s.name" :value="Number(id)" />
-						</el-select>
-						<el-select v-model="f.slots" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterSlot')" style="width: 100px">
-							<el-option v-for="i in 6" :key="i" :label="String(i)" :value="i" />
-						</el-select>
-						<el-select v-model="f.starsArr" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterStars')" style="width: 100px">
-							<el-option v-for="i in [4, 5, 6]" :key="i" :label="i + '★'" :value="i" />
-						</el-select>
-						<el-select v-model="f.quality" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterQuality')" style="width: 120px">
-							<el-option v-for="(nm, q) in QUALITY_NAME" :key="q" :label="nm" :value="q" />
-						</el-select>
-						<el-select v-model="f.ancient" size="small" :placeholder="t('rune.filterAncient')" style="width: 100px">
-							<el-option :label="t('rune.filterAncientAll')" value="all" />
-							<el-option :label="t('rune.filterAncientOnly')" value="only" />
-							<el-option :label="t('rune.filterAncientNo')" value="no" />
-						</el-select>
-						<el-select v-model="f.main" clearable filterable size="small" :placeholder="t('rune.filterMain')" style="width: 110px">
-							<el-option v-for="(nm, st) in STAT_OPTS" :key="st" :label="nm" :value="st" />
-						</el-select>
-						<el-select v-model="f.advice" clearable size="small" :placeholder="t('rune.filterAdvice')" style="width: 100px">
-							<el-option :label="t('rune.adviceKeep')" value="keep" />
-							<el-option :label="t('rune.adviceSell')" value="sell" />
-							<el-option :label="t('rune.adviceGem')" value="gem" />
-							<el-option :label="t('rune.advicePowerup')" value="powerup" />
-						</el-select>
-						<div class="eff_filter">
-							<span>{{ t('rune.filterEff') }}</span>
-							<el-input-number v-model="f.minEff" :min="0" :max="2000" :step="25" size="small" controls-position="right" style="width: 100px" />
+					<!-- 面板头: 数量 + 判定图例 + 保留标准(结构对齐参考站面板头) -->
+					<div class="wb_head_card">
+						<div class="hc_row">
+							<div class="hc_stat">
+								<div class="hc_num">{{ t('rune.headCount', fmtInt(active.runes.length)) }}</div>
+								<div class="hc_sub">{{ t('rune.headSub', fmtInt(equippedCount), fmtInt(active.runes.length - equippedCount)) }}</div>
+							</div>
+							<div class="hc_ctl">
+								<el-icon class="hc_ctl_icon"><Flag /></el-icon>
+								<span>{{ t('rune.keepStandard') }}</span>
+								<el-segmented v-model="lineMode" :options="LINE_MODES" />
+								<el-input-number v-if="lineManual" v-model="manualLineV" :min="0" :max="600" :step="5" controls-position="right" class="hc_line_input" />
+								<el-select v-else v-model="lineQ" class="hc_q_select">
+									<el-option v-for="q in LINE_QS" :key="q" :label="t('rune.lineQuantile', q)" :value="q" />
+								</el-select>
+							</div>
 						</div>
-						<div class="excl_group">
-							<span>{{ t('rune.excl') }}</span>
-							<el-checkbox v-model="f.exclEquipped" size="small">{{ t('rune.exclEquipped') }}</el-checkbox>
-							<el-checkbox v-model="f.exclLocked" size="small">{{ t('rune.exclLocked') }}</el-checkbox>
-							<el-checkbox v-model="f.exclSpeed" size="small">{{ t('rune.exclSpeed') }}</el-checkbox>
-						</div>
-						<el-select v-model="f.sort" size="small" style="width: 100px">
-							<el-option v-for="(nm, k) in SORT_NAME" :key="k" :label="nm" :value="k" />
-						</el-select>
-						<el-input v-model="f.kw" clearable size="small" :placeholder="t('rune.searchPh')" style="width: 180px" :prefix-icon="Search" />
-						<div class="line_ctl">
-							<span>{{ t('rune.line') }}</span>
-							<el-switch v-model="lineManual" size="small" />
-							<el-slider v-if="lineManual" v-model="manualLineV" :min="0" :max="500" :step="5" style="width: 120px" />
-							<b v-else>{{ t('rune.lineAuto', autoLineV) }}</b>
-							<el-select v-if="!lineManual" v-model="lineQ" size="small" style="width: 120px">
-								<el-option v-for="q in LINE_QS" :key="q" :label="t('rune.lineQuantile', q)" :value="q" />
-							</el-select>
+						<div class="hc_row legend_row">
+							<div class="hc_legend">
+								<span v-for="v in verdictDist" :key="v.k" class="adv_chip" :class="v.k"><i />{{ v.label }} <b>{{ fmtInt(v.n) }}</b></span>
+							</div>
+							<div class="hc_sets">
+								<span class="hc_sets_lbl">{{ t('rune.setDist') }}</span>
+								<span v-for="s in setDist" :key="s.id" class="set_chip"><i :style="{ background: setColor(s.id) }" />{{ s.name }} {{ fmtInt(s.n) }}</span>
+							</div>
 						</div>
 					</div>
 
-					<!-- 筛选结果: 命中数 + 线上/线下图例(虚拟表格看不到总数, 这里给全量统计) -->
-					<div class="result_bar">
-						<span class="rb_count">{{ t('rune.resultCount', filteredRunes.length, active.runes.length) }}</span>
-						<span class="rb_legend">
-							<span><i class="dot above" />{{ t('rune.aboveLine', aboveLineCount) }}</span>
-							<span><i class="dot below" />{{ t('rune.belowLine', belowLineCount) }}</span>
-						</span>
+					<!-- 筛选区: 分组 chip → 下拉/排除 → 搜索/排序 → 结果 -->
+					<div class="filter_area">
+						<div class="f_row">
+							<div class="chip_group">
+								<span class="gl">{{ t('rune.filterSlot') }}</span>
+								<button v-for="i in 6" :key="i" type="button" class="chip num" :class="{ on: f.slots.includes(i) }" @click="toggleIn(f.slots, i)">{{ i }}</button>
+							</div>
+							<div class="chip_group">
+								<span class="gl">{{ t('rune.filterStars') }}</span>
+								<button v-for="i in [4, 5, 6]" :key="i" type="button" class="chip" :class="{ on: f.starsArr.includes(i) }" @click="toggleIn(f.starsArr, i)">{{ i }}★</button>
+							</div>
+							<div class="chip_group">
+								<span class="gl">{{ t('rune.filterQuality') }}</span>
+								<button v-for="(nm, q) in QUALITY_NAME" :key="q" type="button" class="chip" :class="{ on: f.quality.includes(q) }" @click="toggleIn(f.quality, q)">
+									<i class="qdot" :style="{ background: QUALITY_COLOR[q] }" />{{ nm }}
+								</button>
+							</div>
+							<div class="chip_group">
+								<span class="gl">{{ t('rune.filterAncient') }}</span>
+								<button v-for="a in ANCIENT_OPTS" :key="a.v" type="button" class="chip" :class="{ on: f.ancient === a.v }" @click="f.ancient = a.v">{{ a.label }}</button>
+							</div>
+						</div>
+						<div class="f_row">
+							<el-select v-model="f.sets" multiple collapse-tags collapse-tags-tooltip clearable :placeholder="t('rune.filterSet')" class="w_set">
+								<el-option v-for="(s, id) in meta?.sets || {}" :key="id" :label="s.name" :value="Number(id)" />
+							</el-select>
+							<el-select v-model="f.main" clearable filterable :placeholder="t('rune.filterMain')" class="w_main">
+								<el-option v-for="(nm, st) in STAT_OPTS" :key="st" :label="nm" :value="st" />
+							</el-select>
+							<el-select v-model="f.advice" clearable :placeholder="t('rune.filterAdvice')" class="w_advice">
+								<el-option :label="t('rune.adviceKeep')" value="keep" />
+								<el-option :label="t('rune.adviceSell')" value="sell" />
+								<el-option :label="t('rune.adviceGem')" value="gem" />
+								<el-option :label="t('rune.advicePowerup')" value="powerup" />
+							</el-select>
+							<div class="eff_filter">
+								<span>{{ t('rune.filterEff') }}</span>
+								<el-input-number v-model="f.minEff" :min="0" :max="2000" :step="25" controls-position="right" class="w_eff" />
+							</div>
+							<div class="excl_group">
+								<button type="button" class="pill" :class="{ on: f.exclEquipped }" @click="f.exclEquipped = !f.exclEquipped">
+									<el-icon><UserFilled /></el-icon>{{ t('rune.exclEquipped') }}
+								</button>
+								<button type="button" class="pill" :class="{ on: f.exclLocked }" @click="f.exclLocked = !f.exclLocked">
+									<el-icon><Lock /></el-icon>{{ t('rune.exclLocked') }}
+								</button>
+								<button type="button" class="pill" :class="{ on: f.exclSpeed }" @click="f.exclSpeed = !f.exclSpeed">
+									<el-icon><Timer /></el-icon>{{ t('rune.exclSpeed') }}
+								</button>
+							</div>
+						</div>
+						<div class="f_row search_row">
+							<el-input v-model="f.kw" clearable :placeholder="t('rune.searchPh')" :prefix-icon="Search" class="search_input" />
+							<el-select v-model="sortField" class="w_sort_field">
+								<el-option :label="t('rune.colEff')" value="eff" />
+								<el-option :label="t('rune.colRl')" value="rl" />
+							</el-select>
+							<el-button class="sort_btn" @click="sortAsc = !sortAsc">
+								<el-icon><SortDown v-if="!sortAsc" /><SortUp v-else /></el-icon>
+								<span>{{ sortAsc ? t('rune.sortAsc') : t('rune.sortDesc') }}</span>
+							</el-button>
+						</div>
+
+						<!-- 筛选结果: 命中数 + 线上/线下计数(虚拟表格看不到总数, 这里给全量统计) -->
+						<div class="result_bar">
+							<span class="rb_count">{{ t('rune.resultCount', fmtInt(filteredRunes.length), fmtInt(active.runes.length)) }}</span>
+							<span class="rb_legend">
+								<span><i class="dot above" />{{ t('rune.aboveLine', lineV, fmtInt(aboveLineCount)) }}</span>
+								<span><i class="dot below" />{{ t('rune.belowLine', lineV, fmtInt(belowLineCount)) }}</span>
+							</span>
+						</div>
 					</div>
 
 					<!-- 虚拟滚动表格 -->
@@ -228,7 +239,7 @@
 import { computed, h, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search } from '@element-plus/icons-vue';
+import { Flag, Lock, Search, SortDown, SortUp, Timer, UserFilled } from '@element-plus/icons-vue';
 import { parseProfile } from '@/services/rune/swex';
 import { saveProfile, listProfiles, getProfile, deleteProfile, setActive, getActive, isAvailable } from '@/services/rune/store';
 import { efficiency, sellAdvice, loadRules, autoLine } from '@/services/rune/score';
@@ -275,6 +286,13 @@ const setInfo = (id) => meta.value?.sets?.[String(id)];
 const SET_COLORS = ['#8a9ba8', '#7a6ff0', '#4bb3ff', '#e05a5a', '#f08c2e', '#59c15c', '#c9a13b', '#a06fd6', '#2ec4b6', '#d6598f', '#8b6f47', '#6f87d6'];
 const setColor = (id) => SET_COLORS[(id - 1) % SET_COLORS.length];
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const fmtInt = (n) => Number(n || 0).toLocaleString('en-US');
+/** 多选 chip 组的选中数组里切换一个值 */
+const toggleIn = (arr, v) => {
+	const i = arr.indexOf(v);
+	if (i >= 0) arr.splice(i, 1);
+	else arr.push(v);
+};
 const lineManual = computed({ get: () => manualLine.value != null, set: (v) => { manualLine.value = v ? (autoLineV.value || 210) : null; try { v ? localStorage.setItem('sw_rune_line', String(manualLine.value)) : localStorage.removeItem('sw_rune_line'); } catch {} } });
 const manualLineV = computed({ get: () => manualLine.value ?? autoLineV.value, set: (v) => { manualLine.value = v; try { localStorage.setItem('sw_rune_line', String(v)); } catch {} } });
 const WHY_KEYS = { locked: 'rune.whyLocked', unfinished: 'rune.whyUnfinished', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth', 'low-stars': 'rune.whyLowStars' };
@@ -300,6 +318,12 @@ try {
 watch(lineQ, (q) => { try { localStorage.setItem('sw_rune_line_q', String(q)); } catch {} });
 const autoLineV = computed(() => autoLine(active.value?.runes || [], meta.value, lineQ.value / 100));
 const lineV = computed(() => (manualLine.value != null ? manualLine.value : autoLineV.value));
+/** 保留标准: 自动(满级 RL 的 N 分位) | 手动(自填数值) */
+const lineMode = computed({ get: () => (manualLine.value != null ? 'manual' : 'auto'), set: (v) => { lineManual.value = v === 'manual'; } });
+const LINE_MODES = computed(() => [
+	{ value: 'auto', label: t('rune.lineAuto', autoLineV.value) },
+	{ value: 'manual', label: t('rune.lineManual') }
+]);
 const lineRules = computed(() => ({ line: lineV.value, fallbackLine: autoLineV.value }));
 const adviceOf = (r) => sellAdvice(r, meta.value, lineRules.value);
 
@@ -312,16 +336,28 @@ const QUALITY_FN = {
 	rare: (r) => r.stars < 5
 };
 const QUALITY_NAME = computed(() => ({ legend: t('rune.qLegend'), hero: t('rune.qHero'), rare: t('rune.qRare') }));
-/** 排序 */
+const QUALITY_COLOR = { legend: '#f0a020', hero: '#8f6fe8', rare: '#4ba3ff' };
+/** 远古 chip 组(单选): 不限 / 仅远古 / 非远古 */
+const ANCIENT_OPTS = computed(() => [
+	{ v: 'all', label: t('rune.filterAncientAll') },
+	{ v: 'only', label: t('rune.filterAncientOnly') },
+	{ v: 'no', label: t('rune.filterAncientNo') }
+]);
+/** 排序: 字段(效率/RL) + 方向, 合成 f.sort 键 */
 const SORTS = {
 	effDesc: (a, b) => b._eff - a._eff,
 	effAsc: (a, b) => a._eff - b._eff,
 	rlDesc: (a, b) => b._rl - a._rl,
 	rlAsc: (a, b) => a._rl - b._rl
 };
-const SORT_NAME = computed(() => ({
-	effDesc: t('rune.sortEffDesc'), effAsc: t('rune.sortEffAsc'), rlDesc: t('rune.sortRlDesc'), rlAsc: t('rune.sortRlAsc')
-}));
+const sortField = computed({
+	get: () => (f.sort.startsWith('eff') ? 'eff' : 'rl'),
+	set: (v) => { f.sort = v + (f.sort.endsWith('Asc') ? 'Asc' : 'Desc'); }
+});
+const sortAsc = computed({
+	get: () => f.sort.endsWith('Asc'),
+	set: (v) => { f.sort = sortField.value + (v ? 'Asc' : 'Desc'); }
+});
 /** 判定分布图例(对齐参考站的过线/未过线计数) */
 const verdictDist = computed(() => {
 	const m = { keep: 0, powerup: 0, gem: 0, sell: 0 };
@@ -549,83 +585,178 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 		margin-bottom: 10px;
 	}
 
-	.stat_row {
-		display: grid;
-		grid-template-columns: repeat(3, 140px) 1fr;
-		gap: 10px;
+	.wb_head_card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 14px 18px 12px;
+		box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
 		margin-bottom: 12px;
-		.stat_card {
-			background: #fff;
-			border-radius: 8px;
-			padding: 10px 14px;
-			box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
-			.stat_num { font-size: 22px; font-weight: 700; color: #303133; }
-			.stat_label { font-size: 12px; color: #909399; }
-		}
-		.set_card {
+		.hc_row {
 			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			.set_bar { display: flex; flex-wrap: wrap; gap: 6px; }
-			.set_chip {
-				display: inline-flex;
-				align-items: center;
-				gap: 4px;
-				font-size: 12px;
-				color: #606266;
-				background: #f5f7fa;
-				border-radius: 10px;
-				padding: 2px 8px;
-				i { width: 8px; height: 8px; border-radius: 50%; }
-			}
-		}
-	}
-
-	.filter_bar {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		align-items: center;
-		margin-bottom: 10px;
-		.eff_filter, .excl_group {
-			display: inline-flex;
 			align-items: center;
-			gap: 6px;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 10px 20px;
+			&.legend_row { margin-top: 12px; }
+		}
+		.hc_stat { display: flex; align-items: baseline; gap: 12px; }
+		.hc_num { font-size: 20px; font-weight: 700; color: #303133; }
+		.hc_sub { font-size: 12px; color: #909399; }
+		.hc_ctl {
+			display: flex;
+			align-items: center;
+			gap: 10px;
 			font-size: 13px;
 			color: #606266;
-			:deep(.el-checkbox) { margin-right: 0; height: 24px; }
-			:deep(.el-checkbox__label) { font-size: 12px; padding-left: 6px; }
+			.hc_ctl_icon { color: #e6a23c; font-size: 15px; }
+			.hc_line_input { width: 110px; }
+			.hc_q_select { width: 170px; }
+		}
+		.hc_legend { display: flex; flex-wrap: wrap; gap: 8px; }
+		.hc_sets {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 4px 12px;
+			margin-left: auto;
+			font-size: 12px;
+			color: #606266;
+			.hc_sets_lbl { color: #909399; }
 		}
 	}
-	.verdict_card .set_bar { flex-wrap: wrap; }
-	.line_ctl {
+	.set_chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		i { width: 8px; height: 8px; border-radius: 50%; }
+	}
+	.adv_chip {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
 		font-size: 13px;
-		color: #606266;
-		b { color: #303133; }
+		padding: 2px 10px;
+		border-radius: 12px;
+		b { font-weight: 700; }
+		i { width: 8px; height: 8px; border-radius: 50%; }
+		&.keep { background: #f0f9eb; color: #529b2e; i { background: #67c23a; } }
+		&.powerup { background: #ecf5ff; color: #337ecc; i { background: #409eff; } }
+		&.gem { background: #fdf6ec; color: #b88230; i { background: #e6a23c; } }
+		&.sell { background: #fef0f0; color: #c45656; i { background: #f56c6c; } }
 	}
-	.result_bar {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 6px 16px;
-		margin-bottom: 8px;
-		font-size: 12px;
-		color: #606266;
-		.rb_count { font-weight: 600; color: #303133; }
-		.rb_legend { display: inline-flex; gap: 12px; }
-		.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-		.above { background: #67c23a; }
-		.below { background: #c0c4cc; }
-	}
-	.adv_chip {
-		i { border-radius: 50%; width: 8px; height: 8px; }
-		&.keep i { background: #67c23a; }
-		&.powerup i { background: #409eff; }
-		&.gem i { background: #e6a23c; }
-		&.sell i { background: #f56c6c; }
+
+	.filter_area {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px 18px 12px;
+		box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06);
+		margin-bottom: 12px;
+		.f_row {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 12px 14px;
+			margin-bottom: 12px;
+		}
+		.chip_group {
+			position: relative;
+			display: inline-flex;
+			align-items: center;
+			gap: 2px;
+			padding: 6px;
+			border: 1px solid #dcdfe6;
+			border-radius: 10px;
+			background: #fff;
+			.gl {
+				position: absolute;
+				top: -9px;
+				left: 10px;
+				padding: 0 4px;
+				font-size: 12px;
+				line-height: 16px;
+				color: #909399;
+				background: #fff;
+			}
+		}
+		.chip {
+			height: 28px;
+			min-width: 34px;
+			padding: 0 10px;
+			border: 1px solid transparent;
+			border-radius: 7px;
+			background: transparent;
+			color: #606266;
+			font-size: 13px;
+			font-family: inherit;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 5px;
+			cursor: pointer;
+			transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+			&:hover { background: #f5f7fa; }
+			&.on { background: #ecf5ff; border-color: #c6e2ff; color: #409eff; font-weight: 600; }
+			&.num { min-width: 30px; padding: 0 8px; }
+		}
+		.qdot { width: 8px; height: 8px; border-radius: 50%; }
+		.w_set { width: 140px; }
+		.w_main { width: 140px; }
+		.w_advice { width: 116px; }
+		.w_eff { width: 110px; }
+		.w_sort_field { width: 100px; }
+		.eff_filter {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 14px;
+			color: #606266;
+		}
+		.excl_group {
+			display: inline-flex;
+			gap: 8px;
+			margin-left: auto;
+		}
+		.pill {
+			height: 32px;
+			padding: 0 12px 0 8px;
+			border: 1px solid #dcdfe6;
+			border-radius: 8px;
+			background: #fff;
+			color: #606266;
+			font-size: 13px;
+			font-family: inherit;
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			cursor: pointer;
+			transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+			.el-icon { font-size: 14px; color: #909399; }
+			&:hover { border-color: #c0c4cc; }
+			&.on {
+				background: #fdf6ec;
+				border-color: #f3d19e;
+				color: #e6a23c;
+				.el-icon { color: #e6a23c; }
+			}
+		}
+		.search_row {
+			.search_input { flex: 1; min-width: 240px; }
+		}
+		.result_bar {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 6px 20px;
+			padding-top: 10px;
+			border-top: 1px solid #f0f2f5;
+			font-size: 13px;
+			color: #606266;
+			.rb_count { font-weight: 600; color: #303133; }
+			.rb_legend { display: inline-flex; gap: 16px; }
+			.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+			.above { background: #67c23a; }
+			.below { background: #c0c4cc; }
+		}
 	}
 
 	.table_box { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06); }
