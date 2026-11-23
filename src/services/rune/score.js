@@ -101,10 +101,11 @@ export function rlScore(rune, meta) {
 }
 
 /**
- * 自动分界线: 已满级符文 RL 分的 25 分位(与参考站 autoLine 同构——其 head 字段暴露
+ * 自动分界线: 已满级符文 RL 分的 q 分位(默认 25, 与参考站 autoLine 同构——其 head 字段暴露
  * autoLine=177 恰为本号满级 RL 的 24.8 分位)。样本 < 20 回退固定 210。
+ * @param {number} [q=0.25] 分位(0~1)
  */
-export function autoLine(runes, meta) {
+export function autoLine(runes, meta, q = 0.25) {
 	const scores = [];
 	for (const r of runes || []) {
 		if ((r.level || 0) < 12) continue;
@@ -112,8 +113,8 @@ export function autoLine(runes, meta) {
 	}
 	if (scores.length < 20) return 210;
 	scores.sort((a, b) => a - b);
-	const q = Math.floor(scores.length * 0.25);
-	return Math.round(scores[Math.min(q, scores.length - 1)]);
+	const i = Math.min(Math.floor(scores.length * q), scores.length - 1);
+	return Math.round(scores[i]);
 }
 
 /**

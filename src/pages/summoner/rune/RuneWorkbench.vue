@@ -35,9 +35,13 @@
 					<div class="stat_num">{{ equippedCount }}</div>
 					<div class="stat_label">{{ t('rune.equippedCount', equippedCount) }}</div>
 				</div>
-				<div class="stat_card">
-					<div class="stat_num">{{ sellableCount }}</div>
-					<div class="stat_label">{{ t('rune.sellable', sellableCount) }}</div>
+				<div class="stat_card verdict_card">
+					<div class="stat_label">{{ t('rune.verdictDist') }}</div>
+					<div class="set_bar">
+						<span v-for="v in verdictDist" :key="v.k" class="set_chip adv_chip" :class="v.k">
+							<i />{{ v.label }} ×{{ v.n }}
+						</span>
+					</div>
 				</div>
 				<div class="stat_card set_card">
 					<div class="stat_label">{{ t('rune.setDist') }}</div>
@@ -54,21 +58,24 @@
 				<el-tab-pane :label="t('rune.tabRunes')" name="runes">
 					<!-- 筛选栏 -->
 					<div class="filter_bar">
-						<el-select v-model="f.setId" clearable size="small" :placeholder="t('rune.filterSet')" style="width: 120px">
+						<el-select v-model="f.sets" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterSet')" style="width: 140px">
 							<el-option v-for="(s, id) in meta?.sets || {}" :key="id" :label="s.name" :value="Number(id)" />
 						</el-select>
-						<el-select v-model="f.slot" clearable size="small" :placeholder="t('rune.filterSlot')" style="width: 90px">
+						<el-select v-model="f.slots" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterSlot')" style="width: 100px">
 							<el-option v-for="i in 6" :key="i" :label="String(i)" :value="i" />
 						</el-select>
-						<el-select v-model="f.stars" clearable size="small" :placeholder="t('rune.filterStars')" style="width: 90px">
-							<el-option v-for="i in 6" :key="i" :label="i + '★'" :value="i" />
+						<el-select v-model="f.starsArr" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterStars')" style="width: 100px">
+							<el-option v-for="i in [4, 5, 6]" :key="i" :label="i + '★'" :value="i" />
+						</el-select>
+						<el-select v-model="f.quality" multiple collapse-tags collapse-tags-tooltip clearable size="small" :placeholder="t('rune.filterQuality')" style="width: 120px">
+							<el-option v-for="(nm, q) in QUALITY_NAME" :key="q" :label="nm" :value="q" />
 						</el-select>
 						<el-select v-model="f.ancient" size="small" :placeholder="t('rune.filterAncient')" style="width: 100px">
 							<el-option :label="t('rune.filterAncientAll')" value="all" />
 							<el-option :label="t('rune.filterAncientOnly')" value="only" />
 							<el-option :label="t('rune.filterAncientNo')" value="no" />
 						</el-select>
-						<el-select v-model="f.main" clearable size="small" :placeholder="t('rune.filterMain')" style="width: 110px">
+						<el-select v-model="f.main" clearable filterable size="small" :placeholder="t('rune.filterMain')" style="width: 110px">
 							<el-option v-for="(nm, st) in STAT_OPTS" :key="st" :label="nm" :value="st" />
 						</el-select>
 						<el-select v-model="f.advice" clearable size="small" :placeholder="t('rune.filterAdvice')" style="width: 100px">
@@ -81,12 +88,34 @@
 							<span>{{ t('rune.filterEff') }}</span>
 							<el-input-number v-model="f.minEff" :min="0" :max="2000" :step="25" size="small" controls-position="right" style="width: 100px" />
 						</div>
+						<div class="excl_group">
+							<span>{{ t('rune.excl') }}</span>
+							<el-checkbox v-model="f.exclEquipped" size="small">{{ t('rune.exclEquipped') }}</el-checkbox>
+							<el-checkbox v-model="f.exclLocked" size="small">{{ t('rune.exclLocked') }}</el-checkbox>
+							<el-checkbox v-model="f.exclSpeed" size="small">{{ t('rune.exclSpeed') }}</el-checkbox>
+						</div>
+						<el-select v-model="f.sort" size="small" style="width: 100px">
+							<el-option v-for="(nm, k) in SORT_NAME" :key="k" :label="nm" :value="k" />
+						</el-select>
+						<el-input v-model="f.kw" clearable size="small" :placeholder="t('rune.searchPh')" style="width: 180px" :prefix-icon="Search" />
 						<div class="line_ctl">
 							<span>{{ t('rune.line') }}</span>
 							<el-switch v-model="lineManual" size="small" />
 							<el-slider v-if="lineManual" v-model="manualLineV" :min="0" :max="500" :step="5" style="width: 120px" />
 							<b v-else>{{ t('rune.lineAuto', autoLineV) }}</b>
+							<el-select v-if="!lineManual" v-model="lineQ" size="small" style="width: 120px">
+								<el-option v-for="q in LINE_QS" :key="q" :label="t('rune.lineQuantile', q)" :value="q" />
+							</el-select>
 						</div>
+					</div>
+
+					<!-- 筛选结果: 命中数 + 线上/线下图例(虚拟表格看不到总数, 这里给全量统计) -->
+					<div class="result_bar">
+						<span class="rb_count">{{ t('rune.resultCount', filteredRunes.length, active.runes.length) }}</span>
+						<span class="rb_legend">
+							<span><i class="dot above" />{{ t('rune.aboveLine', aboveLineCount) }}</span>
+							<span><i class="dot below" />{{ t('rune.belowLine', belowLineCount) }}</span>
+						</span>
 					</div>
 
 					<!-- 虚拟滚动表格 -->
@@ -98,8 +127,8 @@
 							:height="560"
 							:row-height="52"
 							:row-class="rowClass"
+							:row-event-handlers="rowHandlers"
 							fixed
-							@row-click="openDetail"
 						/>
 					</div>
 				</el-tab-pane>
@@ -199,6 +228,7 @@
 import { computed, h, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search } from '@element-plus/icons-vue';
 import { parseProfile } from '@/services/rune/swex';
 import { saveProfile, listProfiles, getProfile, deleteProfile, setActive, getActive, isAvailable } from '@/services/rune/store';
 import { efficiency, sellAdvice, loadRules, autoLine } from '@/services/rune/score';
@@ -222,7 +252,7 @@ const tab = ref('runes');
 const selUnit = ref(null);
 const detailShow = ref(false);
 const detail = ref(null);
-const f = reactive({ setId: null, slot: null, stars: null, ancient: 'all', main: null, advice: null, minEff: 0 });
+const f = reactive({ sets: [], slots: [], starsArr: [], quality: [], ancient: 'all', main: null, advice: null, minEff: 0, exclEquipped: false, exclLocked: false, exclSpeed: false, sort: 'effDesc', kw: '' });
 const manualLine = ref(null); // null=自动; 数字=手动线(持久化)
 try { const v = Number(localStorage.getItem('sw_rune_line')); if (v > 0) manualLine.value = v; } catch {}
 const tableBox = ref(null);
@@ -259,14 +289,45 @@ const whyText = (r) => {
 	return base;
 };
 
-// ---- 出售判定 v2: RL分 + 分界线(自动=库存40分位/手动) ----
-const autoLineV = computed(() => autoLine(active.value?.runes || [], meta.value));
+// ---- 出售判定: RL分 + 分界线(自动=满级RL的N分位/手动) ----
+/** 自动线分位候选(百分数), 持久化 'sw_rune_line_q' */
+const LINE_QS = [10, 15, 20, 25, 30, 35, 40, 50];
+const lineQ = ref(25);
+try {
+	const q = Number(localStorage.getItem('sw_rune_line_q'));
+	if (LINE_QS.includes(q)) lineQ.value = q;
+} catch {}
+watch(lineQ, (q) => { try { localStorage.setItem('sw_rune_line_q', String(q)); } catch {} });
+const autoLineV = computed(() => autoLine(active.value?.runes || [], meta.value, lineQ.value / 100));
 const lineV = computed(() => (manualLine.value != null ? manualLine.value : autoLineV.value));
 const lineRules = computed(() => ({ line: lineV.value, fallbackLine: autoLineV.value }));
 const adviceOf = (r) => sellAdvice(r, meta.value, lineRules.value);
 
 // ---- 数据推导 ----
 const equippedCount = computed(() => active.value?.runes.filter((r) => r.equipped).length || 0);
+/** 品质 = 稀有度(6★传说/5★英雄/4★及以下稀有), 与远古标记正交(5★ 远古仍是英雄品质) */
+const QUALITY_FN = {
+	legend: (r) => r.stars >= 6,
+	hero: (r) => r.stars === 5,
+	rare: (r) => r.stars < 5
+};
+const QUALITY_NAME = computed(() => ({ legend: t('rune.qLegend'), hero: t('rune.qHero'), rare: t('rune.qRare') }));
+/** 排序 */
+const SORTS = {
+	effDesc: (a, b) => b._eff - a._eff,
+	effAsc: (a, b) => a._eff - b._eff,
+	rlDesc: (a, b) => b._rl - a._rl,
+	rlAsc: (a, b) => a._rl - b._rl
+};
+const SORT_NAME = computed(() => ({
+	effDesc: t('rune.sortEffDesc'), effAsc: t('rune.sortEffAsc'), rlDesc: t('rune.sortRlDesc'), rlAsc: t('rune.sortRlAsc')
+}));
+/** 判定分布图例(对齐参考站的过线/未过线计数) */
+const verdictDist = computed(() => {
+	const m = { keep: 0, powerup: 0, gem: 0, sell: 0 };
+	for (const r of active.value?.runes || []) m[adviceOf(r).verdict] = (m[adviceOf(r).verdict] || 0) + 1;
+	return Object.entries(m).map(([k, n]) => ({ k, n, label: t('rune.advice' + cap(k)) }));
+});
 const setDist = computed(() => {
 	const m = {};
 	for (const r of active.value?.runes || []) m[r.setId] = (m[r.setId] || 0) + 1;
@@ -275,30 +336,43 @@ const setDist = computed(() => {
 		.slice(0, 5)
 		.map(([id, n]) => ({ id: Number(id), n, name: setInfo(id)?.name || '#' + id }));
 });
-const sellableCount = computed(
-	() => active.value?.runes.filter((r) => adviceOf(r).verdict === 'sell').length || 0
-);
 const effOf = (r) => efficiency(r, meta.value).totalEff;
 const effDetail = computed(() => (detail.value ? efficiency(detail.value, meta.value) : null));
 const adviceType = (r) => ({ keep: 'success', sell: 'danger', gem: 'warning', powerup: 'info' }[adviceOf(r).verdict] || 'info');
 
 const filteredRunes = computed(() => {
 	const rows = [];
+	const kw = (f.kw || '').trim().toLowerCase();
 	for (const r of active.value?.runes || []) {
-		if (f.setId && r.setId !== f.setId) continue;
-		if (f.slot && r.slot !== f.slot) continue;
-		if (f.stars && r.stars !== f.stars) continue;
+		if (f.sets.length && !f.sets.includes(r.setId)) continue;
+		if (f.slots.length && !f.slots.includes(r.slot)) continue;
+		if (f.starsArr.length && !f.starsArr.includes(r.stars)) continue;
+		if (f.quality.length && !f.quality.some((q) => QUALITY_FN[q]?.(r))) continue;
 		if (f.ancient === 'only' && !r.ancient) continue;
 		if (f.ancient === 'no' && r.ancient) continue;
 		if (f.main && r.main.stat !== f.main) continue;
 		const a = adviceOf(r);
 		if (f.advice && a.verdict !== f.advice) continue;
+		if (f.exclLocked && r.locked) continue;
+		if (f.exclEquipped && r.equipped) continue;
+		if (f.exclSpeed && a.why === 'speed') continue;
 		const eff = efficiency(r, meta.value).totalEff;
 		if (eff < f.minEff) continue;
+		if (kw) {
+			const hay = [
+				setInfo(r.setId)?.name,
+				statName(r.main?.stat),
+				...(r.subs || []).map((s) => statName(s.stat) + ' ' + fmtVal(s.stat, s.value))
+			].join(' ').toLowerCase();
+			if (!hay.includes(kw)) continue;
+		}
 		rows.push({ ...r, _eff: eff, _rl: a.rl, _advice: a.verdict, _adv: a });
 	}
-	return rows.sort((a, b) => b._eff - a._eff);
+	return rows.sort(SORTS[f.sort] || SORTS.effDesc);
 });
+/** 筛选结果的线上/线下计数(图例) */
+const aboveLineCount = computed(() => filteredRunes.value.filter((r) => r._rl >= lineV.value).length);
+const belowLineCount = computed(() => filteredRunes.value.length - aboveLineCount.value);
 
 // ---- 魔灵映射(zh_names 中文名 + min 列表头像) ----
 const unitName = (masterId) => {
@@ -406,10 +480,11 @@ const columns = [
 	{ key: 'advice', dataKey: '_advice', title: t('rune.colAdvice'), width: 90, cellRenderer: ({ cellData: v }) => adviceTag(v) }
 ];
 const rowClass = ({ rowIndex }) => (rowIndex % 2 ? 'odd_row' : '');
-/** 兼容 el-table-v2 的 ({rowData})/(row, event) 与卡片直传 rune 等形态 */
-const openDetail = (p) => {
-	const r = p?.rowData ?? p?.row ?? (p && p.slot && p.main ? p : null);
-	if (!r) return;
+/** el-table-v2 不 emit row-click, 行事件须经 row-event-handlers prop 传入({ event, rowData, rowIndex, rowKey }) */
+const rowHandlers = { onClick: ({ rowData }) => openDetail(rowData) };
+/** 打开符文详情(表格行 / 构建卡片共用) */
+const openDetail = (r) => {
+	if (!r?.slot || !r?.main) return;
 	detail.value = r;
 	detailShow.value = true;
 };
@@ -512,13 +587,45 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 		gap: 8px;
 		align-items: center;
 		margin-bottom: 10px;
-		.eff_filter {
+		.eff_filter, .excl_group {
 			display: inline-flex;
 			align-items: center;
 			gap: 6px;
 			font-size: 13px;
 			color: #606266;
+			:deep(.el-checkbox) { margin-right: 0; height: 24px; }
+			:deep(.el-checkbox__label) { font-size: 12px; padding-left: 6px; }
 		}
+	}
+	.verdict_card .set_bar { flex-wrap: wrap; }
+	.line_ctl {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		color: #606266;
+		b { color: #303133; }
+	}
+	.result_bar {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 6px 16px;
+		margin-bottom: 8px;
+		font-size: 12px;
+		color: #606266;
+		.rb_count { font-weight: 600; color: #303133; }
+		.rb_legend { display: inline-flex; gap: 12px; }
+		.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+		.above { background: #67c23a; }
+		.below { background: #c0c4cc; }
+	}
+	.adv_chip {
+		i { border-radius: 50%; width: 8px; height: 8px; }
+		&.keep i { background: #67c23a; }
+		&.powerup i { background: #409eff; }
+		&.gem i { background: #e6a23c; }
+		&.sell i { background: #f56c6c; }
 	}
 
 	.table_box { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(31, 45, 61, 0.06); }
@@ -647,5 +754,6 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 	.grind { color: #67c23a; }
 	.gem { color: #e6a23c; font-style: normal; }
 }
+:deep(.el-table-v2__row) { cursor: pointer; }
 :deep(.eff_num) { color: #303133; }
 </style>
