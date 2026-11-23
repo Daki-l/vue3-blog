@@ -63,10 +63,14 @@ const router = useRouter();
 const userStore = useUserStore();
 const navStore = useNavStore();
 
-// 菜单高亮:普通页取完整路径(含 query,如 /info/scene?id=11);管理页统一高亮"管理"
+// 菜单高亮:普通页取完整路径(含 query,如 /info/scene?id=11);管理页统一高亮"管理";
+// 符文管理带定位参数(/rune?unit=)时仍高亮该页签
 const activeIndex = computed(() => {
 	if (route.path.startsWith('/admin')) {
 		return '/admin';
+	}
+	if (route.path === '/rune') {
+		return '/rune';
 	}
 	return route.fullPath;
 });

@@ -17,7 +17,8 @@ export const DEFAULT_NAV_ITEMS = [
     { id: 26, parentId: 2, name: '惩罚者地下城', path: '/info/scene?id=16', sort: 6 },
     { id: 3, parentId: null, name: '公告', path: '/notice', sort: 3 },
     { id: 4, parentId: null, name: '兑换码直兑', path: '/coupon', sort: 4 },
-    { id: 5, parentId: null, name: '留言板', path: '/message', sort: 5 }
+    { id: 5, parentId: null, name: '留言板', path: '/message', sort: 5 },
+    { id: 30, parentId: null, name: '符文管理', path: '/rune', sort: 6 }
 ];
 
 function isEmptyParent(parentId) {

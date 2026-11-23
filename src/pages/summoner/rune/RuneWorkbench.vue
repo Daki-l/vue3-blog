@@ -7,18 +7,23 @@
 				<el-select v-if="profiles.length" v-model="activeId" size="small" style="width: 200px" @change="onSwitchProfile">
 					<el-option v-for="p in profiles" :key="p.id" :label="p.name" :value="p.id" />
 				</el-select>
+				<el-button size="small" link :icon="QuestionFilled" @click="guideShow = true">{{ t('guide.open') }}</el-button>
 				<el-button size="small" type="primary" :loading="importing" @click="pickFile">{{ importing ? t('rune.importing') : t('rune.import') }}</el-button>
 				<el-button v-if="profiles.length" size="small" type="danger" plain @click="onDelete">{{ t('rune.deleteProfile') }}</el-button>
 				<input ref="fileRef" type="file" accept=".json,application/json" style="display: none" @change="onFile" />
 			</div>
 		</div>
 
-		<!-- 未导入引导 -->
+		<!-- 未导入引导: 导入入口 + SWEX 生成指南 -->
 		<div v-if="!importing && !active" class="section_card empty_card">
-			<el-empty :description="t('rune.noProfile')">
-				<p class="swex_tip">{{ t('rune.whatIsSwex') }}</p>
+			<div class="empty_head">
+				<div class="empty_text">
+					<div class="empty_title">{{ t('rune.noProfile') }}</div>
+					<p class="swex_tip">{{ t('rune.localOnly') }}</p>
+				</div>
 				<el-button type="primary" @click="pickFile">{{ t('rune.import') }}</el-button>
-			</el-empty>
+			</div>
+			<SwexGuide />
 		</div>
 
 		<template v-else-if="active">
@@ -238,6 +243,11 @@
 				<div class="dt_formula">{{ t('rune.effFormula') }}</div>
 			</template>
 		</el-drawer>
+
+		<!-- SWEX 生成指南 -->
+		<el-drawer v-model="guideShow" :title="t('guide.title')" size="520px">
+			<SwexGuide />
+		</el-drawer>
 	</div>
 </template>
 
@@ -245,10 +255,11 @@
 import { computed, h, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Flag, Lock, Search, SortDown, SortUp, Timer, UserFilled } from '@element-plus/icons-vue';
+import { Flag, Lock, QuestionFilled, Search, SortDown, SortUp, Timer, UserFilled } from '@element-plus/icons-vue';
+import SwexGuide from './SwexGuide.vue';
 import { parseProfile } from '@/services/rune/swex';
 import { saveProfile, listProfiles, getProfile, deleteProfile, setActive, getActive, isAvailable } from '@/services/rune/store';
-import { efficiency, sellAdvice, loadRules, autoLine } from '@/services/rune/score';
+import { efficiency, sellAdvice, loadRules, autoLine, GRINDABLE } from '@/services/rune/score';
 import { fetchRuneMeta } from '@/services/rune/meta';
 import { fetchZhNames, fetchMonsterList, monsterImg } from '@/services/monster';
 import { t } from '@/common/i18n';
@@ -268,6 +279,7 @@ const storeOk = ref(true);
 const tab = ref('runes');
 const selUnit = ref(null);
 const detailShow = ref(false);
+const guideShow = ref(false);
 const detail = ref(null);
 const f = reactive({ sets: [], slots: [], starsArr: [], quality: [], ancient: 'all', main: null, advice: null, minEff: 0, exclEquipped: false, exclLocked: false, exclSpeed: false, sort: 'effDesc', kw: '' });
 const manualLine = ref(null); // null=自动; 数字=手动线(持久化)
@@ -301,14 +313,16 @@ const toggleIn = (arr, v) => {
 };
 const lineManual = computed({ get: () => manualLine.value != null, set: (v) => { manualLine.value = v ? (autoLineV.value || 210) : null; try { v ? localStorage.setItem('sw_rune_line', String(manualLine.value)) : localStorage.removeItem('sw_rune_line'); } catch {} } });
 const manualLineV = computed({ get: () => manualLine.value ?? autoLineV.value, set: (v) => { manualLine.value = v; try { localStorage.setItem('sw_rune_line', String(v)); } catch {} } });
-const WHY_KEYS = { locked: 'rune.whyLocked', unfinished: 'rune.whyUnfinished', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth', 'low-stars': 'rune.whyLowStars' };
+const WHY_KEYS = { locked: 'rune.whyLocked', pspeed: 'rune.whyPowerSpeed', 'atline': 'rune.whyAtLine', chance: 'rune.whyChance', toofar: 'rune.whyTooFar', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth', 'low-stars': 'rune.whyLowStars' };
 const whyText = (r) => {
 	const a = r?._adv || (r ? adviceOf(r) : null);
 	if (!a) return '';
 	const key = WHY_KEYS[a.why];
 	const base = key ? t(key, a.rl, a.line, a.potential ?? a.rl) : a.why;
 	if (a.plan && (a.verdict === 'gem' || a.verdict === 'sell')) {
-		return base + ' · ' + t('rune.planText', statName(a.plan.from), statName(a.plan.to), a.potential);
+		// 扭转后的新属性能否再用增强精炼石加强, 只有七种附属可以
+		const hint = GRINDABLE.has(a.plan.to) ? t('rune.planGrindable') : t('rune.planSwapOnly');
+		return base + ' · ' + t('rune.planText', statName(a.plan.from), statName(a.plan.to), hint, a.potential);
 	}
 	return base;
 };
@@ -580,7 +594,19 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 	}
 
 	.empty_card {
-		.swex_tip { color: #909399; font-size: 13px; max-width: 480px; margin: 0 auto 12px; line-height: 1.7; }
+		padding: 22px 24px 26px;
+		.empty_head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			max-width: 780px;
+			margin: 0 auto 18px;
+			padding-bottom: 16px;
+			border-bottom: 1px solid #f0f2f5;
+			.empty_title { font-size: 17px; font-weight: 600; color: #303133; }
+		}
+		.swex_tip { margin: 4px 0 0; font-size: 13px; color: #909399; line-height: 1.7; }
 	}
 
 	.storage_warn {

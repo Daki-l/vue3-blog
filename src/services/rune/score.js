@@ -15,10 +15,11 @@
  *                a. 已上锁 → keep
  *                b. 5★以下 → sell(low-stars)
  *                c. 偶数槽平值主/6号位抵抗主 → sell(flat-main/res-main), 不设速度豁免
- *                d. 未满级: 满级投影 RL + 28×剩余roll数 ≥ 线-50 → powerup, 否则 sell(not-worth)
+ *                d. 未满级 → 速度载体(pspeed) 或 当前 RL 已达线(atline): 先强化;
+ *                   否则满级投影 RL + 28×剩余roll数 ≥ 线-50 → powerup(chance), 不够 → sell(toofar)
  *                e. 速度载体(单条速度≥22)不过线也 keep(speed)
  *                f. rl ≥ line → keep
- *                g. 单颗传奇宝石改造模拟过线 → gem(附方案)
+ *                g. 按精炼石规则模拟改造(见 gemPlan), 过线 → gem(附方案)
  *                h. sell(not-worth)
  *                已装备符文不设硬保留——参考站对已装备符文照常给出 sell/gem(校准数据中
  *                已装备被建议出售 262 / 改造 201), UI 单独展示佩戴状态。
@@ -46,8 +47,19 @@ export const ROLE_PRESETS = {
 	allround: { label: '全能', w: { spd: 42, cr: 50.4, cd: 48.9, atk_pct: 46.1, hp_pct: 43.6, def_pct: 45.4, acc: 22.1, res: 17.5, atk_flat: 7.1, def_flat: 6.8 } }
 };
 
-/** 单颗传奇宝石数值(改造模拟用): 换上后该副属性固定为该值(不含磨砺) */
+/**
+ * 精炼石规则(改造模拟用):
+ *   扭转精炼石(宝石): 把一条附属换成指定属性。一颗符文只能扭转一次——扭转过之后其余三条锁定,
+ *                     只有被扭转的那条还能再扭转; 新属性不能与主属性或其余三条重复。
+ *   增强精炼石(磨砺): 只有人物七种附属能增强(体力%/体力/速度/防御%/防御/攻击%/攻击),
+ *                     暴击率/暴伤/效果命中/效果抵抗没有磨砺石, 只能扭转。
+ * GEM_VALUES 是"扭转后该附属的等效数值", 不是传奇宝石的实际数值: RL 为线性加权和, 按实际数值
+ * (传奇宝石 13% + 磨砺 10% 等)计算时判"改造"的符文可达参考站的三倍(同账号对照一致率 82%→73%),
+ * 故取与参考站判定对得上的标定值; 不另计磨砺增益。
+ */
 const GEM_VALUES = { hp_flat: 1170, hp_pct: 11, atk_flat: 90, atk_pct: 11, def_flat: 90, def_pct: 11, spd: 5, cr: 6, cd: 7, res: 11, acc: 11 };
+/** 可用增强精炼石加强的附属; 暴击率、暴伤、效果命中、效果抵抗没有磨砺石, 只能扭转 */
+export const GRINDABLE = new Set(['hp_flat', 'hp_pct', 'atk_flat', 'atk_pct', 'def_flat', 'def_pct', 'spd']);
 /** 未满级投影: 每剩余一roll期望 +28 分; 距线 50 以内即值得先强化 */
 const PROJ_PER_ROLL = 28;
 const PROJ_MARGIN = 50;
@@ -120,24 +132,28 @@ export function autoLine(runes, meta, q = 0.25) {
 }
 
 /**
- * 改造模拟: 遍历"任一现有副属性 → 任一未拥有属性(按传奇宝石固定值)", 取 RL 增益最大者。
+ * 改造模拟(按精炼石规则): 枚举"被扭转的附属 → 新属性", 取 RL 增益最大者。
+ *   - 一颗符文只能扭转一次; 已扭转过的符文只能再扭转被扭转的那一条
+ *   - 新属性不能与主属性或其余三条附属重复(可与被换的那条同类, 即换成更高数值)
  * @returns {{from:string, to:string, gain:number} | null} 无正增益返回 null
  */
 function gemPlan(rune, meta, fit) {
-	if ((rune.subs || []).length < 4) return null; // 未满4条先补条, 谈不上定向改造
+	const subs = rune.subs || [];
+	if (subs.length < 4) return null; // 未满4条先补条, 谈不上定向改造
 	const w = ROLE_PRESETS[fit.role].w;
-	const present = new Set();
-	for (const s of rune.subs || []) present.add(s.stat);
-	if (rune.innate?.stat) present.add(rune.innate.stat);
+	const contrib = (stat, value) => {
+		const max = maxRollFor(meta, rune.stars, stat);
+		return max && w[stat] ? (w[stat] * value) / max : 0;
+	};
+	const gemmed = subs.find((s) => s.gem);
 	let best = null;
-	for (const p of fit.parts) {
-		if (!w[p.stat]) continue;
+	for (const from of gemmed ? [gemmed] : subs) {
+		const held = new Set(subs.filter((s) => s !== from).map((s) => s.stat));
+		const lost = contrib(from.stat, (from.value || 0) + (from.grind || 0));
 		for (const [to, gv] of Object.entries(GEM_VALUES)) {
-			if (present.has(to)) continue;
-			const toMax = maxRollFor(meta, rune.stars, to);
-			if (!toMax || !w[to]) continue;
-			const gain = (w[to] * gv) / toMax - p.contrib;
-			if (gain > 0 && (!best || gain > best.gain)) best = { from: p.stat, to, gain };
+			if (to === rune.main?.stat || held.has(to)) continue;
+			const gain = contrib(to, gv) - lost;
+			if (gain > 0 && (!best || gain > best.gain)) best = { from: from.stat, to, gain };
 		}
 	}
 	return best;
@@ -182,13 +198,15 @@ export function sellAdvice(rune, meta, rules) {
 	const weak = weakMain(rune);
 	if (weak) return { verdict: 'sell', why: weak, line, rl, role: fit.role };
 	if ((rune.level || 0) < powerupLevel) {
-		// 满级投影: 剩余每roll按期望 +PROJ_PER_ROLL, 距线 PROJ_MARGIN 内即值得先强化
+		// 满级投影: 剩余每roll按期望 +PROJ_PER_ROLL
 		const remain = Math.ceil((powerupLevel - (rune.level || 0)) / 3);
 		const potential = Math.round((rl + PROJ_PER_ROLL * remain) * 10) / 10;
-		if (potential >= line - PROJ_MARGIN) {
-			return { verdict: 'powerup', why: 'unfinished', line, rl, role: fit.role, potential };
-		}
-		return { verdict: 'sell', why: 'not-worth', line, rl, role: fit.role, potential };
+		const base = { line, rl, role: fit.role, potential };
+		// 速度载体不看线; 已达线的直接继续强化(参考站同规则近乎精确); 其余按投影判断有无机会
+		if (spd >= SPEED_KEEP) return { verdict: 'powerup', why: 'pspeed', ...base };
+		if (rl >= line) return { verdict: 'powerup', why: 'atline', ...base };
+		if (potential >= line - PROJ_MARGIN) return { verdict: 'powerup', why: 'chance', ...base };
+		return { verdict: 'sell', why: 'toofar', ...base };
 	}
 	if (spd >= SPEED_KEEP) return { verdict: 'keep', why: 'speed', line, rl, role: fit.role };
 	if (rl >= line) return { verdict: 'keep', why: 'line', line, rl, role: fit.role };

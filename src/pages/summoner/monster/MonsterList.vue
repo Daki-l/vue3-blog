@@ -3,7 +3,6 @@
 		<div class="page_header">
 			<span class="page_title">{{ t('monster.title') }}</span>
 			<span class="page_count" v-if="!onLoading">{{ t('monster.count', filtered.length) }}</span>
-			<el-button class="rune_entry" size="small" @click="$router.push('/rune')">{{ t('rune.workbench') }}</el-button>
 		</div>
 
 		<div class="filter_card">
@@ -128,8 +127,6 @@ onMounted(async () => {
 	min-height: 100%;
 
 	.page_header {
-		position: relative;
-		.rune_entry { position: absolute; right: 0; top: -4px; }
 		display: flex;
 		align-items: baseline;
 		gap: 12px;
