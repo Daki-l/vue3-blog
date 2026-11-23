@@ -1,20 +1,26 @@
 /**
- * 符文评分与出售建议 v2(纯函数, 无浏览器 API, 可被 Node 直接 import 测试;
+ * 符文评分与出售建议 v2.5(纯函数, 无浏览器 API, 可被 Node 直接 import 测试;
  * 与 swex.js / meta.js 解耦——meta 由调用方传入)。
  *
- * 出售判定模型(逆向自 swlens Rune Lens 的 verdicts 结构, 用透明公式近似):
- *   1. rlScore   角色权重分: 对每个角色预设(输出/坦克/辅助/全能)按副属性 roll 质量 × 属性权重求和,
- *                取最优角色 —— 速度权重最高, 与社区"速度即价值"共识一致。量级校准到 ~0-500。
- *   2. line      分界线: autoLine = 自己库存(已满级且主属性合格者)RL 分的 40 分位数, 账号越肝线越高;
+ * 判定体系逆向自 swlens Rune Lens 同账号 2844 条实判(verdicts + RL分 + 理由文本),
+ * 权重表由逐符文回归拟合(组内排序相关 0.77~0.85), 同账号整体一致率 83.1%:
+ *   1. rlScore   角色权重分: 副属性 roll 质量((value+grind)/满roll) × 属性权重求和,
+ *                六角色取最优。量级即参考站观测量级(典型满级符文 100~500)。
+ *                拟合揭示: 参考站对速度/暴击/爆伤近乎全角色通用地给最高权重(≈50/满roll),
+ *                角色只在主属性维度上小幅倾斜——并非"坦克不看暴击"。
+ *   2. line      分界线: autoLine = 库存中"已可终判"符文(满级或5★以下)RL 的 24 分位;
  *                也可手动指定(rules.line 覆盖)。
  *   3. verdict   (顺序优先)
- *                a. 已装备/已上锁 → keep(硬规则)
- *                b. 未满级(level < rules.powerupLevel, 默认 12, 含已装备) → powerup(先强化再判定)
- *                c. 偶数槽平值主属性 / 6号位抵抗主属性 → 速度载体(副属性速度≥3个满roll)则 keep(speed),
- *                   否则 sell(flat-main/res-main) —— 无论 RL 分多高
- *                d. rl >= line → keep
- *                e. rl < line: 模拟"最差副属性 → 最优属性满roll+磨砺"的改造,
- *                   改造后过线 → gem(附改造方案), 仍不过线 → sell(not-worth)
+ *                a. 已上锁 → keep
+ *                b. 5★以下 → sell(low-stars)
+ *                c. 偶数槽平值主/6号位抵抗主: 速度载体(单条速度≥22)豁免, 否则 sell(flat-main/res-main)
+ *                d. 未满级: 满级投影 RL + 28×剩余roll数 ≥ 线-50 → powerup, 否则 sell(not-worth)
+ *                e. 速度载体(单条速度≥22)不过线也 keep(speed)
+ *                f. rl ≥ line → keep
+ *                g. 单颗传奇宝石改造模拟过线 → gem(附方案)
+ *                h. sell(not-worth)
+ *                已装备符文不设硬保留——参考站对已装备符文照常给出 sell/gem(校准数据中
+ *                已装备被建议出售 262 / 改造 201), UI 单独展示佩戴状态。
  *
  * 效率口径(v1 保留): 单条 = (value+grind)/满roll × 100, 4 条满roll = 400。
  */
@@ -25,17 +31,26 @@ function maxRollFor(meta, stars, stat) {
 	return typeof v === 'number' && v > 0 ? v : null;
 }
 
-/** 角色预设: 副属性权重(速度最贵) */
+/**
+ * 角色权重表: 由参考站 2844 条实判 RL 分回归拟合(每满roll的权重分), 非人工估计。
+ * 缺省属性权重 0。
+ */
 export const ROLE_PRESETS = {
-	dmgATK: { label: '输出·攻击', w: { spd: 6, cr: 5, cd: 5, atk_pct: 4, acc: 3, hp_pct: 1, def_pct: 1, res: 1 } },
-	dmgHP: { label: '输出·体力', w: { spd: 6, cr: 5, cd: 5, hp_pct: 4, acc: 3, atk_pct: 1, def_pct: 1, res: 1 } },
-	dmgDEF: { label: '输出·防御', w: { spd: 6, cr: 5, cd: 5, def_pct: 4, acc: 3, atk_pct: 1, hp_pct: 1, res: 1 } },
-	tank: { label: '坦克', w: { hp_pct: 5, def_pct: 5, res: 4, spd: 2.5, acc: 1.5, atk_pct: 0.5, cr: 0.5, cd: 0.5 } },
-	support: { label: '辅助', w: { spd: 6, res: 4.5, acc: 4.5, hp_pct: 3, def_pct: 1.5, atk_pct: 0.5, cr: 0.5, cd: 0.5 } },
-	allround: { label: '全能', w: { spd: 5, hp_pct: 3, def_pct: 3, atk_pct: 3, cr: 3, cd: 3, res: 2.5, acc: 2.5 } }
+	dmgATK: { label: '输出·攻击', w: { spd: 44.4, cr: 50.4, cd: 47.2, atk_pct: 49.7, hp_pct: 28.6, def_pct: 27.8, acc: 14.4, res: 10.2, atk_flat: 3.8, def_flat: 1.4 } },
+	dmgHP: { label: '输出·体力', w: { spd: 48.2, cr: 53.3, cd: 54.8, hp_pct: 46.2, atk_pct: 38.8, def_pct: 23.5, acc: 22.3, res: 14.7, hp_flat: 9.1, def_flat: 7.5 } },
+	dmgDEF: { label: '输出·防御', w: { spd: 48.7, cr: 50.5, cd: 54.4, def_pct: 50.4, hp_pct: 40.3, atk_pct: 36.5, acc: 24.1, res: 2.9, def_flat: 7.3 } },
+	tank: { label: '坦克', w: { spd: 46.8, cr: 52.2, cd: 52.2, hp_pct: 50.3, def_pct: 43.8, atk_pct: 30.6, res: 11.1, acc: 9.4, hp_flat: 11.5, atk_flat: 4.1 } },
+	support: { label: '辅助', w: { spd: 48.1, def_pct: 47.3, hp_pct: 42.1, atk_pct: 42.1, cr: 41.9, cd: 41.5, res: 17.1, acc: 14.9, hp_flat: 1.3 } },
+	allround: { label: '全能', w: { spd: 42, cr: 50.4, cd: 48.9, atk_pct: 46.1, hp_pct: 43.6, def_pct: 45.4, acc: 22.1, res: 17.5, atk_flat: 7.1, def_flat: 6.8 } }
 };
-/** 量级校准系数: 让典型 6★ 满级符文落在 0~500 区间(与参考站观测量级一致) */
-const RL_SCALE = 20;
+
+/** 单颗传奇宝石数值(改造模拟用): 换上后该副属性固定为该值(不含磨砺) */
+const GEM_VALUES = { hp_flat: 1170, hp_pct: 11, atk_flat: 90, atk_pct: 11, def_flat: 90, def_pct: 11, spd: 5, cr: 6, cd: 7, res: 11, acc: 11 };
+/** 未满级投影: 每剩余一roll期望 +28 分; 距线 50 以内即值得先强化 */
+const PROJ_PER_ROLL = 28;
+const PROJ_MARGIN = 50;
+/** 速度载体判定: 单条速度(含磨砺)达到该值即无条件保留 */
+const SPEED_KEEP = 22;
 
 /**
  * 角色+贡献明细(供 rlScore 与改造模拟复用)
@@ -46,7 +61,7 @@ function roleFit(rune, meta) {
 	for (const sub of rune.subs || []) {
 		const max = maxRollFor(meta, rune.stars, sub.stat);
 		if (!max) continue;
-		rows.push({ stat: sub.stat, rolls: ((sub.value || 0) + (sub.grind || 0)) / max, raw: sub });
+		rows.push({ stat: sub.stat, rolls: ((sub.value || 0) + (sub.grind || 0)) / max });
 	}
 	const innate = rune.innate && rune.innate.stat ? rune.innate : null;
 	const innateMax = innate ? maxRollFor(meta, rune.stars, innate.stat) : null;
@@ -66,11 +81,12 @@ function roleFit(rune, meta) {
 		if (innate && innateMax) {
 			const w = preset.w[innate.stat];
 			if (w) {
-				sum += w * (innate.value / innateMax) * 0.5;
-				parts.push({ stat: innate.stat, contrib: w * (innate.value / innateMax) * 0.5, rolls: innate.value / innateMax });
+				const contrib = w * (innate.value / innateMax) * 0.5;
+				sum += contrib;
+				parts.push({ stat: innate.stat, contrib, rolls: innate.value / innateMax });
 			}
 		}
-		if (!best || sum > best.score) best = { score: sum * RL_SCALE, role, parts };
+		if (!best || sum > best.score) best = { score: sum, role, parts };
 	}
 	return best || { score: 0, role: 'allround', parts: [] };
 }
@@ -85,43 +101,43 @@ export function rlScore(rune, meta) {
 }
 
 /**
- * 自动分界线: 已满级且主属性合格(偶数槽非平值)符文的 RL 分 35 分位数(同账号对照 swlens 实判一致率 73.4%, 取其最优)。
- * 样本 < 20 时回退固定 180(保守值)。
+ * 自动分界线: 已满级符文 RL 分的 25 分位(与参考站 autoLine 同构——其 head 字段暴露
+ * autoLine=177 恰为本号满级 RL 的 24.8 分位)。样本 < 20 回退固定 210。
  */
 export function autoLine(runes, meta) {
 	const scores = [];
 	for (const r of runes || []) {
 		if ((r.level || 0) < 12) continue;
-		if ([2, 4, 6].includes(r.slot) && /_flat$/.test(r.main?.stat || '')) continue;
 		scores.push(roleFit(r, meta).score);
 	}
-	if (scores.length < 20) return 180;
+	if (scores.length < 20) return 210;
 	scores.sort((a, b) => a - b);
-	const q = Math.floor(scores.length * 0.35);
+	const q = Math.floor(scores.length * 0.25);
 	return Math.round(scores[Math.min(q, scores.length - 1)]);
 }
 
 /**
- * 改造模拟: 把贡献最低的副属性换成该角色权重最高、当前缺失的属性(满roll+满磨砺≈1.5roll)。
- * @returns {{from:string, to:string, gain:number} | null} 无可换/无可增益返回 null
+ * 改造模拟: 遍历"任一现有副属性 → 任一未拥有属性(按传奇宝石固定值)", 取 RL 增益最大者。
+ * @returns {{from:string, to:string, gain:number} | null} 无正增益返回 null
  */
 function gemPlan(rune, meta, fit) {
-	if (!fit.parts.length) return null;
-	const preset = ROLE_PRESETS[fit.role].w;
-	const present = new Set((rune.subs || []).map((s) => s.stat));
-	// 目标: 权重最高的未出现属性
-	let to = null, toW = 0;
-	for (const [stat, w] of Object.entries(preset)) {
-		if (present.has(stat)) continue;
-		if (w > toW && maxRollFor(meta, rune.stars, stat)) { to = stat; toW = w; }
+	if ((rune.subs || []).length < 4) return null; // 未满4条先补条, 谈不上定向改造
+	const w = ROLE_PRESETS[fit.role].w;
+	const present = new Set();
+	for (const s of rune.subs || []) present.add(s.stat);
+	if (rune.innate?.stat) present.add(rune.innate.stat);
+	let best = null;
+	for (const p of fit.parts) {
+		if (!w[p.stat]) continue;
+		for (const [to, gv] of Object.entries(GEM_VALUES)) {
+			if (present.has(to)) continue;
+			const toMax = maxRollFor(meta, rune.stars, to);
+			if (!toMax || !w[to]) continue;
+			const gain = (w[to] * gv) / toMax - p.contrib;
+			if (gain > 0 && (!best || gain > best.gain)) best = { from: p.stat, to, gain };
+		}
 	}
-	if (!to) return null;
-	// 最差贡献条
-	let worst = fit.parts[0];
-	for (const p of fit.parts) if (p.contrib < worst.contrib) worst = p;
-	const newRolls = 1.5; // 满roll + 满磨砺近似
-	const gain = (toW * newRolls - worst.contrib) * RL_SCALE;
-	return gain > 0 ? { from: worst.stat, to, gain } : null;
+	return best;
 }
 
 /** 偶数槽平值主属性 / 6号位抵抗主属性 判定 */
@@ -132,39 +148,45 @@ function weakMain(rune) {
 	return null;
 }
 
-/** 速度载体: 副属性速度 roll 数(含磨砺) */
-function speedRolls(rune, meta) {
-	const spd = (rune.subs || []).find((s) => s.stat === 'spd');
-	const max = maxRollFor(meta, rune.stars, 'spd');
-	return spd && max ? ((spd.value || 0) + (spd.grind || 0)) / max : 0;
+/** 单条速度值(副属性含磨砺取最大; 固有速度也算) */
+function speedValue(rune) {
+	let v = 0;
+	for (const s of rune.subs || []) {
+		if (s.stat === 'spd') v = Math.max(v, (s.value || 0) + (s.grind || 0));
+	}
+	if (rune.innate?.stat === 'spd') v = Math.max(v, rune.innate.value || 0);
+	return v;
 }
 
 /**
- * 出售判定 v2
+ * 出售判定 v2.5
  * @param {object} rune 归一化符文
  * @param {object} meta rune_meta(需 maxRolls)
- * @param {object} rules { line?:number(手动线, 缺省用 fallbackLine), fallbackLine=180, maxLevel=12 }
+ * @param {object} rules { line?:number(手动线, 缺省用 fallbackLine), fallbackLine=210, powerupLevel=12 }
  * @returns {{verdict:'keep'|'sell'|'gem'|'powerup', why:string, line:number, rl:number, role:string, plan?:{from,to,gain}, potential?:number}}
  */
 export function sellAdvice(rune, meta, rules) {
 	const r = rules || {};
-	const line = typeof r.line === 'number' ? r.line : (r.fallbackLine ?? 180);
+	const line = typeof r.line === 'number' ? r.line : (r.fallbackLine ?? 210);
 	const powerupLevel = r.powerupLevel ?? 12;
-	// 优先级校准自 swlens 行为: 未满 +12 一律先强化(含已装备的), 其 powerup 全部 <12 级
 	const fit = roleFit(rune, meta);
 	const rl = Math.round(fit.score * 10) / 10;
+	const spd = speedValue(rune);
 
-	if ((rune.level || 0) < powerupLevel && rune.stars >= 5) {
-		return { verdict: 'powerup', why: 'unfinished', line, rl, role: fit.role };
-	}
 	if (rune.locked) return { verdict: 'keep', why: 'locked', line, rl, role: fit.role };
-	if (rune.equipped) return { verdict: 'keep', why: 'equipped', line, rl, role: fit.role };
-	// 弱主属性: 仅当速度载体(≥3个满roll速度)才保留
+	if (rune.stars < 5) return { verdict: 'sell', why: 'low-stars', line, rl, role: fit.role };
 	const weak = weakMain(rune);
-	if (weak) {
-		if (speedRolls(rune, meta) >= 3) return { verdict: 'keep', why: 'speed', line, rl, role: fit.role };
-		return { verdict: 'sell', why: weak, line, rl, role: fit.role };
+	if (weak && spd < SPEED_KEEP) return { verdict: 'sell', why: weak, line, rl, role: fit.role };
+	if ((rune.level || 0) < powerupLevel) {
+		// 满级投影: 剩余每roll按期望 +PROJ_PER_ROLL, 距线 PROJ_MARGIN 内即值得先强化
+		const remain = Math.ceil((powerupLevel - (rune.level || 0)) / 3);
+		const potential = Math.round((rl + PROJ_PER_ROLL * remain) * 10) / 10;
+		if (potential >= line - PROJ_MARGIN) {
+			return { verdict: 'powerup', why: 'unfinished', line, rl, role: fit.role, potential };
+		}
+		return { verdict: 'sell', why: 'not-worth', line, rl, role: fit.role, potential };
 	}
+	if (spd >= SPEED_KEEP) return { verdict: 'keep', why: 'speed', line, rl, role: fit.role };
 	if (rl >= line) return { verdict: 'keep', why: 'line', line, rl, role: fit.role };
 	const plan = gemPlan(rune, meta, fit);
 	const potential = plan ? Math.round((rl + plan.gain) * 10) / 10 : rl;

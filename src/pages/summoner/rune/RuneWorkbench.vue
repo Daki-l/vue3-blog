@@ -245,9 +245,9 @@ const setInfo = (id) => meta.value?.sets?.[String(id)];
 const SET_COLORS = ['#8a9ba8', '#7a6ff0', '#4bb3ff', '#e05a5a', '#f08c2e', '#59c15c', '#c9a13b', '#a06fd6', '#2ec4b6', '#d6598f', '#8b6f47', '#6f87d6'];
 const setColor = (id) => SET_COLORS[(id - 1) % SET_COLORS.length];
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-const lineManual = computed({ get: () => manualLine.value != null, set: (v) => { manualLine.value = v ? (autoLineV.value || 180) : null; try { v ? localStorage.setItem('sw_rune_line', String(manualLine.value)) : localStorage.removeItem('sw_rune_line'); } catch {} } });
+const lineManual = computed({ get: () => manualLine.value != null, set: (v) => { manualLine.value = v ? (autoLineV.value || 210) : null; try { v ? localStorage.setItem('sw_rune_line', String(manualLine.value)) : localStorage.removeItem('sw_rune_line'); } catch {} } });
 const manualLineV = computed({ get: () => manualLine.value ?? autoLineV.value, set: (v) => { manualLine.value = v; try { localStorage.setItem('sw_rune_line', String(v)); } catch {} } });
-const WHY_KEYS = { equipped: 'rune.whyEquipped', locked: 'rune.whyLocked', unfinished: 'rune.whyUnfinished', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth' };
+const WHY_KEYS = { locked: 'rune.whyLocked', unfinished: 'rune.whyUnfinished', 'flat-main': 'rune.whyFlatMain', 'res-main': 'rune.whyResMain', speed: 'rune.whySpeed', line: 'rune.whyLine', gem: 'rune.whyGem', 'not-worth': 'rune.whyNotWorth', 'low-stars': 'rune.whyLowStars' };
 const whyText = (r) => {
 	const a = r?._adv || (r ? adviceOf(r) : null);
 	if (!a) return '';
@@ -406,9 +406,11 @@ const columns = [
 	{ key: 'advice', dataKey: '_advice', title: t('rune.colAdvice'), width: 90, cellRenderer: ({ cellData: v }) => adviceTag(v) }
 ];
 const rowClass = ({ rowIndex }) => (rowIndex % 2 ? 'odd_row' : '');
-/** 兼容 el-table-v2 的 (row, event) 与卡片直传 rune 两种形态 */
-const openDetail = (p, _e) => {
-	detail.value = p?.row ?? p;
+/** 兼容 el-table-v2 的 ({rowData})/(row, event) 与卡片直传 rune 等形态 */
+const openDetail = (p) => {
+	const r = p?.rowData ?? p?.row ?? (p && p.slot && p.main ? p : null);
+	if (!r) return;
+	detail.value = r;
 	detailShow.value = true;
 };
 const onImgErr = (e) => { e.target.style.visibility = 'hidden'; };
