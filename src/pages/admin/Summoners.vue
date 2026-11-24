@@ -64,8 +64,8 @@
 				@current-change="handlePageChange" />
 		</div>
 
-		<!-- 详情抽屉:统一记录(兑换流水+历史查询按时间合并;历史行兑换码/结果为空,服务器按同账号补齐) -->
-		<el-drawer v-model="detailVisible" :title="detailTitle" size="60%">
+		<!-- 详情弹窗(居中):统一记录(兑换流水+历史查询按时间合并;历史行兑换码/结果为空,服务器按同账号补齐) -->
+		<el-dialog v-model="detailVisible" :title="detailTitle" width="72%" class="records_dialog">
 			<el-table :data="detailList" border v-loading="detailLoading" size="small">
 				<el-table-column label="时间" width="165">
 					<template #default="{ row }">{{ formatDateTime(row.at) }}</template>
@@ -91,7 +91,7 @@
 			<div class="pagination_box" v-if="detailTotal > detailPageSize">
 				<el-pagination background small layout="total, prev, pager, next" :total="detailTotal" :page-size="detailPageSize" :current-page="detailPage" @current-change="handleDetailPageChange" />
 			</div>
-		</el-drawer>
+		</el-dialog>
 	</div>
 </template>
 
@@ -227,5 +227,11 @@ onMounted(() => {
 	.success_text {
 		color: #67c23a;
 	}
+}
+
+// 详情居中弹窗: 正文限高滚动(弹窗渲染在本组件内, 经祖先类定位)
+.admin_summoners_wrapper .el-dialog__body {
+	max-height: 62vh;
+	overflow-y: auto;
 }
 </style>

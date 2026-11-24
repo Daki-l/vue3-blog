@@ -204,8 +204,8 @@
 			</el-tabs>
 		</template>
 
-		<!-- 符文详情抽屉 -->
-		<el-drawer v-model="detailShow" :title="t('rune.detailTitle')" size="360px">
+		<!-- 符文详情(居中弹窗) -->
+		<el-dialog v-model="detailShow" :title="t('rune.detailTitle')" width="380px">
 			<template v-if="detail">
 				<div class="dt_head">
 					<span class="dt_slot">#{{ detail.slot }}</span>
@@ -242,12 +242,14 @@
 					</div>
 				<div class="dt_formula">{{ t('rune.effFormula') }}</div>
 			</template>
-		</el-drawer>
+		</el-dialog>
 
-		<!-- SWEX 生成指南 -->
-		<el-drawer v-model="guideShow" :title="t('guide.title')" size="520px">
-			<SwexGuide />
-		</el-drawer>
+		<!-- SWEX 生成指南(居中弹窗) -->
+		<el-dialog v-model="guideShow" :title="t('guide.title')" width="680px">
+			<div class="guide_body">
+				<SwexGuide />
+			</div>
+		</el-dialog>
 	</div>
 </template>
 
@@ -924,6 +926,11 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 	.sub_item { font-size: 12px; color: #606266; white-space: nowrap; }
 	.grind { color: #67c23a; }
 	.gem { color: #e6a23c; font-style: normal; }
+}
+// SWEX 指南居中弹窗: 正文限高滚动
+.guide_body {
+	max-height: 64vh;
+	overflow-y: auto;
 }
 :deep(.el-table-v2__row) { cursor: pointer; }
 :deep(.eff_num) { color: #303133; }

@@ -19,6 +19,21 @@
 			<li>
 				<b>{{ t('guide.step1Title') }}</b>
 				<p>{{ t('guide.step1a') }}<a :href="RELEASES" target="_blank" rel="noopener noreferrer">GitHub Releases</a>{{ t('guide.step1b') }}</p>
+				<!-- 安装包直链: 缓存于本站 R2(国内可直连), GitHub 为源站备选 -->
+				<div class="sg_dl">
+					<div class="sg_dl_head">
+						<span>{{ t('guide.dlTitle') }}</span>
+						<span class="sg_dl_ver">v{{ VERSION }}</span>
+					</div>
+					<div v-for="f in DL_FILES" :key="f.labelKey" class="sg_dl_row">
+						<span class="sg_dl_name">{{ t(f.labelKey) }}<i>{{ f.size }}</i></span>
+						<span class="sg_dl_links">
+							<a class="sg_dl_btn" :href="f.r2" :download="f.file">{{ t('guide.dlHere') }}</a>
+							<a :href="f.gh" target="_blank" rel="noopener noreferrer">GitHub</a>
+						</span>
+					</div>
+					<p class="sg_dl_note">{{ t('guide.dlNote') }}<a :href="RELEASES" target="_blank" rel="noopener noreferrer">GitHub Releases</a></p>
+				</div>
 			</li>
 			<li>
 				<b>{{ t('guide.step2Title') }}</b>
@@ -85,6 +100,15 @@ import { t } from '@/common/i18n';
 
 const REPO = 'https://github.com/xzandro/sw-exporter';
 const RELEASES = `${REPO}/releases/latest`;
+/** 所缓存的 SWEX 版本(与 R2 对象一致); 更新时同步这里与 R2 文件 */
+const VERSION = '1.1.0';
+const R2_BASE = 'https://static.linow.us.kg/swex';
+const GH_BASE = `https://github.com/Xzandro/sw-exporter/releases/download/v${VERSION}`;
+const DL_FILES = [
+	{ file: `Summoners-War-Exporter-Setup-${VERSION}-win.exe`, labelKey: 'guide.dlWinSetup', size: '≈110 MB' },
+	{ file: `Summoners-War-Exporter-Portable-${VERSION}-win.exe`, labelKey: 'guide.dlWinPortable', size: '≈110 MB' },
+	{ file: `Summoners-War-Exporter-${VERSION}-mac.dmg`, labelKey: 'guide.dlMac', size: '≈225 MB' }
+].map((f) => ({ ...f, r2: `${R2_BASE}/${f.file}`, gh: `${GH_BASE}/${f.file}` }));
 </script>
 
 <style lang="less" scoped>
@@ -109,6 +133,41 @@ const RELEASES = `${REPO}/releases/latest`;
 		> li { margin-bottom: 14px; }
 		p { margin: 4px 0 0; }
 		a { color: #409eff; text-decoration: none; &:hover { text-decoration: underline; } }
+	}
+	.sg_dl {
+		margin-top: 8px;
+		border: 1px solid #ebeef5;
+		border-radius: 6px;
+		padding: 8px 12px;
+		font-size: 13px;
+		.sg_dl_head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			font-weight: 600;
+			color: #303133;
+			margin-bottom: 4px;
+			.sg_dl_ver { font-weight: 400; color: #909399; font-size: 12px; }
+		}
+		.sg_dl_row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			padding: 4px 0;
+			.sg_dl_name {
+				i { font-style: normal; color: #909399; margin-left: 8px; font-size: 12px; }
+			}
+			.sg_dl_links { display: inline-flex; align-items: center; gap: 12px; }
+			.sg_dl_btn {
+				background: #409eff;
+				color: #fff;
+				border-radius: 4px;
+				padding: 2px 12px;
+				&:hover { background: #66b1ff; text-decoration: none; }
+			}
+		}
+		.sg_dl_note { margin: 6px 0 0; font-size: 12px; color: #909399; }
 	}
 	.sg_sub {
 		margin-top: 8px;

@@ -377,8 +377,8 @@ export default {
 	'autoRedeem.empty': '还没有兑换码',
 
 	// SWEX 生成指南(符文管理)
-	'guide.open': '生成指南',
-	'guide.title': '如何生成 SWEX 档案',
+	'guide.open': 'SWEX 生成指南',
+	'guide.title': 'SWEX 生成指南',
 	'guide.intro': '符文管理需要你账号里的魔灵与符文数据，由开源工具 Summoner\'s War Exporter（SWEX）生成：它在电脑上运行一个代理，游戏登录时把账号数据保存为 JSON 文件。文件保存在你自己的电脑上，导入后只存于本浏览器。',
 	'guide.limitTitle': '先看限制：未 root 的 Android 7 及以上手机无法使用',
 	'guide.limitDesc': '这类系统不信任用户安装的证书。可选途径：',
@@ -387,6 +387,12 @@ export default {
 	'guide.optOldAndroid': 'Android 6 及以下：可用',
 	'guide.optEmu': 'Android 7 及以上：改用 Mumu 或 Nox 模拟器（Nox 需新建 Android 5 实例）',
 	'guide.step1Title': '下载并运行 SWEX',
+	'guide.dlTitle': '安装包直接下载（本站缓存）',
+	'guide.dlWinSetup': 'Windows 安装版',
+	'guide.dlWinPortable': 'Windows 便携版（免安装）',
+	'guide.dlMac': 'macOS 安装镜像',
+	'guide.dlHere': '本站下载',
+	'guide.dlNote': '本站已缓存安装包，国内可直接下载；新版本请前往 ',
 	'guide.step1a': '在 ',
 	'guide.step1b': ' 下载对应系统的安装包（Windows 另有免安装版），安装后运行。',
 	'guide.step2Title': '获取证书',

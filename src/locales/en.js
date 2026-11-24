@@ -377,8 +377,8 @@ export default {
 	'autoRedeem.empty': 'No codes yet',
 
 	// SWEX guide (Runes)
-	'guide.open': 'How to export',
-	'guide.title': 'How to create an SWEX file',
+	'guide.open': 'SWEX guide',
+	'guide.title': 'SWEX Guide',
 	'guide.intro': 'Runes needs the monsters and runes of your account. The data is produced by the open-source tool Summoner\'s War Exporter (SWEX): it runs a proxy on your computer and saves your account data as a JSON file when the game logs in. The file stays on your computer, and after import it lives in this browser only.',
 	'guide.limitTitle': 'Read first: unrooted Android 7+ phones cannot use SWEX',
 	'guide.limitDesc': 'These systems do not trust user-installed certificates. Your options:',
@@ -387,6 +387,12 @@ export default {
 	'guide.optOldAndroid': 'Android 6 or lower: works',
 	'guide.optEmu': 'Android 7+: use an emulator such as Mumu or Nox (Nox needs a new Android 5 instance)',
 	'guide.step1Title': 'Download and run SWEX',
+	'guide.dlTitle': 'Direct downloads (cached on this site)',
+	'guide.dlWinSetup': 'Windows installer',
+	'guide.dlWinPortable': 'Windows portable (no install)',
+	'guide.dlMac': 'macOS disk image',
+	'guide.dlHere': 'Download',
+	'guide.dlNote': 'Installers are cached on this site for direct access from mainland China. For newer versions visit ',
 	'guide.step1a': 'Download the package for your OS from ',
 	'guide.step1b': ' (Windows also offers a portable version), then run it.',
 	'guide.step2Title': 'Get the certificate',
